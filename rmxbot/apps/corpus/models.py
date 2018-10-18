@@ -214,35 +214,6 @@ class CorpusModel(Document):
     def remove_corpus_dir(self):
         shutil.rmtree(self.get_corpus_path())
 
-    # @property
-    # def available_feats(self):
-    #
-    #     # todo(): delete - this method isn't used.
-    #     path = os.path.join(self.path.get('matrix'), 'wf')
-    #
-    #     if not os.path.isdir(path):
-    #         return []
-    #
-    #     old_fcount = self.featcount
-    #     dirs = os.listdir(path)
-    #
-    #     out = []
-    #     for _ in dirs:
-    #         self.featcount = _
-    #
-    #         if not int(_) == len(self.feat):
-    #             continue  # raise RuntimeError(self)
-    #
-    #         _path = os.path.join(path, _)
-    #         out.append(dict(
-    #             featcount=_,
-    #             path=_path,
-    #             feat=os.path.join(_path, 'feat.npy'),
-    #             weights=os.path.join(_path, 'weights.npy')
-    #         ))
-    #     self.featcount = old_fcount
-    #     return out
-
     def get_features(self,
                      feats: int = 10,
                      words: int = 6,
@@ -341,32 +312,6 @@ class CorpusModel(Document):
         else:
             return sorted([int(_.get('featcount')) for _ in avl])
 
-    # def features_docs_json(self, features, docs):
-    #
-    #     # todo(): delete - no in use.
-    #     data_objects = sorted(self.get('urls'), key=lambda _: _.get('data_id'))
-    #     # count = 0
-    #     # for i in docs:
-    #     #     i['sortkey'] = count
-    #     #     count += 1
-    #
-    #     docs = sorted(docs, key=lambda _: _.get('dataid'))
-    #     for idx, doc in enumerate(docs):
-    #         data_obj = data_objects[idx]
-    #         assert data_obj.get('data_id') == doc.get('dataid')
-    #         doc.update({
-    #             'url': data_obj.get('url'),
-    #             'title': data_obj.get('title'),
-    #             'fileid': data_obj.get('file_id')
-    #         })
-    #     for _ftr in features:
-    #         for _doc in _ftr.get('docs'):
-    #             docidx = binary_search(
-    #                 docs, 'dataid', value=_doc.get('dataid'),
-    #                 value_type=bson.ObjectId)
-    #             doc = docs[docidx]
-    #     return features, docs
-
     def get_url_doc(self, docid):
         """ Get the url doc for id. """
         try:
@@ -432,56 +377,6 @@ def insert_many_data_objects(corpusid: (str, bson.ObjectId) = None,
 def get_urls_length(corpus_id):
     doc = _COLLECTION.find_one({'_id': bson.ObjectId(corpus_id)}, {'urls': 1})
     return len(doc.get('urls'))
-
-
-# def update_celerytask_ids(corpus_id, task_ids):
-#     """
-#     """
-#     # todo(): review and delete - not in use
-#     _COLLECTION.update(
-#         {'_id': bson.ObjectId(corpus_id)},
-#         {'$push': {'_task_ids': {'$each': task_ids}}}
-#     )
-
-
-# def remove_from_celerytask_ids(corpus_id, task_id):
-#
-#     # todo(): review and delete - not in use
-#     _COLLECTION.update(
-#         {'_id': bson.ObjectId(corpus_id)},
-#         {'$pull': {'_task_ids': task_id}}
-#     )
-
-
-# def update_celerygroup_ids(corpus_id, group_ids):
-#     """
-#     """
-#
-#     # todo(): review and delete - not in use
-#     _COLLECTION.update(
-#         {'_id': bson.ObjectId(corpus_id)},
-#         {'$push': {'_group_ids': {'$each': group_ids}}}
-#     )
-
-
-# def remove_from_celerygroup_ids(corpus_id, group_id):
-#
-#     # todo(): review and delete - not in use
-#     _COLLECTION.update(
-#         {'_id': bson.ObjectId(corpus_id)},
-#         {'$pull': {'_group_ids': group_id}}
-#     )
-
-
-# def readiness_check(corpus_id):
-#
-#     # todo(): review and delete - not in use
-#     _id = bson.ObjectId(corpus_id)
-#     corpus = _COLLECTION.find_one({'_id': _id}, {
-#         '_group_ids': 1, '_task_ids': 1})
-#     if not corpus.get('_group_ids') and not corpus.get('_task_ids'):
-#         _COLLECTION.update({'_id': _id},
-#                            {'$set': {'crawl_ready': True}})
 
 
 def set_crawl_ready(corpusid, value):
