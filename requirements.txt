@@ -1,0 +1,7 @@
+bson
+celery
+requests
+pymongo
+Django
+django-debug-toolbar
+numpy

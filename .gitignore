@@ -1,0 +1,10 @@
+.idea
+**/.pyc
+**/.*~
+*.*~
+rmxbot.egg-*
+**/__pycache__
+**/*.jpg
+**/*.jpeg
+**/*.png
+
