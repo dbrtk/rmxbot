@@ -1,9 +1,9 @@
 # rmxbot
 
-The project that runs proximity-bot; it uses scrasync (https://github.com/dbrtk/scrasync) and nlp (https://github.com/dbrtk/nlp); these should be deployed on their own servers.
+The project that runs proximity-bot; it uses scrasync (https://github.com/dbrtk/scrasync) and nlp (https://github.com/dbrtk/nlp); these should be deployed on their own servers. The server that runs rmxbot requires Pyhton 3, Mongodb and Redis; all other dependencies will be installed automatically.
 
 
-Requirements are:
+Package requirements are:
 * rmxbot-tpl (https://github.com/dbrtk/rmxbot-tpl);
 * rmx (https://github.com/dbrtk/rmx).
 
