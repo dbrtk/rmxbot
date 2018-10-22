@@ -20,7 +20,7 @@ DEFAULT_CRAWL_DEPTH = 2
 NLP_REMOTE_WORKER = True
 
 # NLP_ENDPOINT = 'http://nlp.proximity-bot.net'
-NLP_ENDPOINT = 'http://localhost:8080'
+NLP_ENDPOINT = 'http://localhost:8001'
 NLP_DENDOGRAM = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'dendogram'])
 
@@ -48,7 +48,7 @@ NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
 SCRASYNC_REMOTE_WORKER = True
 
 # SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
-SCRASYNC_ENDPOINT = 'http://localhost:8081'
+SCRASYNC_ENDPOINT = 'http://localhost:8002'
 
 SCRASYNC_CREATE = '/'.join(
     s for s in [SCRASYNC_ENDPOINT, 'scrasync', 'create'])
