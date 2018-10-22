@@ -63,6 +63,7 @@ def compute_features_weights(self, vectors_path, **kwds):
         'payload': json.dumps(kwds)
     })
 
+
 @shared_task(bind=True)
 def crawl_async(self, url_list: list = None, corpus_id=None, crawl=False,
                 depth=1, corpus_file_path: str = None):
