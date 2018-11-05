@@ -74,8 +74,9 @@ MONGODB_NAME = 'rmx'
 # The location of the mongodb server.
 # the hoset can be se to: '127.0.0.1'  # 'http://proximity-bot.net'
 # in the case of a docker container (that runs mongodb), it will be:
-# os.environ['DB_PORT_27017_TCP_ADDR']
-MONGODB_LOCATION = os.environ.get('DB_PORT_27017_TCP_ADDR', '127.0.0.1')  # 'proximitybot.com'
+# os.environ['DB_PORT_27017_TCP_ADDR']; the default is set to 127.0.0.1
+# MONGODB_LOCATION = os.environ.get('DB_PORT_27017_TCP_ADDR', '127.0.0.1')  # 'proximitybot.com'
+MONGODB_LOCATION = 'db'  # 'proximitybot.com'
 MONGODB_PORT = 27017
 MONGODB_USR = 'dbuser_if_any'
 MONGODB_PWD = 'password_if_any'
