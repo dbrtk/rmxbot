@@ -72,9 +72,13 @@ CORPUS_MAX_SIZE = 400
 # MONGODB
 MONGODB_NAME = 'rmx'
 # The location of the mongodb server.
-MONGODB_LOCATION = '127.0.0.1'  # 'proximitybot.com'
-MONGODB_USR = 'dbuser'
-MONGODB_PWD = 'password'
+# the hoset can be se to: '127.0.0.1'  # 'http://proximity-bot.net'
+# in the case of a docker container (that runs mongodb), it will be:
+# os.environ['DB_PORT_27017_TCP_ADDR']
+MONGODB_LOCATION = os.environ['DB_PORT_27017_TCP_ADDR']  # 'proximitybot.com'
+
+MONGODB_USR = 'dbuser_if_any'
+MONGODB_PWD = 'password_if_any'
 
 # names given to the mongodb collections
 DATA_COLL = 'data'
