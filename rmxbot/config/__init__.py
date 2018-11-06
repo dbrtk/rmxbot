@@ -48,7 +48,7 @@ NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
 SCRASYNC_REMOTE_WORKER = True
 
 # SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
-SCRASYNC_ENDPOINT = 'http://localhost:8002'
+SCRASYNC_ENDPOINT = 'http://scrasyncweb:8000'
 
 SCRASYNC_CREATE = '/'.join(
     s for s in [SCRASYNC_ENDPOINT, 'scrasync', 'create'])
