@@ -1,5 +1,5 @@
 bson
-celery
+celery[redis]
 requests
 pymongo
 Django
