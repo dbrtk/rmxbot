@@ -20,7 +20,7 @@ DEFAULT_CRAWL_DEPTH = 2
 NLP_REMOTE_WORKER = True
 
 # NLP_ENDPOINT = 'http://nlp.proximity-bot.net'
-NLP_ENDPOINT = 'http://localhost:8001'
+NLP_ENDPOINT = 'http://nlpweb:8001'
 NLP_DENDOGRAM = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'dendogram'])
 
