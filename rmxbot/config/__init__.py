@@ -63,7 +63,7 @@ if not SCRASYNC_CRAWL_READY.endswith('/'):
 # configurations that are related to the corpus and its data storage
 # DATA_ROOT = '/data'
 # DATA_ROOT = os.path.join(PROXIMITY_BOT_PROJ, 'data')
-DATA_ROOT = '/data'
+DATA_ROOT = '/data/rmxbotdata'
 
 CORPUS_ROOT = os.path.normpath(DATA_ROOT)
 
