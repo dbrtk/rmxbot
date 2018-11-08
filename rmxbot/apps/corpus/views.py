@@ -14,7 +14,7 @@ from django.views.generic.base import TemplateView
 import pymongo
 import requests
 
-from ...config import (DEFAULT_CRAWL_DEPTH, SCRASYNC_CRAWL_READY)
+from ...config import (DEFAULT_CRAWL_DEPTH, SCRASYNC_CRAWL_READY, TMP_DATA_DIR)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
@@ -493,7 +493,8 @@ def create_corpus_upload(request):
         # todo(): delete
         # outf_name = None
         file_name = _file.name
-        with tempfile.NamedTemporaryFile(delete=False) as outf:
+        with tempfile.NamedTemporaryFile(
+                delete=False, dir=TMP_DATA_DIR) as outf:
             outf_name = outf.name
             for line in _file.readlines():
                 outf.write(line)

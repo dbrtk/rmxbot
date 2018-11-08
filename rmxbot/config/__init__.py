@@ -65,6 +65,9 @@ if not SCRASYNC_CRAWL_READY.endswith('/'):
 # DATA_ROOT = os.path.join(PROXIMITY_BOT_PROJ, 'data')
 DATA_ROOT = '/data/rmxbotdata'
 
+# the tmp directory used by rmxbot when processing files, etc...
+TMP_DATA_DIR = '/data/tmp'
+
 CORPUS_ROOT = os.path.normpath(DATA_ROOT)
 
 CORPUS_MAX_SIZE = 400
