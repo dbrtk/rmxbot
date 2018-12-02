@@ -2,6 +2,7 @@
 import json
 import os
 import shlex
+import shutil
 import subprocess
 
 from celery import shared_task
@@ -9,6 +10,7 @@ import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
                        NLP_GENERATE_FEATURES_WEIGTHS, SCRASYNC_CREATE)
+from ...core import sync_corpus
 from .models import CorpusModel, get_urls_length
 
 
@@ -53,11 +55,18 @@ def generate_matrices_remote(
 @shared_task(bind=True)
 def compute_matrices(self, **kwds):
     """ Calling compute matrice son the nlp server. """
-    requests.post(NLP_COMPUTE_MATRICES, json=kwds)
+    print('sdf osidjf osjd fo jso')
+    path_to_zip, tmp_dir = sync_corpus.zip_corpus(kwds.get('corpusid'))
+
+    requests.post(NLP_COMPUTE_MATRICES,
+                  data={'params': json.dumps(kwds)},
+                  files={'file': open(path_to_zip, 'rb')})
 
 
 @shared_task(bind=True)
 def compute_features_weights(self, vectors_path, **kwds):
+
+    # todo(): compress the matrices and send these to the nlp server.
 
     requests.post(NLP_GENERATE_FEATURES_WEIGTHS, data={
         'payload': json.dumps(kwds)

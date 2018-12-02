@@ -141,9 +141,17 @@ class CorpusModel(Document):
             )
         ))
 
+    @property
+    def corpus_name(self): return str(self.get_id())
+
     def get_vectors_path(self):
         """ Returns the path of the file that contains the vectors. """
         return os.path.join(self.get_corpus_path(), 'matrix', 'vectors.npy')
+
+    @property
+    def vectors_in_corpus(self):
+        """Returns the location of vectors within a corpus."""
+        return os.path.join(self.corpus_name, 'matrix', 'vectors.npy')
 
     def get_lemma_path(self):
         """Returns the path to the json file that contains the mapping between
