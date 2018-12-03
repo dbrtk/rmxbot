@@ -4,10 +4,10 @@
 from pymongo import MongoClient
 
 # from ...config import MONGODB_LOCATION MONGODB_NAME, MONGODB_PWD, MONGODB_USR
-from ...config import MONGODB_NAME
+from ...config import MONGODB_LOCATION, MONGODB_NAME, MONGODB_PORT
 
 # guest connection
-CLIENT = MongoClient()
+CLIENT = MongoClient(MONGODB_LOCATION, MONGODB_PORT)
 
 # CLIENT.rmx.authenticate(MONGODB_USR,
 #                         MONGODB_PWD,
