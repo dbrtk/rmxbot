@@ -153,6 +153,13 @@ class CorpusModel(Document):
         """Returns the location of vectors within a corpus."""
         return os.path.join(self.corpus_name, 'matrix', 'vectors.npy')
 
+    @property
+    def matrix_path(self):
+        return os.path.join(self.get_corpus_path(), 'matrix')
+
+    @property
+    def wf_path(self): return os.path.join(self.matrix_path, 'wf')
+
     def get_lemma_path(self):
         """Returns the path to the json file that contains the mapping between
            lemma and words, as these appear in the corpus.
