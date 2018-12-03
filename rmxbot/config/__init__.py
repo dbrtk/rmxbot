@@ -1,12 +1,15 @@
 
 import os
+import stat
 
 from django.conf import settings
 
 HERE = os.path.abspath(__file__)
 
 # PROXIMITY_BOT_PROJ is specific to the local deployment of proximity-bot.
+# todo(): delete in production
 PROXIMITY_BOT_PROJ = settings.PROJECT_DIR
+
 
 SCRIPTS = os.path.abspath(os.path.join(
     HERE, os.pardir, os.pardir, os.pardir, 'bin'))
@@ -14,6 +17,8 @@ if not os.path.isdir(SCRIPTS):
     raise RuntimeError(SCRIPTS)
 
 SEARCH_CORPUS_SH = os.path.join(SCRIPTS, 'search_corpus.sh')
+os.chmod(SEARCH_CORPUS_SH, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
 
 DEFAULT_CRAWL_DEPTH = 2
 
@@ -32,18 +37,11 @@ NLP_GENERATE_FEATURES_WEIGTHS = '/'.join(
 NLP_COMPUTE_MATRICES = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'compute-matrices'])
 
-
 NLP_GENERATE_ALL = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'generate-all'])
 
 NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'features-docs'])
-
-# NLP_FEATURES_COUNT = '/'.join(
-#     s.strip('/') for s in [NLP_ENDPOINT, 'nlp', 'features-count'])
-# NLP_REMOVE_FEATURE = '/'.join(
-#     s.strip('/') for s in [NLP_ENDPOINT, 'nlp', 'remove-feature'])
-
 
 SCRASYNC_REMOTE_WORKER = True
 
@@ -68,14 +66,8 @@ CORPUS_ROOT = os.path.normpath(DATA_ROOT)
 
 CORPUS_MAX_SIZE = 400
 
-# DATABASE configuration
-# MONGODB
+# DATABASE configuration - MONGODB
 MONGODB_NAME = 'rmx'
-# The location of the mongodb server.
-# the hoset can be se to: '127.0.0.1'  # 'http://proximity-bot.net'
-# in the case of a docker container (that runs mongodb), it will be:
-# os.environ['DB_PORT_27017_TCP_ADDR']; the default is set to 127.0.0.1
-# MONGODB_LOCATION = os.environ.get('DB_PORT_27017_TCP_ADDR', '127.0.0.1')  # 'proximitybot.com'
 MONGODB_LOCATION = '127.0.0.1'
 MONGODB_PORT = 27017
 MONGODB_USR = 'dbuser_if_any'
@@ -86,5 +78,3 @@ DATA_COLL = 'data'
 IMAGE_COLL = 'image'
 CORPUS_COLL = 'corpus'
 CLUSTER_COLL = 'cluster'
-
-
