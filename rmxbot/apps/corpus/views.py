@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import shutil
 import tempfile
 from urllib.parse import urlencode
 import uuid
@@ -446,6 +447,13 @@ def test_celery_task(request):
 def nlp_callback(request):
 
     obj = json.loads(request.POST.get('payload'))
+    corpus = CorpusModel.inst_by_id(obj.get('corpusid'))
+
+    shutil.unpack_archive(
+        request.FILES['file'].temporary_file_path(),
+        corpus.wf_path,
+        'zip'
+    )
 
     error = obj.get('error')
     if error:
@@ -508,3 +516,21 @@ def create_corpus_upload(request):
     return HttpResponseRedirect(
         '/corpus/{}/?{}'.format(
             str(docid), urlencode(dict(status='newly-created'))))
+
+
+@csrf_exempt
+def sync_matrices(request):
+    """Synchronizing matrices after these have been computed and returned by
+       NLP.
+    """
+    params = request.POST.dict()
+    path = request.FILES['file'].temporary_file_path()
+    corpus = CorpusModel.inst_by_id(params.get('corpusid'))
+
+    shutil.unpack_archive(path, corpus.matrix_path)
+
+    if os.path.exists(path):
+        os.remove(path)
+
+    corpus.del_status_feats(feats=int(params.get('feats')))
+    return JsonResponse({'success': True, 'corpusid': params.get('corpusid')})

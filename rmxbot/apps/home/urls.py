@@ -1,13 +1,12 @@
-from django.conf.urls import include, url
+
+from django.urls import path
 
 from rmxbot.apps.home import views
 
 
 urlpatterns = [
-    # Examples:
-    # url(r'^$', 'thesite.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
 
-    url(r'^$', views.home),
+    path('', views.home),
+    path('see-how-it-works', views.HowTo.as_view(), name='howto'),
 
 ]
