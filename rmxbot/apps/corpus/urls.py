@@ -23,6 +23,8 @@ urlpatterns = [
         views.CorpusDataView.as_view(), name='data_corpus'),
 
 
+    path('sync-matrices/', views.sync_matrices),
+
     url(r'^(?P<corpusid>[0-9a-zA-Z]*)/file/(?P<dataid>[0-9a-zA-Z]*)/$',
         views.get_text_file),
 
