@@ -2,14 +2,8 @@
 import os
 import stat
 
-from django.conf import settings
 
 HERE = os.path.abspath(__file__)
-
-# PROXIMITY_BOT_PROJ is specific to the local deployment of proximity-bot.
-# todo(): delete in production
-PROXIMITY_BOT_PROJ = settings.PROJECT_DIR
-
 
 SCRIPTS = os.path.abspath(os.path.join(
     HERE, os.pardir, os.pardir, os.pardir, 'bin'))
@@ -59,12 +53,11 @@ if not SCRASYNC_CRAWL_READY.endswith('/'):
     SCRASYNC_CRAWL_READY = '{}/'.format(SCRASYNC_CRAWL_READY)
 
 # configurations that are related to the corpus and its data storage
-# DATA_ROOT = '/data'
-# DATA_ROOT = os.path.join(PROXIMITY_BOT_PROJ, 'data')
-DATA_ROOT = '/data/rmxbotdata'
+DATA_ROOT = '/data'
 
 # the tmp directory used by rmxbot when processing files, etc...
-TMP_DATA_DIR = '/data/tmp'
+# TMP_DATA_DIR = '/data/tmp'
+TMP_DATA_DIR = '/tmp'
 
 CORPUS_ROOT = os.path.normpath(DATA_ROOT)
 
