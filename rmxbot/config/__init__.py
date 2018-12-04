@@ -65,7 +65,8 @@ CORPUS_MAX_SIZE = 400
 
 # DATABASE configuration - MONGODB
 MONGODB_NAME = 'rmx'
-MONGODB_LOCATION = '127.0.0.1'
+# MONGODB_LOCATION = '127.0.0.1'
+MONGODB_LOCATION = 'localhost'
 MONGODB_PORT = 27017
 MONGODB_USR = 'dbuser_if_any'
 MONGODB_PWD = 'password_if_any'
