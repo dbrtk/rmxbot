@@ -20,7 +20,7 @@ def create(request):
     """Creates a data object. This endpoint is called from scrasync for every
        scraped page.
     """
-    request_dict = json.loads(request.body)
+    request_dict = json.loads(request.body.decode("utf-8"))
 
     data_tasks.call_data_create.delay(**request_dict)
     return JsonResponse({'success': True})
