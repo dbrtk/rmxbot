@@ -4,7 +4,7 @@ import os
 import shutil
 import tempfile
 
-from ...config import DATA_ROOT
+from ...config import CORPUS_ROOT
 
 
 def zip_corpus(corpusid):
@@ -13,7 +13,7 @@ def zip_corpus(corpusid):
     return shutil.make_archive(
         os.path.join(tmp_dir, corpusid),
         'zip',
-        DATA_ROOT,
+        CORPUS_ROOT,
         base_dir=corpusid
     ), tmp_dir
 
@@ -24,6 +24,6 @@ def zip_vectors(corpusid, vectors_path):
     return shutil.make_archive(
         os.path.join(tmp_dir, corpusid),
         'zip',
-        DATA_ROOT,
+        CORPUS_ROOT,
         base_dir=vectors_path
     ), tmp_dir
