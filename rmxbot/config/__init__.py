@@ -10,8 +10,9 @@ SCRIPTS = os.path.abspath(os.path.join(
 if not os.path.isdir(SCRIPTS):
     raise RuntimeError(SCRIPTS)
 
-SEARCH_CORPUS_SH = os.path.join(SCRIPTS, 'search_corpus.sh')
-os.chmod(SEARCH_CORPUS_SH, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+# SEARCH_CORPUS_SH = os.path.join(SCRIPTS, 'search_corpus.sh')
+SEARCH_CORPUS_SH = '/app/rmxbin/search_corpus.sh'
+# os.chmod(SEARCH_CORPUS_SH, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
 
 DEFAULT_CRAWL_DEPTH = 2
