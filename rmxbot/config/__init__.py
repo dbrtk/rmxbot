@@ -12,8 +12,6 @@ if not os.path.isdir(SCRIPTS):
 # SEARCH_CORPUS_SH - the grep script that searches the corpus
 SEARCH_CORPUS_SH = os.environ['RMX_SEARCH_CORPUS_SCRIPT']
 
-print(SEARCH_CORPUS_SH)
-
 DEFAULT_CRAWL_DEPTH = 2
 
 NLP_REMOTE_WORKER = True
@@ -21,8 +19,6 @@ NLP_REMOTE_WORKER = True
 # the endpoint of the server that runs nlp.
 # NLP_ENDPOINT = 'http://nlp.proximity-bot.net'
 NLP_ENDPOINT = os.environ['NLP_ENDPOINT']
-
-print('nlp endpoint: %r' % NLP_ENDPOINT)
 
 NLP_DENDOGRAM = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'dendogram'])
