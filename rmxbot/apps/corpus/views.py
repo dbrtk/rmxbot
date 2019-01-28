@@ -15,7 +15,8 @@ from django.views.generic.base import TemplateView
 import pymongo
 import requests
 
-from ...config import (DEFAULT_CRAWL_DEPTH, SCRASYNC_CRAWL_READY)
+from ...config import (DEFAULT_CRAWL_DEPTH,
+                       EXTRACTXT_FILES_UPLOAD_URL, SCRASYNC_CRAWL_READY)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
@@ -76,9 +77,38 @@ def create(request):
             str(docid), urlencode(dict(status='newly-created'))))
 
 
+@csrf_exempt
+def create_from_upload(request):
+    """Creating an empty corpus, with a name as given."""
+
+    data = json.loads(request.body)
+    the_name = data.get('name')
+    file_objects = data.get('file_objects')
+    docid = str(CorpusModel.inst_new_doc(
+        name=the_name, ))
+    corpus = CorpusModel.inst_by_id(docid)
+
+    corpus['expected_files'] = file_objects
+    corpus.save()
+
+    return JsonResponse({
+        'corpusid': docid,
+        'corpus_path': corpus.get_corpus_path(),
+        'corpus_files_path': corpus.corpus_files_path()
+    })
+
+
 class CorpusDataView(TemplateView):
 
     template_name = "corpus/data.html"
+
+    def get(self, request, *args, **kwds):
+
+        if not CorpusModel.inst_by_id(kwds.get('docid')).get('crawl_ready'):
+            if not request.GET.get('status', None) == 'newly-created':
+                return HttpResponseRedirect(
+                    '/corpus/{}/?status=newly-created'.format(kwds.get('docid')))
+        return super().get(request, *args, **kwds)
 
     def get_context_data(self, **kwds):
 
@@ -261,6 +291,8 @@ class CorpusUrlsView(TemplateView):
             ]
             return context
         dataids = corpus.get_dataids()
+        context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL.strip(
+            '/')
         context['datatype'] = 'crawl'
         context['corpusid'] = corpus.get('_id')
         context['name'] = corpus.get('name')
@@ -481,9 +513,16 @@ class CreateFromTextFiles(TemplateView):
 
     template_name = "corpus/create-from-text-files.html"
 
+    def get_context_data(self, **kwds):
+        context = super().get_context_data(**kwds)
+        context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL
+        return context
+
 
 def create_corpus_upload(request):
     """ Creating a corpus from uploaded files. """
+
+    # todo(): review and delete.
 
     files = request.FILES.getlist('files')
 
@@ -515,6 +554,13 @@ def create_corpus_upload(request):
     return HttpResponseRedirect(
         '/corpus/{}/?{}'.format(
             str(docid), urlencode(dict(status='newly-created'))))
+
+
+def update_corpus_upload(request):
+
+    corpusid = request.POST.get('corpusid')
+
+    return HttpResponse('ok')
 
 
 @csrf_exempt

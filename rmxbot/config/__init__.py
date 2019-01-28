@@ -7,9 +7,9 @@ from django.conf import settings
 HERE = os.path.abspath(__file__)
 
 # PROXIMITY_BOT_PROJ is specific to the local deployment of proximity-bot.
-# todo(): delete in production
+# this is a configuration used when rmxbot is ran locally. Delete in
+# production!
 PROXIMITY_BOT_PROJ = settings.PROJECT_DIR
-
 
 SCRIPTS = os.path.abspath(os.path.join(
     HERE, os.pardir, os.pardir, os.pardir, 'bin'))
@@ -57,6 +57,12 @@ SCRASYNC_CRAWL_READY = '/'.join(
     s for s in [SCRASYNC_ENDPOINT, 'scrasync', 'crawl-ready'])
 if not SCRASYNC_CRAWL_READY.endswith('/'):
     SCRASYNC_CRAWL_READY = '{}/'.format(SCRASYNC_CRAWL_READY)
+
+EXTRACTXT_ENDPOINT = 'http://localhost:8003'
+
+EXTRACTXT_FILES_UPLOAD_URL = '/'.join([EXTRACTXT_ENDPOINT, 'upload-files'])
+if not EXTRACTXT_FILES_UPLOAD_URL.endswith('/'):
+    EXTRACTXT_FILES_UPLOAD_URL = '{}/'.format(EXTRACTXT_FILES_UPLOAD_URL)
 
 # configurations that are related to the corpus and its data storage
 # DATA_ROOT = '/data'

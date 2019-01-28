@@ -1,6 +1,6 @@
 
 from django.conf.urls import url
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -10,12 +10,18 @@ urlpatterns = [
     path('', views.IndexView.as_view(), name='corpora_index'),
 
     url(r'^create/$', views.create),
+    url(r'^create-from-upload/$', views.create_from_upload),
 
     url(r'^new/$', views.CreateFormView.as_view(), name='new_corpus'),
 
     path('create-from-text-files/',
          views.CreateFromTextFiles.as_view(),
          name='corpus_from_text_files'),
+
+    path('create-from-text-files/<slug:corpusid>/',
+         views.CreateFromTextFiles.as_view(),
+         name='corpus_from_text_files'),
+
 
     path('create-corpus-upload/', views.create_corpus_upload),
 

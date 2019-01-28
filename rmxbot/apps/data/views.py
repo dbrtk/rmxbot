@@ -1,6 +1,7 @@
 """ views to the DataModel model
 """
 import json
+import tempfile
 
 from django.contrib import messages
 from django.http import (HttpResponse, HttpResponseRedirect, JsonResponse)
@@ -23,6 +24,21 @@ def create(request):
     request_dict = json.loads(request.body)
 
     data_tasks.call_data_create.delay(**request_dict)
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def create_from_file(request):
+
+    req_obj = request.POST.dict()
+
+    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+        file_path = tmpfile.name
+        for _line in request.FILES['file'].readlines():
+            tmpfile.write(_line)
+
+    data_tasks.create_from_file_extract.delay(
+        file_path=file_path, **request.POST.dict())
     return JsonResponse({'success': True})
 
 
@@ -96,3 +112,4 @@ def edit_many(request):
         out[docid][field] = v
     update_many(out)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+

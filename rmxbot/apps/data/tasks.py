@@ -10,7 +10,7 @@ from ..corpus.models import insert_urlobj, insert_many_data_objects, set_crawl_r
 
 @shared_task(bind=True)
 def call_data_create(self, **kwds):
-    """ Task that calls DataModel.create.
+    """ Task called within DataModel.create.
     expected kwds:
     {
         'links': list,
@@ -36,10 +36,41 @@ def call_data_create(self, **kwds):
 
 
 @shared_task(bind=True)
+def create_from_file_extract(self, **kwds):
+    """
+    :param self:
+    :param kwds: {
+        file_path: str,
+        corpusid: str,
+        corpus_files_path: str,
+        file_name: str,
+        content_type: str,
+        success: bool,
+        unique_id: str,
+        stdout: str
+    }
+    :return:
+    """
+
+    doc, file_id = DataModel.create_empty(
+        corpus_id=kwds.get('corpusid'),
+        title=kwds.get('file_name'))
+    docid = str(doc.get('_id'))
+
+    with open(os.path.join(kwds.get('corpus_files_path'), docid), '+a') as out:
+        out.write('{}\n\n'.format(docid))
+        for _line in open(kwds.get('file_path'), 'r').readlines():
+            out.write('{}\n'.format(_line))
+
+
+
+@shared_task(bind=True)
 def file_uploads_to_data(self, corpusid: str = None, files: dict = None,
                          encoding: str = "utf-8",
                          corpus_file_path: str = None):
-
+    """Creating a data object from an uploaded file through the rmxbot
+       interface.
+    """
     chord([create_data_fromtxt.s(
         **{
             'corpusid': corpusid,

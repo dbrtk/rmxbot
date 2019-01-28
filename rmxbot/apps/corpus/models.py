@@ -70,7 +70,11 @@ class CorpusModel(Document):
         'status': list,
 
         'crawl_ready': bool,
+        'corpus_ready': bool,
+
         'screenplay': bool,
+
+        'expected_files': list,
 
         # todo(): delete these 2 fields
         '_group_ids': list,  # celery group ids
@@ -90,6 +94,7 @@ class CorpusModel(Document):
             'crawl_ready': False,
             '_task_ids': [],
             '_group_ids': [],
+            'expected_files': [],
             'created': datetime.datetime.now(),
 
             # todo(): delete
