@@ -74,11 +74,11 @@ class CorpusModel(Document):
 
         'screenplay': bool,
 
+        'from_files': bool,
+        'from_the_web': bool,
+
         'expected_files': list,
 
-        # todo(): delete these 2 fields
-        '_group_ids': list,  # celery group ids
-        '_task_ids': list  # celery task ids
     }
     required_fields = ['created']
 
@@ -92,10 +92,13 @@ class CorpusModel(Document):
             'status': [],
             'active': True,
             'crawl_ready': False,
-            '_task_ids': [],
-            '_group_ids': [],
+
             'expected_files': [],
             'created': datetime.datetime.now(),
+
+            # corpus type
+            'from_files': False,
+            'from_the_web': False,
 
             # todo(): delete
             # 'lemma_words': {}
@@ -367,6 +370,10 @@ class CorpusModel(Document):
         # todo(): review and delete or use it to delete on error.
         CorpusMatrix(path=self.get_corpus_path(),
                      featcount=featcount).remove_featdir()
+
+    def file_extract_callback(self, unique_file_id: str = None) -> bool:
+
+        pass
 
 
 def insert_urlobj(corpus_id: (str, bson.ObjectId) = None,

@@ -60,10 +60,8 @@ if not SCRASYNC_CRAWL_READY.endswith('/'):
 
 EXTRACTXT_ENDPOINT = 'http://localhost:8003'
 
-EXTRACTXT_FILES_UPLOAD_URL = '/'.join([EXTRACTXT_ENDPOINT, 'upload-files'])
-if not EXTRACTXT_FILES_UPLOAD_URL.endswith('/'):
-    EXTRACTXT_FILES_UPLOAD_URL = '{}/'.format(EXTRACTXT_FILES_UPLOAD_URL)
-
+EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files/'.format(EXTRACTXT_ENDPOINT)
+# EXTRACTXT_FILES_UPLOAD_URL = '/corpus/create-corpus-upload/'
 # configurations that are related to the corpus and its data storage
 # DATA_ROOT = '/data'
 DATA_ROOT = os.path.join(PROXIMITY_BOT_PROJ, 'data', 'rmxbot')

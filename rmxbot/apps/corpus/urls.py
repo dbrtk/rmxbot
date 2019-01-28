@@ -22,6 +22,8 @@ urlpatterns = [
          views.CreateFromTextFiles.as_view(),
          name='corpus_from_text_files'),
 
+    path('file-extract-callback/',
+         views.file_extract_callback_view, name="file_extract_callback"),
 
     path('create-corpus-upload/', views.create_corpus_upload),
 

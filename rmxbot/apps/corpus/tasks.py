@@ -118,3 +118,15 @@ def empty_corpus(path):
 def test_task(self, a, b):
     """This is a test task."""
     return a + b
+
+
+@shared_task(bind=True)
+def file_extract_callback(self, corpusid: str = None, unique_id: str = None, **kwds):
+
+    print('file_extract_callback task...')
+    print(corpusid)
+    print(unique_id)
+
+    CorpusModel.inst_by_id(corpusid).file_extract_callback(
+        unique_file_id=unique_id)
+

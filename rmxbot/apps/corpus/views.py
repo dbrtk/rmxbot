@@ -25,7 +25,8 @@ from ..data.models import (
 from ..data.tasks import file_uploads_to_data
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
-from .tasks import crawl_async, nlp_callback_success, test_task
+from .tasks import (crawl_async, file_extract_callback, nlp_callback_success,
+                    test_task)
 from . import scripts
 
 
@@ -89,6 +90,7 @@ def create_from_upload(request):
     corpus = CorpusModel.inst_by_id(docid)
 
     corpus['expected_files'] = file_objects
+    corpus['from_the_web'] = True
     corpus.save()
 
     return JsonResponse({
@@ -96,6 +98,20 @@ def create_from_upload(request):
         'corpus_path': corpus.get_corpus_path(),
         'corpus_files_path': corpus.corpus_files_path()
     })
+
+
+@csrf_exempt
+def file_extract_callback_view(request):
+    """
+    :param request:
+    :return:
+    """
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(CorpusModel.inst_by_id(request.POST.get('corpusid')))
+
+    file_extract_callback.delay(**request.POST.dict())
+    return JsonResponse({'success': True})
 
 
 class CorpusDataView(TemplateView):
@@ -521,7 +537,8 @@ class CreateFromTextFiles(TemplateView):
 
 def create_corpus_upload(request):
     """ Creating a corpus from uploaded files. """
-
+    # this is the old fundtion/ view that handles the creation of a corpus from
+    # upload.
     # todo(): review and delete.
 
     files = request.FILES.getlist('files')
