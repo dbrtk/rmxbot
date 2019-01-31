@@ -10,7 +10,7 @@ import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
                        NLP_GENERATE_FEATURES_WEIGTHS, SCRASYNC_CREATE)
-from .models import CorpusModel, get_urls_length
+from .models import CorpusModel, DataObject, get_urls_length, insert_urlobj
 from . import sync_data
 
 
@@ -121,12 +121,16 @@ def test_task(self, a, b):
 
 
 @shared_task(bind=True)
-def file_extract_callback(self, corpusid: str = None, unique_id: str = None, **kwds):
+def file_extract_callback(self, **kwds):
 
-    print('file_extract_callback task...')
-    print(corpusid)
-    print(unique_id)
-
-    CorpusModel.inst_by_id(corpusid).file_extract_callback(
-        unique_file_id=unique_id)
-
+    insert_urlobj(
+        kwds.get('corpusid'),
+        {
+            'data_id': kwds.get('data_id'),
+            'file_id': kwds.get('file_id'),
+            'file_path': kwds.get('file_path', None),
+            'texthash': '',
+            'title': kwds.get('file_name')
+        })
+    CorpusModel.file_extract_callback(
+        corpusid=kwds.get('corpusid'), unique_file_id=kwds.get('unique_id'))
