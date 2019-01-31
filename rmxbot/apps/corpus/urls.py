@@ -68,7 +68,9 @@ urlpatterns = [
     url(r'^(?P<corpusid>[0-9a-zA-Z]*)/is-ready/(?P<feats>\d*)',
         views.is_ready),
 
-    url(r'^(?P<docid>[0-9a-zA-Z]*)/corpus-crawl-ready',
-        views.crawl_is_ready),
+    path('<slug:docid>/corpus-crawl-ready', views.crawl_is_ready),
+
+    path('<slug:docid>/corpus-from-files-ready/',
+         views.corpus_from_files_ready),
 
 ]
