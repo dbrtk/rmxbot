@@ -51,13 +51,17 @@ def create_from_file_extract(self, **kwds):
     }
     :return:
     """
+    # todo(): delete
+    if 'docid' in kwds and 'fileid' in kwds:
+        docid = kwds.get('docid')
+        fileid = kwds.get('fileid')
+    else:
+        doc, fileid = DataModel.create_empty(
+            corpus_id=kwds.get('corpusid'),
+            title=kwds.get('file_name'))
+        docid = str(doc.get('_id'))
 
-    doc, file_id = DataModel.create_empty(
-        corpus_id=kwds.get('corpusid'),
-        title=kwds.get('file_name'))
-    docid = str(doc.get('_id'))
-
-    with open(os.path.join(kwds.get('corpus_files_path'), docid), '+a') as out:
+    with open(os.path.join(kwds.get('corpus_files_path'), fileid), '+a') as out:
         out.write('{}\n\n'.format(docid))
         for _line in open(kwds.get('file_path'), 'r').readlines():
             out.write('{}\n'.format(_line))
