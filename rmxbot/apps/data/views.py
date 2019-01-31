@@ -32,12 +32,6 @@ def create(request):
 def create_from_file(request):
 
     kwds = request.POST.dict()
-
-    # with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-    #     file_path = tmpfile.name
-    #     for _line in request.FILES['file'].readlines():
-    #         tmpfile.write(_line)
-
     doc, file_id = DataModel.create_empty(
         corpus_id=kwds.get('corpusid'),
         title=kwds.get('file_name'))
@@ -47,11 +41,9 @@ def create_from_file(request):
     with open(file_path, '+a') as out:
         out.write('{}\n\n'.format(docid))
         for _line in request.FILES['file'].readlines():
-            out.write('{}\n'.format(_line))
-
-    # kwds.update({'docid': docid, 'fileid': file_id})
-    # data_tasks.create_from_file_extract.delay(
-    #     file_path=file_path, **kwds)
+            out.write('{}\n'.format(
+                _line.decode(kwds.get('charset', 'utf8'))
+            ))
 
     return JsonResponse({'success': True,
                          'data_id': docid,

@@ -36,39 +36,6 @@ def call_data_create(self, **kwds):
 
 
 @shared_task(bind=True)
-def create_from_file_extract(self, **kwds):
-    """
-    :param self:
-    :param kwds: {
-        file_path: str,
-        corpusid: str,
-        corpus_files_path: str,
-        file_name: str,
-        content_type: str,
-        success: bool,
-        unique_id: str,
-        stdout: str
-    }
-    :return:
-    """
-    # todo(): delete
-    if 'docid' in kwds and 'fileid' in kwds:
-        docid = kwds.get('docid')
-        fileid = kwds.get('fileid')
-    else:
-        doc, fileid = DataModel.create_empty(
-            corpus_id=kwds.get('corpusid'),
-            title=kwds.get('file_name'))
-        docid = str(doc.get('_id'))
-
-    with open(os.path.join(kwds.get('corpus_files_path'), fileid), '+a') as out:
-        out.write('{}\n\n'.format(docid))
-        for _line in open(kwds.get('file_path'), 'r').readlines():
-            out.write('{}\n'.format(_line))
-
-
-
-@shared_task(bind=True)
 def file_uploads_to_data(self, corpusid: str = None, files: dict = None,
                          encoding: str = "utf-8",
                          corpus_file_path: str = None):

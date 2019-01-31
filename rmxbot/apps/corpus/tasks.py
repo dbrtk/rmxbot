@@ -128,7 +128,6 @@ def file_extract_callback(self, **kwds):
         {
             'data_id': kwds.get('data_id'),
             'file_id': kwds.get('file_id'),
-            'file_path': kwds.get('file_path', None),
             'texthash': '',
             'title': kwds.get('file_name')
         })

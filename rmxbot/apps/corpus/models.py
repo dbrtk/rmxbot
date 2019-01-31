@@ -23,14 +23,22 @@ class DataObject(Document):
     """Class mapping the corpus urls to their original Data objects."""
 
     structure = {
+        'data_id': str,
+        'file_id': str,  # this is a string representation of a uuid
+
+        # todo(): delete
+        'file_path': str,
+
         'texthash': str,
         'file_hash': str,
+
         'title': str,
-        'data_id': str,
+        'file_name': str,
+
         'url': str,
+        'text_url': str,
+
         'checked': bool,
-        'file_id': str,  # this is a string representation of a uuid
-        'file_path': str,
     }
 
 
