@@ -380,13 +380,14 @@ class CorpusModel(Document):
                      featcount=featcount).remove_featdir()
 
     @classmethod
-    def file_extract_callback(cls, corpusid: str = None, unique_file_id: str = None):
+    def file_extract_callback(cls,
+                              corpusid: str = None,
+                              unique_file_id: str = None):
         """
         :param corpusid:
         :param unique_file_id:
         :return:
         """
-
         _COLLECTION.update_one({'_id': bson.ObjectId(corpusid)}, {
             '$pull': {'expected_files': {'unique_id': unique_file_id}}
         })
