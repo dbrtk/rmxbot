@@ -1,6 +1,7 @@
 """ views to the DataModel model
 """
 import json
+import os
 import tempfile
 
 from django.contrib import messages
@@ -30,16 +31,33 @@ def create(request):
 @csrf_exempt
 def create_from_file(request):
 
-    req_obj = request.POST.dict()
+    kwds = request.POST.dict()
 
-    with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
-        file_path = tmpfile.name
+    # with tempfile.NamedTemporaryFile(delete=False) as tmpfile:
+    #     file_path = tmpfile.name
+    #     for _line in request.FILES['file'].readlines():
+    #         tmpfile.write(_line)
+
+    doc, file_id = DataModel.create_empty(
+        corpus_id=kwds.get('corpusid'),
+        title=kwds.get('file_name'))
+    docid = str(doc.get('_id'))
+
+    file_path = os.path.join(kwds.get('corpus_files_path'), file_id)
+    with open(file_path, '+a') as out:
+        out.write('{}\n\n'.format(docid))
         for _line in request.FILES['file'].readlines():
-            tmpfile.write(_line)
+            out.write('{}\n'.format(_line))
 
-    data_tasks.create_from_file_extract.delay(
-        file_path=file_path, **request.POST.dict())
-    return JsonResponse({'success': True})
+    # kwds.update({'docid': docid, 'fileid': file_id})
+    # data_tasks.create_from_file_extract.delay(
+    #     file_path=file_path, **kwds)
+
+    return JsonResponse({'success': True,
+                         'data_id': docid,
+                         'file_id': file_id,
+                         'file_path': file_path,
+                         'file_name': kwds.get('file_name')})
 
 
 def index(request):
