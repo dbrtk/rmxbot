@@ -47,6 +47,17 @@ def file_hash():
     pass
 
 
+class ExpectedFile(Document):
+
+    structure = {
+        'file_name': str,
+        'unique_id': str,
+        'content_type': str,
+        'charset': str,
+        'tmp_path': str,
+    }
+
+
 class CorpusStatus(Document):
     """Status object used when computing features."""
     structure = {
@@ -402,6 +413,28 @@ class CorpusModel(Document):
         doc = cls.inst_by_id(corpusid)
         if not doc['expected_files']:
             set_crawl_ready(corpusid, True)
+
+    @classmethod
+    def update_expected_files(
+            cls, corpusid: str = None, file_objects: list = None):
+        """ Updaing the expected_files field with file objects that are
+        created.
+        :param corpusid:
+        :param file_objects:
+        :return:
+        """
+        # for item in file_objects:
+        #     ExpectedFile.simple_validation(item)
+        return _COLLECTION.update_one(
+            {'_id': bson.ObjectId(corpusid)},
+            {
+                '$addToSet': {'expected_files': {'$each': file_objects}},
+                '$set': {
+                    'crawl_ready': False,
+                    'data_from_files': True,
+                    'data_from_the_web': False,
+                }
+            })
 
     def set_corpus_type(self,
                         data_from_files: bool = False,

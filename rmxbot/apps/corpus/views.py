@@ -10,8 +10,10 @@ import bson
 from django.http import (Http404, HttpResponse,
                          HttpResponseRedirect, JsonResponse)
 from django.template.loader import get_template
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+from django.views import View
 import pymongo
 import requests
 
@@ -116,10 +118,8 @@ def file_extract_callback_view(request):
     return JsonResponse({'success': True})
 
 
-class CorpusDataView(TemplateView):
-
-    template_name = "corpus/data.html"
-
+class CorpusBase(TemplateView):
+    """Base class for views that retrieve corpus data."""
     def get(self, request, *args, **kwds):
 
         if not CorpusModel.inst_by_id(kwds.get('docid')).get('crawl_ready'):
@@ -127,6 +127,11 @@ class CorpusDataView(TemplateView):
                 return HttpResponseRedirect(
                     '/corpus/{}/?status=newly-created'.format(kwds.get('docid')))
         return super().get(request, *args, **kwds)
+
+
+class CorpusDataView(CorpusBase):
+
+    template_name = "corpus/data.html"
 
     def get_context_data(self, **kwds):
 
@@ -295,7 +300,7 @@ class CorpusDataEditView(TemplateView):
         return context
 
 
-class CorpusUrlsView(TemplateView):
+class CorpusUrlsView(CorpusBase):
 
     template_name = "corpus/data-view.html"
 
@@ -615,3 +620,49 @@ def sync_matrices(request):
 
     corpus.del_status_feats(feats=int(params.get('feats')))
     return JsonResponse({'success': True, 'corpusid': params.get('corpusid')})
+
+
+def corpus_data(request):
+
+    corpusid = request.GET.get('corpusid')
+    corpus = CorpusModel.inst_by_id(corpusid)
+    if not corpus:
+        raise Http404
+
+    return JsonResponse({
+        'success': True,
+        'corpusid': corpusid,
+        'vectors_path': corpus.get_vectors_path(),
+        'corpus_files_path': corpus.corpus_files_path(),
+        # 'lemma_path': corpus.get_lemma_path(),
+        'matrix_path': corpus.matrix_path,
+        'wf_path': corpus.wf_path,
+    })
+
+
+class ExpectedFiles(View):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        """
+        https://docs.djangoproject.com/en/2.1/topics/class-based-views/intro/
+        decorating-the-class
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        """Saving expected_files."""
+
+        req_obj = request.POST.dict()
+
+        corpusid = req_obj.get('corpusid')
+        file_objects = json.loads(req_obj.get('file_objects'))
+
+        CorpusModel.update_expected_files(
+            corpusid=corpusid, file_objects=file_objects)
+
+        return JsonResponse({'corpusid': corpusid, 'success': True})
+

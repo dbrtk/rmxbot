@@ -2,7 +2,6 @@
 """
 import json
 import os
-import tempfile
 
 from django.contrib import messages
 from django.http import (HttpResponse, HttpResponseRedirect, JsonResponse)

@@ -73,4 +73,9 @@ urlpatterns = [
     path('<slug:docid>/corpus-from-files-ready/',
          views.corpus_from_files_ready),
 
+    path('corpus-data/', views.corpus_data, name="corpus_data"),
+
+    path('expected-files/', views.ExpectedFiles.as_view(),
+         name="expected_files"),
+
 ]
