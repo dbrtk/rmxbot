@@ -65,6 +65,8 @@ def create(request):
 
     docid = str(CorpusModel.inst_new_doc(name=the_name))
     corpus = CorpusModel.inst_by_id(docid)
+    corpus.set_corpus_type(data_from_the_web=True)
+
     corpus_file_path = corpus.corpus_files_path()
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
@@ -85,12 +87,14 @@ def create_from_upload(request):
     data = json.loads(request.body)
     the_name = data.get('name')
     file_objects = data.get('file_objects')
-    docid = str(CorpusModel.inst_new_doc(
-        name=the_name, ))
+    docid = str(CorpusModel.inst_new_doc(name=the_name))
     corpus = CorpusModel.inst_by_id(docid)
 
     corpus['expected_files'] = file_objects
-    corpus['from_the_web'] = True
+
+    # todo(): set status to busy
+    corpus.set_corpus_type(data_from_files=True)
+
     corpus.save()
 
     return JsonResponse({
@@ -106,11 +110,9 @@ def file_extract_callback_view(request):
     :param request:
     :return:
     """
-    import pprint
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(CorpusModel.inst_by_id(request.POST.get('corpusid')))
+    kwds = request.POST.dict()
 
-    file_extract_callback.delay(**request.POST.dict())
+    file_extract_callback.delay(**kwds)
     return JsonResponse({'success': True})
 
 
@@ -470,19 +472,36 @@ def crawl_is_ready(request, docid):
             'ready': True,
             'corpusid': docid
         })
+    if corpus['data_from_the_web']:
+        endpoint = '{}/'.format(
+            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, docid]))
 
-    endpoint = '{}/'.format(
-        '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, docid]))
+        resp = requests.get(endpoint).json()
 
-    resp = requests.get(endpoint).json()
-
-    if resp.get('ready'):
-        set_crawl_ready(docid, True)
-
+        if resp.get('ready'):
+            set_crawl_ready(docid, True)
     return JsonResponse({
         'ready': False,
         'corpusid': docid
     })
+
+
+def corpus_from_files_ready(request, docid):
+
+    corpus = CorpusModel.inst_by_id(docid)
+    if not corpus:
+        raise Http404
+
+    if corpus.get('crawl_ready'):
+        return JsonResponse({
+            'ready': True,
+            'corpusid': docid
+        })
+    return JsonResponse({
+        'ready': False,
+        'corpusid': docid
+    })
+
 
 
 def test_celery_task(request):
