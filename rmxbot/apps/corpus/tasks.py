@@ -10,7 +10,7 @@ import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
                        NLP_GENERATE_FEATURES_WEIGTHS, SCRASYNC_CREATE)
-from .models import CorpusModel, DataObject, get_urls_length, insert_urlobj
+from .models import CorpusModel, get_urls_length, insert_urlobj
 from . import sync_data
 
 
@@ -20,9 +20,6 @@ class Error(Exception):
 
 class __Error(Error):
     pass
-
-
-# todo(): cleanup!!!
 
 
 @shared_task(bind=True)
