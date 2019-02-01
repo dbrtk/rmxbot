@@ -156,8 +156,7 @@ class CorpusModel(Document):
         """
         if not projection:
             projection = {'urls': {'$slice': 10},
-                          'name': 1, 'description': 1, 'created': 1,
-                          'screenplay': 1}
+                          'name': 1, 'description': 1, 'created': 1}
         return super().range_query(
             projection=projection,
             start=start,
