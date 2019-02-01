@@ -388,15 +388,6 @@ class CorpusModel(Document):
             doc['fileid'] = url_obj.get('file_id')
         return docs
 
-    def cleanup_on_error(self, featcount: int = None):
-        """ Cleaning up on error. If an error occurs when retrieving features,
-            the folder holding these feature and weight files should be
-            removed.
-        """
-        # todo(): review and delete or use it to delete on error.
-        CorpusMatrix(path=self.get_corpus_path(),
-                     featcount=featcount).remove_featdir()
-
     @classmethod
     def file_extract_callback(cls,
                               corpusid: str = None,
@@ -475,18 +466,6 @@ def insert_urlobj(corpus_id: (str, bson.ObjectId) = None,
     return corpus_id
 
 
-def insert_many_data_objects(corpusid: (str, bson.ObjectId) = None,
-                             data_objs: list = None):
-    corpusid = bson.ObjectId(corpusid)
-    for _ in data_objs:
-        DataObject.simple_validation(_)
-    _COLLECTION.update(
-        {'_id': corpusid},
-        {'$push': {'urls': {'$each': data_objs}}}
-    )
-    return corpusid
-
-
 def get_urls_length(corpus_id):
     doc = _COLLECTION.find_one({'_id': bson.ObjectId(corpus_id)}, {'urls': 1})
     return len(doc.get('urls'))
@@ -515,7 +494,7 @@ def request_availability(corpusid, reqobj, corpus=None):
         features=int
     )
     for k, v in reqobj.items():
-        if not isinstance(v, structure[k]):
+        if not isinstance(v, structure.get(k)):
             raise ValueError(reqobj)
 
     corpus = corpus or CorpusModel.inst_by_id(corpusid)

@@ -4,7 +4,7 @@ import json
 import os
 
 from django.contrib import messages
-from django.http import (HttpResponse, HttpResponseRedirect, JsonResponse)
+from django.http import (HttpResponseRedirect, JsonResponse)
 from django.http import QueryDict
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
@@ -89,22 +89,6 @@ def data_to_corpus(request):
     _id = doc.purge_data()
 
     return JsonResponse(dict(success=True, docid=str(_id)))
-
-
-def text(request, docid: str = None):
-
-    doc = DataModel.inst_by_id(docid)
-
-    txt = ''
-
-    # todo(): implement in order to replace the same endpoint on the level of
-    # the corpus
-    return HttpResponse('')
-
-
-def create_from_txt(request):
-    """Creating a corpus from uploaded text files. """
-    pass
 
 
 @csrf_exempt

@@ -2,7 +2,6 @@ import json
 import os
 import re
 import shutil
-import tempfile
 from urllib.parse import urlencode
 import uuid
 
@@ -24,7 +23,6 @@ from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
 
-from ..data.tasks import file_uploads_to_data
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
 from .tasks import (crawl_async, file_extract_callback, nlp_callback_success,
@@ -554,51 +552,6 @@ class CreateFromTextFiles(TemplateView):
         context = super().get_context_data(**kwds)
         context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL
         return context
-
-
-def create_corpus_upload(request):
-    """ Creating a corpus from uploaded files. """
-    # this is the old fundtion/ view that handles the creation of a corpus from
-    # upload.
-    # todo(): review and delete.
-
-    files = request.FILES.getlist('files')
-
-    the_name = request.POST.get('name')
-    # the_id = request.POST.get('id', None)
-
-    docid = str(CorpusModel.inst_new_doc(name=the_name, screenplay=True))
-    corpus = CorpusModel.inst_by_id(docid)
-
-    corpus_file_path = corpus.corpus_files_path()
-    encoding = "utf-8"
-
-    files_obj = {}
-    for _file in files:
-        # todo(): delete
-        # outf_name = None
-        file_name = _file.name
-        with tempfile.NamedTemporaryFile(delete=False) as outf:
-            outf_name = outf.name
-            for line in _file.readlines():
-                outf.write(line)
-        _file.close()
-        files_obj[file_name] = outf_name
-
-    file_uploads_to_data.delay(
-        corpusid=docid, files=files_obj, encoding=encoding,
-        corpus_file_path=corpus_file_path)
-
-    return HttpResponseRedirect(
-        '/corpus/{}/?{}'.format(
-            str(docid), urlencode(dict(status='newly-created'))))
-
-
-def update_corpus_upload(request):
-
-    corpusid = request.POST.get('corpusid')
-
-    return HttpResponse('ok')
 
 
 @csrf_exempt

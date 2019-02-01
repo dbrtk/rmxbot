@@ -31,11 +31,6 @@ urlpatterns = [
 
     path('sync-matrices/', views.sync_matrices),
 
-
-    # todo(): delete
-    # path('create-corpus-upload/', views.create_corpus_upload),
-
-
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/$',
             views.CorpusDataView.as_view(), name='data_corpus'),
 

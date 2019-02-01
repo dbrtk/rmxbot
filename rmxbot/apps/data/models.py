@@ -107,30 +107,6 @@ class DataModel(Document):
     }
     required_fields = ['url', 'created']
 
-    @classmethod
-    def inst_with_url(cls, url, fields=None,  save=0, check_duplicates=0):
-        """ instantiating with a url and immediately validating it. """
-
-        # todo(): review and delete!
-
-        if check_duplicates:
-            cursor = _COLLECTION.find({'url': url})
-            if cursor.count() >= 1:
-                ids = [_.get('_id') for _ in cursor]
-                raise DuplicateUrlError(
-                    'A document with a url: %r already exists. Found ids: %r'
-                    % (url, ids))
-        _doc = cls()
-        if fields and isinstance(fields, dict):
-            _doc = dictionary.update(_doc, fields)
-        _o = urlparse.urlparse(url)
-        _doc = dictionary.update(_doc, dict(url=url, hostname=_o.hostname))
-        # _doc.__validate_url()
-        if save:
-            docid = _doc.save()
-            return cls.inst_by_id(docid)
-        return _doc
-
     def save(self):
 
         self['updated'] = datetime.datetime.now()
@@ -253,49 +229,6 @@ class DataModel(Document):
     def purge_data(self):
         self['data'] = []
         return self.save()
-
-
-def create_from_url(url, with_imgs=True, crawl=False, depth=1,):
-    """ Creating a data object from a url. It is being used by create and crawl.
-    """
-
-    # todo(): review and delete!!!!!!!
-
-    _retry, _errmsg = 0, ''
-    try:
-        doc = DataModel.inst_with_url(
-            url, fields=dict(crawl=crawl))
-        doc()
-    # except DuplicateUrlError:
-    #     _errmsg = "The provided url was already scrapped. Would you like " \
-    #       "to scrap again?"
-    #     _retry = 1
-    except ValueError:
-        raise
-    else:
-        return 1, DataModel.inst_by_id(doc.get('_id'))
-    #     _errmsg = "'%s' is not a valid url." % url
-    # else:
-    #     doc.save()
-    #     doc.scrape(with_imgs=with_imgs)
-    #     doc.save()
-
-    return 0, dict(error=_errmsg, retry=_retry)
-
-
-def create_from_urls(urls):
-    """ creating data docuemnts from urls """
-
-    # todo(): review and delete!!!!!!!
-
-    docids = []
-    for url in urls:
-        try:
-            _doc = DataModel.inst_with_url(url)
-            docids.append(_doc())
-        except DuplicateUrlError:
-            pass
-    return docids
 
 
 def get_doc_for_bulk(obj):
