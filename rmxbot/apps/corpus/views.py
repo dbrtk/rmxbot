@@ -46,6 +46,10 @@ class CreateFormView(TemplateView):
 
 @csrf_exempt
 def create(request):
+    """Create a corpus with a name and endpoint as givens.
+    :param request:
+    :return:
+    """
     if not request.method == 'POST':
         raise RuntimeError("The request method should be POST, got %s "
                            "instead." % request.method)
@@ -122,10 +126,11 @@ class CorpusBase(TemplateView):
     """Base class for views that retrieve corpus data."""
     def get(self, request, *args, **kwds):
 
-        if not CorpusModel.inst_by_id(kwds.get('docid')).get('crawl_ready'):
+        if not CorpusModel.inst_by_id(kwds.get('corpusid')).get('crawl_ready'):
             if not request.GET.get('status', None) == 'newly-created':
                 return HttpResponseRedirect(
-                    '/corpus/{}/?status=newly-created'.format(kwds.get('docid')))
+                    '/corpus/{}/?status=newly-created'.format(
+                        kwds.get('corpusid')))
         return super().get(request, *args, **kwds)
 
 
@@ -135,12 +140,13 @@ class CorpusDataView(CorpusBase):
 
     def get_context_data(self, **kwds):
 
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
         context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get(
+                    'corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
         if corpus.get('screenplay'):
@@ -160,8 +166,9 @@ class CorpusDataView(CorpusBase):
             context['datatype'] = 'crawl'
         context['available_feats'] = corpus.get_features_count()
         context['corpus_name'] = corpus.get('name')
+        context['corpusid'] = str(corpus.get_id())
         context['urls_length'] = len(corpus.get('urls'))
-        context['urls'] = [_.get('url') for _ in corpus.get('urls')[:10]]
+        context['texts'] = [_ for _ in corpus.get('urls')[:10]]
         return context
 
 
@@ -179,7 +186,6 @@ class IndexView(TemplateView):
         encoder = RmxEncoder()
         out = []
         for item in cursor:
-
             item = json.loads(encoder.encode(item))
             if item.get('screenplay', False):
                 item['data'] = DataModel.query_data_project(
@@ -189,10 +195,9 @@ class IndexView(TemplateView):
                     }},
                     project=LIST_SCREENPLAYS_PROJECT
                 )
+            item['corpusid'] = item['_id']
+            del item['_id']
 
-            if '_id' in item:
-                item['id'] = item['_id']
-                del item['_id']
             out.append(item)
         context['data'] = out
         return context
@@ -305,12 +310,12 @@ class CorpusUrlsView(CorpusBase):
     template_name = "corpus/data-view.html"
 
     def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
         context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
         dataids = corpus.get_dataids()
@@ -446,14 +451,6 @@ def force_directed_graph(reqobj):
     )
 
 
-def request_kmeans(request, docid):
-
-    if not request.method == 'GET':
-        raise RuntimeError("The request method should be POST, got %s "
-                           "instead." % request.method)
-    return JsonResponse(dict(success=True, msg='Not implemented!'))
-
-
 def is_ready(request, corpusid, feats):
     """ Checking if the features were computed for a given number.
         Replacing the messages sent through WebSockets.
@@ -465,46 +462,46 @@ def is_ready(request, corpusid, feats):
     return JsonResponse(availability)
 
 
-def crawl_is_ready(request, docid):
+def crawl_is_ready(request, corpusid):
     """ Checking if the crawl is ready. """
 
-    corpus = CorpusModel.inst_by_id(docid)
+    corpus = CorpusModel.inst_by_id(corpusid)
     if not corpus:
         raise Http404
 
     if corpus.get('crawl_ready'):
         return JsonResponse({
             'ready': True,
-            'corpusid': docid
+            'corpusid': corpusid
         })
     if corpus['data_from_the_web']:
         endpoint = '{}/'.format(
-            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, docid]))
+            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, corpusid]))
 
         resp = requests.get(endpoint).json()
 
         if resp.get('ready'):
-            set_crawl_ready(docid, True)
+            set_crawl_ready(corpusid, True)
     return JsonResponse({
         'ready': False,
-        'corpusid': docid
+        'corpusid': corpusid
     })
 
 
-def corpus_from_files_ready(request, docid):
+def corpus_from_files_ready(request, corpusid):
 
-    corpus = CorpusModel.inst_by_id(docid)
+    corpus = CorpusModel.inst_by_id(corpusid)
     if not corpus:
         raise Http404
 
     if corpus.get('crawl_ready'):
         return JsonResponse({
             'ready': True,
-            'corpusid': docid
+            'corpusid': corpusid
         })
     return JsonResponse({
         'ready': False,
-        'corpusid': docid
+        'corpusid': corpusid
     })
 
 
@@ -626,6 +623,7 @@ def corpus_data(request):
 
     corpusid = request.GET.get('corpusid')
     corpus = CorpusModel.inst_by_id(corpusid)
+
     if not corpus:
         raise Http404
 
