@@ -1,7 +1,6 @@
 
 
-from django.conf.urls import url
-from django.urls import path
+from django.urls import path, re_path
 from rmxbot.apps.data import views
 
 urlpatterns = [
@@ -16,5 +15,5 @@ urlpatterns = [
     path('data-to-corpus/', views.data_to_corpus, name='data_to_corpus'),
     path('edit-many/', views.edit_many, name='edit_many'),
 
-    url(r'^webpage/(?P<docid>[0-9a-zA-Z]*)/$', views.webpage),
+    re_path(r'^webpage/(?P<docid>[0-9a-zA-Z]*)/$', views.webpage),
 ]

@@ -230,6 +230,24 @@ class DataModel(Document):
         self['data'] = []
         return self.save()
 
+    def set_hashtxt(self, value: str = None):
+        """
+        :param key:
+        :param value:
+        :return:
+        """
+        if _COLLECTION.find(
+                {'corpusid': self.get('corpusid'), 'hashtxt': value}):
+            raise ValueError(self)
+        return _COLLECTION.update_one(
+            {'_id': self.get_id()},
+            {'$set': {'hashtxt': value}}
+        )
+
+    def cleanup_error(self):
+
+        pass
+
 
 def get_doc_for_bulk(obj):
 

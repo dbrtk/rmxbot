@@ -1,5 +1,6 @@
 """ views to the DataModel model
 """
+import hashlib
 import json
 import os
 
@@ -10,10 +11,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from . import tasks as data_tasks
-
-from rmxbot.contrib import rmxjson
-
 from .models import DataModel, update_many
+from rmxbot.contrib import rmxjson
 
 
 @csrf_exempt
@@ -30,6 +29,8 @@ def create(request):
 @csrf_exempt
 def create_from_file(request):
 
+    hasher = hashlib.md5()
+
     kwds = request.POST.dict()
     doc, file_id = DataModel.create_empty(
         corpus_id=kwds.get('corpusid'),
@@ -40,12 +41,25 @@ def create_from_file(request):
     with open(file_path, '+a') as out:
         out.write('{}\n\n'.format(docid))
         for _line in request.FILES['file'].readlines():
+            hasher.update(bytes(_line, kwds.get('charset', 'utf8')))
             out.write('{}\n'.format(
                 _line.decode(kwds.get('charset', 'utf8'))
             ))
-
+    _hash = hasher.hexdigest()
+    try:
+        doc.set_hashtxt(value=_hash)
+    except ValueError:
+        doc.rm_doc()
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        return JsonResponse({
+            'success': False,
+            'data_id': docid,
+            'corpusid': kwds.get('corpusid')
+        })
     return JsonResponse({'success': True,
                          'data_id': docid,
+                         'texthash': _hash,
                          'file_id': file_id,
                          'file_path': file_path,
                          'file_name': kwds.get('file_name')})
@@ -105,4 +119,3 @@ def edit_many(request):
         out[docid][field] = v
     update_many(out)
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-

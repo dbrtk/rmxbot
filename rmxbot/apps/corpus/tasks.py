@@ -1,9 +1,7 @@
 
 import json
 import os
-import shlex
 import shutil
-import subprocess
 
 from celery import shared_task
 import requests
@@ -100,15 +98,6 @@ def nlp_callback_success(self, **kwds):
     """Caled when a nlp callback is sent to proximitybot."""
     corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
     corpus.update_on_nlp_callback(feats=kwds.get('feats'))
-
-
-def empty_corpus(path):
-    path = os.path.normpath(path)
-    command = shlex.split('/opt/bin/rmxrsync.sh {}'.format(path))
-    try:
-        subprocess.call(command)
-    except (subprocess.CalledProcessError,) as err:
-        raise RuntimeError(err)
 
 
 @shared_task(bind=True)
