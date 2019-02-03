@@ -148,8 +148,7 @@ class DataModel(Document):
         try:
             file_id = data_obj.data_to_corpus(
                 path=corpus_file_path,
-                file_id=data_obj.file_identifier(
-                    endpoint=endpoint, corpusid=corpus_id),
+                file_id=data_obj.file_identifier(),
                 data=data
             )
         except DuplicateUrlError as _:
