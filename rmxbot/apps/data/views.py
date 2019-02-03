@@ -36,14 +36,18 @@ def create_from_file(request):
         corpus_id=kwds.get('corpusid'),
         title=kwds.get('file_name'))
     docid = str(doc.get('_id'))
+    encoding = kwds.get('charset', 'utf8')
 
     file_path = os.path.join(kwds.get('corpus_files_path'), file_id)
     with open(file_path, '+a') as out:
         out.write('{}\n\n'.format(docid))
         for _line in request.FILES['file'].readlines():
-            hasher.update(bytes(_line, kwds.get('charset', 'utf8')))
-            out.write('{}\n'.format(
-                _line.decode(kwds.get('charset', 'utf8'))
+            if isinstance(_line, bytes):
+                hasher.update(_line)
+            else:
+                hasher.update(bytes(_line, encoding=encoding))
+            out.write('{}'.format(
+                _line.decode(encoding)
             ))
     _hash = hasher.hexdigest()
     try:

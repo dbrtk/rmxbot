@@ -8,6 +8,7 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+import uuid
 
 import bson
 from pymongo import UpdateOne
@@ -127,7 +128,7 @@ class DataModel(Document):
         data_obj = cls()
         data_obj['title'] = title
         data_obj['corpus_id'] = corpus_id
-        file_id = data_obj.file_identifier(title, corpus_id)
+        file_id = data_obj.file_identifier()
         data_obj['fileid'] = file_id
 
         docid = data_obj.save()
@@ -185,14 +186,10 @@ class DataModel(Document):
             {'$project': project}
         ]))
 
-    def file_identifier(self, endpoint: str = None, corpusid: str = None):
+    def file_identifier(self):
+        """Generating a unique id for the file name."""
 
-        m = hashlib.md5()
-        corpusid = corpusid if isinstance(corpusid, str) else str(corpusid)
-        m.update(bytes(endpoint, 'utf-8'))
-        m.update(bytes(corpusid, 'utf-8'))
-
-        return m.hexdigest()
+        return uuid.uuid4().hex
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
@@ -236,7 +233,7 @@ class DataModel(Document):
         :param value:
         :return:
         """
-        if _COLLECTION.find(
+        if _COLLECTION.find_one(
                 {'corpusid': self.get('corpusid'), 'hashtxt': value}):
             raise ValueError(self)
         return _COLLECTION.update_one(

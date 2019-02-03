@@ -109,13 +109,15 @@ def test_task(self, a, b):
 @shared_task(bind=True)
 def file_extract_callback(self, **kwds):
 
-    insert_urlobj(
-        kwds.get('corpusid'),
-        {
-            'data_id': kwds.get('data_id'),
-            'file_id': kwds.get('file_id'),
-            'texthash': '',
-            'title': kwds.get('file_name')
-        })
+    if kwds.get('success') and kwds.get('data_id'):
+        insert_urlobj(
+            kwds.get('corpusid'),
+            {
+                'data_id': kwds.get('data_id'),
+                'file_id': kwds.get('file_id'),
+                'texthash': '',
+                'title': kwds.get('file_name')
+            }
+        )
     CorpusModel.file_extract_callback(
         corpusid=kwds.get('corpusid'), unique_file_id=kwds.get('unique_id'))
