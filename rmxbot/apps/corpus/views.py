@@ -16,7 +16,7 @@ from django.views import View
 import pymongo
 import requests
 
-from ...config import (DEFAULT_CRAWL_DEPTH,
+from ...config import (CORPUS_STATUS, DEFAULT_CRAWL_DEPTH,
                        EXTRACTXT_FILES_UPLOAD_URL, SCRASYNC_CRAWL_READY)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
@@ -125,7 +125,7 @@ class CorpusBase(TemplateView):
     def get(self, request, *args, **kwds):
 
         if not CorpusModel.inst_by_id(kwds.get('corpusid')).get('crawl_ready'):
-            if not request.GET.get('status', None) == 'newly-created':
+            if not request.GET.get('status', None) in CORPUS_STATUS:
                 return HttpResponseRedirect(
                     '/corpus/{}/?status=newly-created'.format(
                         kwds.get('corpusid')))

@@ -229,7 +229,7 @@ class CorpusModel(Document):
         ), fileid
 
     def create_corpus_dir(self):
-        """Creating the directory for the corpus.
+        """ Creating the directory for the corpus.
 
             permissions 'read, write, execute' to user, group and
             other (777).

@@ -123,11 +123,11 @@ class DataModel(Document):
         super(DataModel, self).__init__(*args, **kwds)
 
     @classmethod
-    def create_empty(cls, corpus_id: str = None, title: str = None):
+    def create_empty(cls, corpusid: str = None, title: str = None):
 
         data_obj = cls()
         data_obj['title'] = title
-        data_obj['corpus_id'] = corpus_id
+        data_obj['corpusid'] = corpusid
         file_id = data_obj.file_identifier()
         data_obj['fileid'] = file_id
 
@@ -155,7 +155,7 @@ class DataModel(Document):
 
             return None, None
         else:
-            data_obj['fileid'] = str(file_id)
+            data_obj['fileid'] = file_id
 
         docid = data_obj.save()
         assert isinstance(bson.ObjectId(docid), bson.ObjectId)
@@ -189,6 +189,7 @@ class DataModel(Document):
         """Generating a unique id for the file name."""
 
         return uuid.uuid4().hex
+        # return str(self.get_id())
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
@@ -228,12 +229,11 @@ class DataModel(Document):
 
     def set_hashtxt(self, value: str = None):
         """
-        :param key:
         :param value:
         :return:
         """
-        if _COLLECTION.find_one(
-                {'corpusid': self.get('corpusid'), 'hashtxt': value}):
+        if _COLLECTION.find_one({
+            'corpusid': self.get('corpusid'), 'hashtxt': value}):
             raise ValueError(self)
         return _COLLECTION.update_one(
             {'_id': self.get_id()},
@@ -261,7 +261,7 @@ def get_doc_for_bulk(obj):
         elif struct[k] is float:
             v = float(v)
 
-        if isinstance(v, struct[k]):
+        if isinstance(v, struct.get(k)):
             out[k] = v
     return out
 

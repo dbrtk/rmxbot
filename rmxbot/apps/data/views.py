@@ -30,10 +30,10 @@ def create(request):
 def create_from_file(request):
 
     hasher = hashlib.md5()
-
     kwds = request.POST.dict()
+    corpusid  = kwds.get('corpusid')
     doc, file_id = DataModel.create_empty(
-        corpus_id=kwds.get('corpusid'),
+        corpusid=corpusid,
         title=kwds.get('file_name'))
     docid = str(doc.get('_id'))
     encoding = kwds.get('charset', 'utf8')
