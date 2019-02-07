@@ -2,7 +2,7 @@ import json
 import os
 import re
 import shutil
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 
 import bson
@@ -124,11 +124,18 @@ class CorpusBase(TemplateView):
     """Base class for views that retrieve corpus data."""
     def get(self, request, *args, **kwds):
 
+        _status = 'newly-created'
+        refering_page = request.META.get('HTTP_REFERER')
+
+        if refering_page:
+            obj = parse_qs(urlparse(refering_page).query)
+            if 'status' in obj:
+                _status = obj.get('status')[0]
         if not CorpusModel.inst_by_id(kwds.get('corpusid')).get('crawl_ready'):
             if not request.GET.get('status', None) in CORPUS_STATUS:
                 return HttpResponseRedirect(
-                    '/corpus/{}/?status=newly-created'.format(
-                        kwds.get('corpusid')))
+                    '/corpus/{}/?status={}'.format(
+                        kwds.get('corpusid'), _status))
         return super().get(request, *args, **kwds)
 
 
