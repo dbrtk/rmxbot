@@ -7,8 +7,10 @@ from celery import shared_task
 import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
-                       NLP_GENERATE_FEATURES_WEIGTHS, SCRASYNC_CREATE)
-from .models import CorpusModel, get_urls_length, insert_urlobj
+                       NLP_GENERATE_FEATURES_WEIGTHS, NLP_INTEGRITY_CHECK,
+                       SCRASYNC_CREATE)
+from .models import (CorpusModel, get_urls_length, insert_urlobj,
+                     set_crawl_ready)
 from . import sync_data
 
 
@@ -108,7 +110,13 @@ def test_task(self, a, b):
 
 @shared_task(bind=True)
 def file_extract_callback(self, **kwds):
+    """
 
+    :param self:
+    :param kwds:
+    :return:
+    """
+    corpusid = kwds.get('corpusid')
     if kwds.get('success') and kwds.get('data_id'):
         insert_urlobj(
             kwds.get('corpusid'),
@@ -119,5 +127,23 @@ def file_extract_callback(self, **kwds):
                 'title': kwds.get('file_name')
             }
         )
-    CorpusModel.file_extract_callback(
-        corpusid=kwds.get('corpusid'), unique_file_id=kwds.get('unique_id'))
+    doc = CorpusModel.file_extract_callback(
+        corpusid=corpusid, unique_file_id=kwds.get('unique_id'))
+
+    if not doc['expected_files']:
+        if doc.matrix_exists:
+            integrity_check.delay(corpusid=corpusid)
+        else:
+            set_crawl_ready(corpusid, True)
+
+
+@shared_task(bind=True)
+def integrity_check(self, corpusid: str = None):
+
+    path_to_zip, tmp_dir = sync_data.zip_corpus(corpusid)
+
+    requests.post(NLP_INTEGRITY_CHECK, data={
+        'payload': json.dumps({'corpusid': corpusid})
+    }, files={'file': open(path_to_zip, 'rb')})
+
+    shutil.rmtree(tmp_dir)

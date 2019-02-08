@@ -77,4 +77,6 @@ urlpatterns = [
     path('expected-files/', views.ExpectedFiles.as_view(),
          name="expected_files"),
 
+    path('integrity-check-callback/', views.integrity_check_callback),
+
 ]

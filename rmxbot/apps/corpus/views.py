@@ -624,3 +624,23 @@ class ExpectedFiles(View):
 
         return JsonResponse({'corpusid': corpusid, 'success': True})
 
+
+@csrf_exempt
+def integrity_check_callback(request):
+    """
+    :param request:
+    :return:
+    """
+    corpusid = json.loads(request.POST.get('payload')).get('corpusid')
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    if 'file' in request.FILES:
+        shutil.rmtree(corpus.matrix_path)
+        shutil.unpack_archive(
+            request.FILES['file'].temporary_file_path(),
+            corpus.get_corpus_path(),
+            'zip'
+        )
+
+    set_crawl_ready(corpusid, True)
+    return JsonResponse({'success': True})
