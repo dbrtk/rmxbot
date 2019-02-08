@@ -43,6 +43,8 @@ NLP_GENERATE_ALL = '/'.join(
 NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'features-docs'])
 
+NLP_INTEGRITY_CHECK = '{}/nlp/integrity-check'.format(NLP_ENDPOINT)
+
 SCRASYNC_REMOTE_WORKER = True
 
 # SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
@@ -73,6 +75,7 @@ CORPUS_MAX_SIZE = 400
 CORPUS_STATUS = (
     'newly-created',
     'file-upload',
+    'integrity-check',
 )
 
 # DATABASE configuration - MONGODB
