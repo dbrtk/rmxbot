@@ -192,6 +192,12 @@ class CorpusModel(Document):
         return os.path.join(self.get_corpus_path(), 'matrix')
 
     @property
+    def matrix_exists(self):
+        """Returns True is the matix directory with its files exists."""
+        return os.path.exists(self.matrix_path) and \
+               os.listdir(self.matrix_path)
+
+    @property
     def wf_path(self): return os.path.join(self.matrix_path, 'wf')
 
     def get_lemma_path(self):
@@ -401,8 +407,7 @@ class CorpusModel(Document):
             '$pull': {'expected_files': {'unique_id': unique_file_id}}
         })
         doc = cls.inst_by_id(corpusid)
-        if not doc['expected_files']:
-            set_crawl_ready(corpusid, True)
+        return doc
 
     @classmethod
     def update_expected_files(
@@ -425,6 +430,8 @@ class CorpusModel(Document):
                     'data_from_the_web': False,
                 }
             })
+
+    def get_expected_files(self): return self['expected_files']
 
     def set_corpus_type(self,
                         data_from_files: bool = False,
