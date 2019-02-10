@@ -34,6 +34,16 @@ urlpatterns = [
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/$',
             views.CorpusDataView.as_view(), name='data_corpus'),
 
+    re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/$',
+            views.Texts.as_view(), name='corpus_data'),
+
+    re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/edit/$',
+            views.TextsEdit.as_view(), name='corpus_data_edit'),
+
+    re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/delete-texts/$',
+            views.TextsDelete.as_view(), name='corpus_data_delete'),
+
+
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/file/(?P<dataid>[0-9a-zA-Z]*)/$',
             views.get_text_file),
 
@@ -44,16 +54,6 @@ urlpatterns = [
     path('compute-matrices-callback/', views.compute_matrices_callback),
 
     path('test-task/', views.test_celery_task),
-
-    re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/urls/$',
-            views.CorpusUrlsView.as_view(), name='corpus_urls'),
-
-    url(r'^(?P<docid>[0-9a-zA-Z]*)/data/$',
-        views.CorpusTextFilesView.as_view(), name='corpus_urls'),
-
-    url(r'^(?P<docid>[0-9a-zA-Z]*)/data/edit/$',
-        views.CorpusDataEditView.as_view(), name='corpus_urls'),
-
 
     url(r'^(?P<docid>[0-9a-zA-Z]*)/features/$', views.request_features),
 

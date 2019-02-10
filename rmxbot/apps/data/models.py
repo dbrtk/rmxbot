@@ -244,6 +244,13 @@ class DataModel(Document):
 
         pass
 
+    @classmethod
+    def delete_many(cls, dataids):
+        """Delete many documents from the database."""
+        return _COLLECTION.delete_many({
+            "_id": {"$in": [bson.ObjectId(_) for _ in dataids]}
+        })
+
 
 def get_doc_for_bulk(obj):
 

@@ -1,4 +1,6 @@
+from typing import List
 
+import bson
 from celery import shared_task
 
 from .models import DataModel
@@ -32,3 +34,10 @@ def call_data_create(self, **kwds):
     return None, None
 
 
+@shared_task(bind=True)
+def delete_data(self, dataids: List[str] = None, corpusid: str = None):
+
+    response = DataModel.delete_many(dataids=dataids)
+    del response
+    # todo(): process response
+    return corpusid

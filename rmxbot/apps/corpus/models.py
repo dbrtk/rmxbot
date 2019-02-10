@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import stat
+from typing import List
 import uuid
 
 import bson
@@ -458,6 +459,27 @@ class CorpusModel(Document):
             }
         return _COLLECTION.update_one({'_id': self.get_id()}, {'$set': query})
 
+    def dataid_fileid(self, data_ids: List[str] = None) -> List[tuple]:
+        """Returns a mapping between data ids and file ids."""
+        return [(_.get('data_id'), _.get('file_id'),)
+                for _ in self.get('urls') if _.get('data_id') in data_ids]
+
+    def del_data_objects(self, data_ids: List[str] = None):
+        """Deleting data objects from the urls list.
+        :param data_ids:
+        :return:
+        """
+        return _COLLECTION.update_one(
+            {'_id': self.get_id()},
+            {'$pull': {
+                'urls': {
+                    'data_id': {
+                        "$in": data_ids
+                    }
+                }
+            }}
+        )
+
 
 def insert_urlobj(corpus_id: (str, bson.ObjectId) = None,
                   url_obj: dict = None):
@@ -481,7 +503,6 @@ def get_urls_length(corpus_id):
 def set_crawl_ready(corpusid, value):
     """ Set the value of crawl_ready on the corpus. """
     _id = bson.ObjectId(corpusid)
-
     if not isinstance(value, bool):
         raise RuntimeError(value)
     return _COLLECTION.update({'_id': _id}, {'$set': {'crawl_ready': value}})

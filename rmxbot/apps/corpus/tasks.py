@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+from typing import List
 
 from celery import shared_task
 import requests
@@ -9,6 +10,7 @@ import requests
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
                        NLP_GENERATE_FEATURES_WEIGTHS, NLP_INTEGRITY_CHECK,
                        SCRASYNC_CREATE)
+from ..data.tasks import delete_data
 from .models import (CorpusModel, get_urls_length, insert_urlobj,
                      set_crawl_ready)
 from . import sync_data
@@ -140,6 +142,8 @@ def file_extract_callback(self, **kwds):
 @shared_task(bind=True)
 def integrity_check(self, corpusid: str = None):
 
+    # if not CorpusModel.inst_by_id(corpusid).matrix_exists:
+    #     return
     path_to_zip, tmp_dir = sync_data.zip_corpus(corpusid)
 
     requests.post(NLP_INTEGRITY_CHECK, data={
@@ -147,3 +151,28 @@ def integrity_check(self, corpusid: str = None):
     }, files={'file': open(path_to_zip, 'rb')})
 
     shutil.rmtree(tmp_dir)
+
+
+@shared_task(bind=True)
+def delete_data_from_corpus(
+        self, corpusid: str = None, data_ids: List[str] = None):
+
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    corpus_files_path = corpus.corpus_files_path()
+    dataid_fileid = corpus.dataid_fileid(data_ids=data_ids)
+    resp = corpus.del_data_objects(data_ids=data_ids)
+
+    for _path in [os.path.join(corpus_files_path, _[1])
+                  for _ in dataid_fileid]:
+        if not os.path.exists(_path):
+            raise RuntimeError(_path)
+        os.remove(_path)
+
+    params = {
+        'kwargs': {'corpusid': corpusid, 'dataids': data_ids}
+    }
+    if corpus.matrix_exists:
+        params['link'] = integrity_check.s()
+
+    delete_data.apply_async(**params)

@@ -9,6 +9,7 @@ import bson
 from django.http import (Http404, HttpResponse,
                          HttpResponseRedirect, JsonResponse)
 from django.template.loader import get_template
+from django.template.response import TemplateResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
@@ -25,8 +26,8 @@ from ..data.models import (
 
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
-from .tasks import (crawl_async, file_extract_callback, nlp_callback_success,
-                    test_task)
+from .tasks import (crawl_async, delete_data_from_corpus,
+                    file_extract_callback, nlp_callback_success, test_task)
 from . import scripts
 
 
@@ -154,21 +155,6 @@ class CorpusDataView(CorpusBase):
                     'corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
-        if corpus.get('screenplay'):
-            context['datatype'] = 'screenplay'
-            context['titles'] = [
-                _.get('title') for _ in corpus.get('urls')[:10]]
-            context['data'] = DataModel.query_data_project(
-                query={'_id': {
-                    '$in': [
-                        bson.ObjectId(_.get('data_id'))
-                        for _ in corpus.get('urls')
-                    ][:10]
-                }},
-                project=LIST_SCREENPLAYS_PROJECT
-            )
-        else:
-            context['datatype'] = 'crawl'
         context['available_feats'] = corpus.get_features_count()
         context['corpus_name'] = corpus.get('name')
         context['corpusid'] = str(corpus.get_id())
@@ -261,42 +247,17 @@ def lemma_context(request, corpusid: str = None):
     })
 
 
-class CorpusTextFilesView(TemplateView):
-
-    template_name = "corpus/data-view.html"
-
-    def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
-
-        context = super().get_context_data(**kwds)
-        if not corpus:
-            context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
-            ]
-            return context
-        dataids = corpus.get_dataids()
-        context['datatype'] = 'screenplay'
-        context['corpusid'] = corpus.get('_id')
-        context['name'] = corpus.get('name')
-        context['data'] = DataModel.query_data_project(
-            query={'_id': {'$in': dataids}},
-            project=LIST_SCREENPLAYS_PROJECT,
-            direct=1)
-
-        return context
-
-
-class CorpusDataEditView(TemplateView):
+class TextsEdit(TemplateView):
 
     template_name = "corpus/data-view-edit.html"
 
     def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
         context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
         dataids = corpus.get_dataids()
@@ -310,7 +271,36 @@ class CorpusDataEditView(TemplateView):
         return context
 
 
-class CorpusUrlsView(CorpusBase):
+class TextsDelete(View):
+    """View deleting selected texts from a corpus."""
+
+    def get(self, request, corpusid):
+
+
+        corpus = CorpusModel.inst_by_id(corpusid)
+        dataids = corpus.get_dataids()
+
+        context = {
+            'corpusid': corpus.get('_id'),
+            'name': corpus.get('name'),
+            'data': DataModel.query_data_project(
+                query={'_id': {'$in': dataids}},
+                project=LISTURLS_PROJECT,
+                direct=1),
+        }
+
+        return TemplateResponse(request, 'corpus/delete-texts.html', context)
+
+    def post(self, request, corpusid):
+
+        delete_data_from_corpus.delay(
+            corpusid=corpusid, data_ids=request.POST.getlist('docid'))
+
+        return HttpResponseRedirect(
+            '/corpus/{}/?status=remove-files'.format(corpusid))
+
+
+class Texts(CorpusBase):
 
     template_name = "corpus/data-view.html"
 
@@ -508,7 +498,6 @@ def corpus_from_files_ready(request, corpusid):
         'ready': False,
         'corpusid': corpusid
     })
-
 
 
 def test_celery_task(request):
