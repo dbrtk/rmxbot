@@ -63,7 +63,7 @@ DATA_ROOT = os.environ.get('DATA_ROOT')
 # TMP_DATA_DIR = '/data/tmp'
 TMP_DATA_DIR = os.environ.get('TMP_DATA_DIR')
 
-EXTRACTXT_ENDPOINT = 'http://localhost:8003'
+EXTRACTXT_ENDPOINT = os.environ.get('EXTRACTXT_ENDPOINT')
 
 EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files/'.format(EXTRACTXT_ENDPOINT)
 
