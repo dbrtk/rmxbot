@@ -72,12 +72,6 @@ CORPUS_ROOT = os.path.normpath(DATA_ROOT)
 
 CORPUS_MAX_SIZE = 400
 
-CORPUS_STATUS = (
-    'newly-created',
-    'file-upload',
-    'integrity-check',
-)
-
 # DATABASE configuration - MONGODB
 MONGODB_NAME = 'rmx'
 MONGODB_LOCATION = '127.0.0.1'

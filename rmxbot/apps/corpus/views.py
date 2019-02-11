@@ -17,15 +17,15 @@ from django.views import View
 import pymongo
 import requests
 
-from ...config import (CORPUS_STATUS, DEFAULT_CRAWL_DEPTH,
-                       EXTRACTXT_FILES_UPLOAD_URL, SCRASYNC_CRAWL_READY)
+from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
+                       SCRASYNC_CRAWL_READY)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
-
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
+from .status import CORPUS_STATUS, status_text
 from .tasks import (crawl_async, delete_data_from_corpus,
                     file_extract_callback, nlp_callback_success, test_task)
 from . import scripts
@@ -146,15 +146,23 @@ class CorpusDataView(CorpusBase):
 
     def get_context_data(self, **kwds):
 
+        context = super().get_context_data(**kwds)
+
+        status, message = status_text(self.request.GET.get('status'))
+
+        if status:
+            context['status'] = status
+            context['status_message'] = message
+
         corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
-        context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
                 ERR_MSGS.get(
                     'corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
+
         context['available_feats'] = corpus.get_features_count()
         context['corpus_name'] = corpus.get('name')
         context['corpusid'] = str(corpus.get_id())
