@@ -293,9 +293,9 @@ class TextsDelete(View):
 
     def post(self, request, corpusid):
 
+        set_crawl_ready(corpusid, False)
         delete_data_from_corpus.delay(
             corpusid=corpusid, data_ids=request.POST.getlist('docid'))
-
         return HttpResponseRedirect(
             '/corpus/{}/?status=remove-files'.format(corpusid))
 
