@@ -8,6 +8,7 @@ try:
     import urlparse
 except ImportError:
     import urllib.parse as urlparse
+import uuid
 
 import bson
 from pymongo import UpdateOne
@@ -107,30 +108,6 @@ class DataModel(Document):
     }
     required_fields = ['url', 'created']
 
-    @classmethod
-    def inst_with_url(cls, url, fields=None,  save=0, check_duplicates=0):
-        """ instantiating with a url and immediately validating it. """
-
-        # todo(): review and delete!
-
-        if check_duplicates:
-            cursor = _COLLECTION.find({'url': url})
-            if cursor.count() >= 1:
-                ids = [_.get('_id') for _ in cursor]
-                raise DuplicateUrlError(
-                    'A document with a url: %r already exists. Found ids: %r'
-                    % (url, ids))
-        _doc = cls()
-        if fields and isinstance(fields, dict):
-            _doc = dictionary.update(_doc, fields)
-        _o = urlparse.urlparse(url)
-        _doc = dictionary.update(_doc, dict(url=url, hostname=_o.hostname))
-        # _doc.__validate_url()
-        if save:
-            docid = _doc.save()
-            return cls.inst_by_id(docid)
-        return _doc
-
     def save(self):
 
         self['updated'] = datetime.datetime.now()
@@ -146,12 +123,12 @@ class DataModel(Document):
         super(DataModel, self).__init__(*args, **kwds)
 
     @classmethod
-    def create_empty(cls, corpus_id: str = None, title: str = None):
+    def create_empty(cls, corpusid: str = None, title: str = None):
 
         data_obj = cls()
         data_obj['title'] = title
-        data_obj['corpus_id'] = corpus_id
-        file_id = data_obj.file_identifier(title, corpus_id)
+        data_obj['corpusid'] = corpusid
+        file_id = data_obj.file_identifier()
         data_obj['fileid'] = file_id
 
         docid = data_obj.save()
@@ -171,15 +148,14 @@ class DataModel(Document):
         try:
             file_id = data_obj.data_to_corpus(
                 path=corpus_file_path,
-                file_id=data_obj.file_identifier(
-                    endpoint=endpoint, corpusid=corpus_id),
+                file_id=data_obj.file_identifier(),
                 data=data
             )
         except DuplicateUrlError as _:
 
             return None, None
         else:
-            data_obj['fileid'] = str(file_id)
+            data_obj['fileid'] = file_id
 
         docid = data_obj.save()
         assert isinstance(bson.ObjectId(docid), bson.ObjectId)
@@ -209,14 +185,11 @@ class DataModel(Document):
             {'$project': project}
         ]))
 
-    def file_identifier(self, endpoint: str = None, corpusid: str = None):
+    def file_identifier(self):
+        """Generating a unique id for the file name."""
 
-        m = hashlib.md5()
-        corpusid = corpusid if isinstance(corpusid, str) else str(corpusid)
-        m.update(bytes(endpoint, 'utf-8'))
-        m.update(bytes(corpusid, 'utf-8'))
-
-        return m.hexdigest()
+        return uuid.uuid4().hex
+        # return str(self.get_id())
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
@@ -254,48 +227,29 @@ class DataModel(Document):
         self['data'] = []
         return self.save()
 
+    def set_hashtxt(self, value: str = None):
+        """
+        :param value:
+        :return:
+        """
+        if _COLLECTION.find_one({
+            'corpusid': self.get('corpusid'), 'hashtxt': value}):
+            raise ValueError(self)
+        return _COLLECTION.update_one(
+            {'_id': self.get_id()},
+            {'$set': {'hashtxt': value}}
+        )
 
-def create_from_url(url, with_imgs=True, crawl=False, depth=1,):
-    """ Creating a data object from a url. It is being used by create and crawl.
-    """
+    def cleanup_error(self):
 
-    # todo(): review and delete!!!!!!!
+        pass
 
-    _retry, _errmsg = 0, ''
-    try:
-        doc = DataModel.inst_with_url(
-            url, fields=dict(crawl=crawl))
-        doc()
-    # except DuplicateUrlError:
-    #     _errmsg = "The provided url was already scrapped. Would you like " \
-    #       "to scrap again?"
-    #     _retry = 1
-    except ValueError:
-        raise
-    else:
-        return 1, DataModel.inst_by_id(doc.get('_id'))
-    #     _errmsg = "'%s' is not a valid url." % url
-    # else:
-    #     doc.save()
-    #     doc.scrape(with_imgs=with_imgs)
-    #     doc.save()
-
-    return 0, dict(error=_errmsg, retry=_retry)
-
-
-def create_from_urls(urls):
-    """ creating data docuemnts from urls """
-
-    # todo(): review and delete!!!!!!!
-
-    docids = []
-    for url in urls:
-        try:
-            _doc = DataModel.inst_with_url(url)
-            docids.append(_doc())
-        except DuplicateUrlError:
-            pass
-    return docids
+    @classmethod
+    def delete_many(cls, dataids):
+        """Delete many documents from the database."""
+        return _COLLECTION.delete_many({
+            "_id": {"$in": [bson.ObjectId(_) for _ in dataids]}
+        })
 
 
 def get_doc_for_bulk(obj):
@@ -314,7 +268,7 @@ def get_doc_for_bulk(obj):
         elif struct[k] is float:
             v = float(v)
 
-        if isinstance(v, struct[k]):
+        if isinstance(v, struct.get(k)):
             out[k] = v
     return out
 

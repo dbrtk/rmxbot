@@ -37,6 +37,8 @@ NLP_GENERATE_ALL = '/'.join(
 NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
     s for s in [NLP_ENDPOINT, 'nlp', 'features-docs'])
 
+NLP_INTEGRITY_CHECK = '{}/nlp/integrity-check'.format(NLP_ENDPOINT)
+
 SCRASYNC_REMOTE_WORKER = True
 
 # SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
@@ -60,6 +62,10 @@ DATA_ROOT = os.environ.get('DATA_ROOT')
 # the tmp directory used by rmxbot when processing files, etc...
 # TMP_DATA_DIR = '/data/tmp'
 TMP_DATA_DIR = os.environ.get('TMP_DATA_DIR')
+
+EXTRACTXT_ENDPOINT = 'http://localhost:8003'
+
+EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files/'.format(EXTRACTXT_ENDPOINT)
 
 # The path to the directory where corpora along with matrices are stored.
 CORPUS_ROOT = os.path.join(DATA_ROOT, 'corpus')

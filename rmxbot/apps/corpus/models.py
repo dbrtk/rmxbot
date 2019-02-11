@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 import stat
+from typing import List
 import uuid
 
 import bson
@@ -19,24 +20,50 @@ from ...core.feats_docs import features_and_docs
 _COLLECTION = get_collection(collection=CORPUS_COLL)
 
 
-class UrlMapper(Document):
+class DataObject(Document):
     """Class mapping the corpus urls to their original Data objects."""
 
     structure = {
-        'texthash': str,
-        'title': str,
         'data_id': str,
-        'url': str,
-        'checked': bool,
         'file_id': str,  # this is a string representation of a uuid
+
+        # todo(): delete
         'file_path': str,
+
+        'texthash': str,
+        'file_hash': str,
+
+        'title': str,
+        'file_name': str,
+
+        'url': str,
+        'text_url': str,
+
+        'checked': bool,
+    }
+
+
+def file_hash():
+
+    pass
+
+
+class ExpectedFile(Document):
+
+    structure = {
+        'file_name': str,
+        'unique_id': str,
+        'content_type': str,
+        'charset': str,
+        'tmp_path': str,
     }
 
 
 class CorpusStatus(Document):
-
+    """Status object used when computing features."""
     structure = {
         'busy': bool,
+        'type': str,
         'feats': int,
         'task_name': str,
         'task_id': str,
@@ -46,7 +73,8 @@ class CorpusStatus(Document):
     def __init__(self, *args, **kwds):
         self.default_values = dict(
             updated=datetime.datetime.now(),
-            busy=False
+            busy=False,
+            type='features'
         )
         super().__init__(*args, **kwds)
 
@@ -70,11 +98,15 @@ class CorpusModel(Document):
         'status': list,
 
         'crawl_ready': bool,
+        'corpus_ready': bool,
+
         'screenplay': bool,
 
-        # todo(): delete these 2 fields
-        '_group_ids': list,  # celery group ids
-        '_task_ids': list  # celery task ids
+        'data_from_files': bool,
+        'data_from_the_web': bool,
+
+        'expected_files': list,
+
     }
     required_fields = ['created']
 
@@ -88,9 +120,13 @@ class CorpusModel(Document):
             'status': [],
             'active': True,
             'crawl_ready': False,
-            '_task_ids': [],
-            '_group_ids': [],
+
+            'expected_files': [],
             'created': datetime.datetime.now(),
+
+            # corpus type
+            'data_from_files': False,
+            'data_from_the_web': False,
 
             # todo(): delete
             # 'lemma_words': {}
@@ -121,8 +157,7 @@ class CorpusModel(Document):
         """
         if not projection:
             projection = {'urls': {'$slice': 10},
-                          'name': 1, 'description': 1, 'created': 1,
-                          'screenplay': 1}
+                          'name': 1, 'description': 1, 'created': 1}
         return super().range_query(
             projection=projection,
             start=start,
@@ -156,6 +191,12 @@ class CorpusModel(Document):
     @property
     def matrix_path(self):
         return os.path.join(self.get_corpus_path(), 'matrix')
+
+    @property
+    def matrix_exists(self):
+        """Returns True is the matix directory with its files exists."""
+        return os.path.exists(self.matrix_path) and \
+               os.listdir(self.matrix_path)
 
     @property
     def wf_path(self): return os.path.join(self.matrix_path, 'wf')
@@ -195,7 +236,7 @@ class CorpusModel(Document):
         ), fileid
 
     def create_corpus_dir(self):
-        """Creating the directory for the corpus.
+        """ Creating the directory for the corpus.
 
             permissions 'read, write, execute' to user, group and
             other (777).
@@ -354,39 +395,104 @@ class CorpusModel(Document):
             doc['fileid'] = url_obj.get('file_id')
         return docs
 
-    def cleanup_on_error(self, featcount: int = None):
-        """ Cleaning up on error. If an error occurs when retrieving features,
-            the folder holding these feature and weight files should be
-            removed.
+    @classmethod
+    def file_extract_callback(cls,
+                              corpusid: str = None,
+                              unique_file_id: str = None):
         """
-        # todo(): review and delete or use it to delete on error.
-        CorpusMatrix(path=self.get_corpus_path(),
-                     featcount=featcount).remove_featdir()
+        :param corpusid:
+        :param unique_file_id:
+        :return:
+        """
+        _COLLECTION.update_one({'_id': bson.ObjectId(corpusid)}, {
+            '$pull': {'expected_files': {'unique_id': unique_file_id}}
+        })
+        doc = cls.inst_by_id(corpusid)
+        return doc
+
+    @classmethod
+    def update_expected_files(
+            cls, corpusid: str = None, file_objects: list = None):
+        """ Updaing the expected_files field with file objects that are
+        created.
+        :param corpusid:
+        :param file_objects:
+        :return:
+        """
+        # for item in file_objects:
+        #     ExpectedFile.simple_validation(item)
+        return _COLLECTION.update_one(
+            {'_id': bson.ObjectId(corpusid)},
+            {
+                '$addToSet': {'expected_files': {'$each': file_objects}},
+                '$set': {
+                    'crawl_ready': False,
+                    'data_from_files': True,
+                    'data_from_the_web': False,
+                }
+            })
+
+    def get_expected_files(self): return self['expected_files']
+
+    def set_corpus_type(self,
+                        data_from_files: bool = False,
+                        data_from_the_web: bool = False):
+        """
+        :param data_from_files: bool
+        :param data_from_the_web: bool
+        :return:
+        """
+        if data_from_files:
+            query = {
+                'data_from_files': True,
+                'data_from_the_web': False
+            }
+        elif data_from_the_web:
+            query = {
+                'data_from_files': False,
+                'data_from_the_web': True
+            }
+        else:
+            query = {
+                'data_from_files': data_from_files,
+                'data_from_the_web': data_from_the_web
+            }
+        return _COLLECTION.update_one({'_id': self.get_id()}, {'$set': query})
+
+    def dataid_fileid(self, data_ids: List[str] = None) -> List[tuple]:
+        """Returns a mapping between data ids and file ids."""
+        return [(_.get('data_id'), _.get('file_id'),)
+                for _ in self.get('urls') if _.get('data_id') in data_ids]
+
+    def del_data_objects(self, data_ids: List[str] = None):
+        """Deleting data objects from the urls list.
+        :param data_ids:
+        :return:
+        """
+        return _COLLECTION.update_one(
+            {'_id': self.get_id()},
+            {'$pull': {
+                'urls': {
+                    'data_id': {
+                        "$in": data_ids
+                    }
+                }
+            }}
+        )
 
 
 def insert_urlobj(corpus_id: (str, bson.ObjectId) = None,
                   url_obj: dict = None):
     """ Validating the url object and inserting it in the corpus list of urls.
     """
-    UrlMapper.simple_validation(url_obj)
+    DataObject.simple_validation(url_obj)
+
     corpus_id = bson.ObjectId(corpus_id)
-    _COLLECTION.update(
+    _COLLECTION.update_one(
         {'_id': corpus_id},
         {'$push': {'urls': url_obj}}
     )
     return corpus_id
-
-
-def insert_many_data_objects(corpusid: (str, bson.ObjectId) = None,
-                             data_objs: list = None):
-    corpusid = bson.ObjectId(corpusid)
-    for _ in data_objs:
-        UrlMapper.simple_validation(_)
-    _COLLECTION.update(
-        {'_id': corpusid},
-        {'$push': {'urls': {'$each': data_objs}}}
-    )
-    return corpusid
 
 
 def get_urls_length(corpus_id):
@@ -397,10 +503,9 @@ def get_urls_length(corpus_id):
 def set_crawl_ready(corpusid, value):
     """ Set the value of crawl_ready on the corpus. """
     _id = bson.ObjectId(corpusid)
-
     if not isinstance(value, bool):
         raise RuntimeError(value)
-    _COLLECTION.update({'_id': _id}, {'$set': {'crawl_ready': True}})
+    return _COLLECTION.update({'_id': _id}, {'$set': {'crawl_ready': value}})
 
 
 def request_availability(corpusid, reqobj, corpus=None):
@@ -417,7 +522,7 @@ def request_availability(corpusid, reqobj, corpus=None):
         features=int
     )
     for k, v in reqobj.items():
-        if not isinstance(v, structure[k]):
+        if not isinstance(v, structure.get(k)):
             raise ValueError(reqobj)
 
     corpus = corpus or CorpusModel.inst_by_id(corpusid)

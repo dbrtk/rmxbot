@@ -2,29 +2,32 @@ import json
 import os
 import re
 import shutil
-import tempfile
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode, urlparse
 import uuid
 
 import bson
 from django.http import (Http404, HttpResponse,
                          HttpResponseRedirect, JsonResponse)
 from django.template.loader import get_template
+from django.template.response import TemplateResponse
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+from django.views import View
 import pymongo
 import requests
 
-from ...config import (DEFAULT_CRAWL_DEPTH, SCRASYNC_CRAWL_READY, TMP_DATA_DIR)
+from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
+                       SCRASYNC_CRAWL_READY)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
-
-from ..data.tasks import file_uploads_to_data
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
-from .tasks import crawl_async, nlp_callback_success, test_task
+from .status import CORPUS_STATUS, status_text
+from .tasks import (crawl_async, delete_data_from_corpus,
+                    file_extract_callback, nlp_callback_success, test_task)
 from . import scripts
 
 
@@ -42,6 +45,10 @@ class CreateFormView(TemplateView):
 
 @csrf_exempt
 def create(request):
+    """Create a corpus with a name and endpoint as givens.
+    :param request:
+    :return:
+    """
     if not request.method == 'POST':
         raise RuntimeError("The request method should be POST, got %s "
                            "instead." % request.method)
@@ -63,6 +70,8 @@ def create(request):
 
     docid = str(CorpusModel.inst_new_doc(name=the_name))
     corpus = CorpusModel.inst_by_id(docid)
+    corpus.set_corpus_type(data_from_the_web=True)
+
     corpus_file_path = corpus.corpus_files_path()
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
@@ -76,39 +85,89 @@ def create(request):
             str(docid), urlencode(dict(status='newly-created'))))
 
 
-class CorpusDataView(TemplateView):
+@csrf_exempt
+def create_from_upload(request):
+    """Creating an empty corpus, with a name as given."""
+
+    data = json.loads(request.body)
+    the_name = data.get('name')
+    file_objects = data.get('file_objects')
+    docid = str(CorpusModel.inst_new_doc(name=the_name))
+    corpus = CorpusModel.inst_by_id(docid)
+
+    corpus['expected_files'] = file_objects
+
+    # todo(): set status to busy
+    corpus.set_corpus_type(data_from_files=True)
+
+    corpus.save()
+
+    return JsonResponse({
+        'corpusid': docid,
+        'corpus_path': corpus.get_corpus_path(),
+        'corpus_files_path': corpus.corpus_files_path()
+    })
+
+
+@csrf_exempt
+def file_extract_callback_view(request):
+    """
+    :param request:
+    :return:
+    """
+    kwds = request.POST.dict()
+
+    file_extract_callback.delay(**kwds)
+    return JsonResponse({'success': True})
+
+
+class CorpusBase(TemplateView):
+    """Base class for views that retrieve corpus data."""
+    def get(self, request, *args, **kwds):
+
+        _status = 'newly-created'
+        refering_page = request.META.get('HTTP_REFERER')
+
+        if refering_page:
+            obj = parse_qs(urlparse(refering_page).query)
+            if 'status' in obj:
+                _status = obj.get('status')[0]
+        if not CorpusModel.inst_by_id(kwds.get('corpusid')).get('crawl_ready'):
+            if not request.GET.get('status', None) in CORPUS_STATUS:
+                return HttpResponseRedirect(
+                    '/corpus/{}/?status={}'.format(
+                        kwds.get('corpusid'), _status))
+        return super().get(request, *args, **kwds)
+
+
+class CorpusDataView(CorpusBase):
 
     template_name = "corpus/data.html"
 
     def get_context_data(self, **kwds):
 
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
-
         context = super().get_context_data(**kwds)
+
+        status, message = status_text(self.request.GET.get('status'))
+
+        if status:
+            context['status'] = status
+            context['status_message'] = message
+
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
+
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get(
+                    'corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
-        if corpus.get('screenplay'):
-            context['datatype'] = 'screenplay'
-            context['titles'] = [
-                _.get('title') for _ in corpus.get('urls')[:10]]
-            context['data'] = DataModel.query_data_project(
-                query={'_id': {
-                    '$in': [
-                        bson.ObjectId(_.get('data_id'))
-                        for _ in corpus.get('urls')
-                    ][:10]
-                }},
-                project=LIST_SCREENPLAYS_PROJECT
-            )
-        else:
-            context['datatype'] = 'crawl'
+
         context['available_feats'] = corpus.get_features_count()
         context['corpus_name'] = corpus.get('name')
+        context['corpusid'] = str(corpus.get_id())
         context['urls_length'] = len(corpus.get('urls'))
-        context['urls'] = [_.get('url') for _ in corpus.get('urls')[:10]]
+        context['texts'] = [_ for _ in corpus.get('urls')[:10]]
         return context
 
 
@@ -126,7 +185,6 @@ class IndexView(TemplateView):
         encoder = RmxEncoder()
         out = []
         for item in cursor:
-
             item = json.loads(encoder.encode(item))
             if item.get('screenplay', False):
                 item['data'] = DataModel.query_data_project(
@@ -136,10 +194,9 @@ class IndexView(TemplateView):
                     }},
                     project=LIST_SCREENPLAYS_PROJECT
                 )
+            item['corpusid'] = item['_id']
+            del item['_id']
 
-            if '_id' in item:
-                item['id'] = item['_id']
-                del item['_id']
             out.append(item)
         context['data'] = out
         return context
@@ -198,42 +255,17 @@ def lemma_context(request, corpusid: str = None):
     })
 
 
-class CorpusTextFilesView(TemplateView):
-
-    template_name = "corpus/data-view.html"
-
-    def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
-
-        context = super().get_context_data(**kwds)
-        if not corpus:
-            context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
-            ]
-            return context
-        dataids = corpus.get_dataids()
-        context['datatype'] = 'screenplay'
-        context['corpusid'] = corpus.get('_id')
-        context['name'] = corpus.get('name')
-        context['data'] = DataModel.query_data_project(
-            query={'_id': {'$in': dataids}},
-            project=LIST_SCREENPLAYS_PROJECT,
-            direct=1)
-
-        return context
-
-
-class CorpusDataEditView(TemplateView):
+class TextsEdit(TemplateView):
 
     template_name = "corpus/data-view-edit.html"
 
     def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
         context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
         dataids = corpus.get_dataids()
@@ -247,20 +279,51 @@ class CorpusDataEditView(TemplateView):
         return context
 
 
-class CorpusUrlsView(TemplateView):
+class TextsDelete(View):
+    """View deleting selected texts from a corpus."""
+
+    def get(self, request, corpusid):
+
+
+        corpus = CorpusModel.inst_by_id(corpusid)
+        dataids = corpus.get_dataids()
+
+        context = {
+            'corpusid': corpus.get('_id'),
+            'name': corpus.get('name'),
+            'data': DataModel.query_data_project(
+                query={'_id': {'$in': dataids}},
+                project=LISTURLS_PROJECT,
+                direct=1),
+        }
+
+        return TemplateResponse(request, 'corpus/delete-texts.html', context)
+
+    def post(self, request, corpusid):
+
+        set_crawl_ready(corpusid, False)
+        delete_data_from_corpus.delay(
+            corpusid=corpusid, data_ids=request.POST.getlist('docid'))
+        return HttpResponseRedirect(
+            '/corpus/{}/?status=remove-files'.format(corpusid))
+
+
+class Texts(CorpusBase):
 
     template_name = "corpus/data-view.html"
 
     def get_context_data(self, **kwds):
-        corpus = CorpusModel.inst_by_id(kwds.get('docid'))
+        corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
 
         context = super().get_context_data(**kwds)
         if not corpus:
             context['errors'] = [
-                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('docid'))
+                ERR_MSGS.get('corpus_does_not_exist').format(kwds.get('corpusid'))
             ]
             return context
         dataids = corpus.get_dataids()
+        context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL.strip(
+            '/')
         context['datatype'] = 'crawl'
         context['corpusid'] = corpus.get('_id')
         context['name'] = corpus.get('name')
@@ -391,14 +454,6 @@ def force_directed_graph(reqobj):
     )
 
 
-def request_kmeans(request, docid):
-
-    if not request.method == 'GET':
-        raise RuntimeError("The request method should be POST, got %s "
-                           "instead." % request.method)
-    return JsonResponse(dict(success=True, msg='Not implemented!'))
-
-
 def is_ready(request, corpusid, feats):
     """ Checking if the features were computed for a given number.
         Replacing the messages sent through WebSockets.
@@ -410,30 +465,46 @@ def is_ready(request, corpusid, feats):
     return JsonResponse(availability)
 
 
-def crawl_is_ready(request, docid):
+def crawl_is_ready(request, corpusid):
     """ Checking if the crawl is ready. """
 
-    corpus = CorpusModel.inst_by_id(docid)
+    corpus = CorpusModel.inst_by_id(corpusid)
     if not corpus:
         raise Http404
 
     if corpus.get('crawl_ready'):
         return JsonResponse({
             'ready': True,
-            'corpusid': docid
+            'corpusid': corpusid
         })
+    if corpus['data_from_the_web']:
+        endpoint = '{}/'.format(
+            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, corpusid]))
 
-    endpoint = '{}/'.format(
-        '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, docid]))
+        resp = requests.get(endpoint).json()
 
-    resp = requests.get(endpoint).json()
-
-    if resp.get('ready'):
-        set_crawl_ready(docid, True)
-
+        if resp.get('ready'):
+            set_crawl_ready(corpusid, True)
     return JsonResponse({
         'ready': False,
-        'corpusid': docid
+        'corpusid': corpusid
+    })
+
+
+def corpus_from_files_ready(request, corpusid):
+
+    corpus = CorpusModel.inst_by_id(corpusid)
+    if not corpus:
+        raise Http404
+
+    if corpus.get('crawl_ready'):
+        return JsonResponse({
+            'ready': True,
+            'corpusid': corpusid
+        })
+    return JsonResponse({
+        'ready': False,
+        'corpusid': corpusid
     })
 
 
@@ -481,41 +552,10 @@ class CreateFromTextFiles(TemplateView):
 
     template_name = "corpus/create-from-text-files.html"
 
-
-def create_corpus_upload(request):
-    """ Creating a corpus from uploaded files. """
-
-    files = request.FILES.getlist('files')
-
-    the_name = request.POST.get('name')
-    # the_id = request.POST.get('id', None)
-
-    docid = str(CorpusModel.inst_new_doc(name=the_name, screenplay=True))
-    corpus = CorpusModel.inst_by_id(docid)
-
-    corpus_file_path = corpus.corpus_files_path()
-    encoding = "utf-8"
-
-    files_obj = {}
-    for _file in files:
-        # todo(): delete
-        # outf_name = None
-        file_name = _file.name
-        with tempfile.NamedTemporaryFile(
-                delete=False, dir=TMP_DATA_DIR) as outf:
-            outf_name = outf.name
-            for line in _file.readlines():
-                outf.write(line)
-        _file.close()
-        files_obj[file_name] = outf_name
-
-    file_uploads_to_data.delay(
-        corpusid=docid, files=files_obj, encoding=encoding,
-        corpus_file_path=corpus_file_path)
-
-    return HttpResponseRedirect(
-        '/corpus/{}/?{}'.format(
-            str(docid), urlencode(dict(status='newly-created'))))
+    def get_context_data(self, **kwds):
+        context = super().get_context_data(**kwds)
+        context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL
+        return context
 
 
 @csrf_exempt
@@ -534,3 +574,70 @@ def sync_matrices(request):
 
     corpus.del_status_feats(feats=int(params.get('feats')))
     return JsonResponse({'success': True, 'corpusid': params.get('corpusid')})
+
+
+def corpus_data(request):
+
+    corpusid = request.GET.get('corpusid')
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    if not corpus:
+        raise Http404
+
+    return JsonResponse({
+        'success': True,
+        'corpusid': corpusid,
+        'vectors_path': corpus.get_vectors_path(),
+        'corpus_files_path': corpus.corpus_files_path(),
+        # 'lemma_path': corpus.get_lemma_path(),
+        'matrix_path': corpus.matrix_path,
+        'wf_path': corpus.wf_path,
+    })
+
+
+class ExpectedFiles(View):
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        """
+        https://docs.djangoproject.com/en/2.1/topics/class-based-views/intro/
+        decorating-the-class
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        return super().dispatch(*args, **kwargs)
+
+    def post(self, request):
+        """Saving expected_files."""
+
+        req_obj = request.POST.dict()
+
+        corpusid = req_obj.get('corpusid')
+        file_objects = json.loads(req_obj.get('file_objects'))
+
+        CorpusModel.update_expected_files(
+            corpusid=corpusid, file_objects=file_objects)
+
+        return JsonResponse({'corpusid': corpusid, 'success': True})
+
+
+@csrf_exempt
+def integrity_check_callback(request):
+    """
+    :param request:
+    :return:
+    """
+    corpusid = json.loads(request.POST.get('payload')).get('corpusid')
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    if 'file' in request.FILES:
+        shutil.rmtree(corpus.matrix_path)
+        shutil.unpack_archive(
+            request.FILES['file'].temporary_file_path(),
+            corpus.get_corpus_path(),
+            'zip'
+        )
+
+    set_crawl_ready(corpusid, True)
+    return JsonResponse({'success': True})

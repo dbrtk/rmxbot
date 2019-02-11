@@ -1,24 +1,19 @@
 
 
-from django.conf.urls import url
-from django.urls import path
+from django.urls import path, re_path
 from rmxbot.apps.data import views
 
 urlpatterns = [
-    # Examples:
-    # url(r'^$', 'thesite.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
-    # url(r'^$', 'rmxbot.apps.data.views.get_data'),
 
-    url(r'^$', views.index),
+    path('', views.index, name='data_index'),
 
-    url(r'^create/$', views.create),
-    url(r'^create-data-object/', views.create),
+    path('create/', views.create, name='create_data'),
+    path('create-data-object/', views.create, name='create_data_object'),
 
-    url(r'^data-to-corpus/$', views.data_to_corpus),
-    path('edit-many/', views.edit_many),
+    path('create-from-file/', views.create_from_file, name='create_from_file'),
 
-    url(r'^webpage/(?P<docid>[0-9a-zA-Z]*)/$', views.webpage),
+    path('data-to-corpus/', views.data_to_corpus, name='data_to_corpus'),
+    path('edit-many/', views.edit_many, name='edit_many'),
 
-    url(r'^text/(?P<docid>[0-9a-zA-Z]*)/$', views.text),
+    re_path(r'^webpage/(?P<docid>[0-9a-zA-Z]*)/$', views.webpage),
 ]

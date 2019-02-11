@@ -257,8 +257,3 @@ class CorpusMatrix(object):
             matrix_name = self._matrix_name(item)
             if matrix_name in args:
                 os.remove(item)
-
-    def remove_featdir(self):
-        path = os.path.join(self.path.get('matrix'), 'wf', str(self.featcount))
-        if os.path.isdir(path):
-            shutil.rmtree(path)

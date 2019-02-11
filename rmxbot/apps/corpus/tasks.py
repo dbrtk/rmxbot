@@ -1,16 +1,18 @@
 
 import json
 import os
-import shlex
 import shutil
-import subprocess
+from typing import List
 
 from celery import shared_task
 import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
-                       NLP_GENERATE_FEATURES_WEIGTHS, SCRASYNC_CREATE)
-from .models import CorpusModel, get_urls_length
+                       NLP_GENERATE_FEATURES_WEIGTHS, NLP_INTEGRITY_CHECK,
+                       SCRASYNC_CREATE)
+from ..data.tasks import delete_data
+from .models import (CorpusModel, get_urls_length, insert_urlobj,
+                     set_crawl_ready)
 from . import sync_data
 
 
@@ -20,9 +22,6 @@ class Error(Exception):
 
 class __Error(Error):
     pass
-
-
-# todo(): cleanup!!!
 
 
 @shared_task(bind=True)
@@ -105,16 +104,75 @@ def nlp_callback_success(self, **kwds):
     corpus.update_on_nlp_callback(feats=kwds.get('feats'))
 
 
-def empty_corpus(path):
-    path = os.path.normpath(path)
-    command = shlex.split('/opt/bin/rmxrsync.sh {}'.format(path))
-    try:
-        subprocess.call(command)
-    except (subprocess.CalledProcessError,) as err:
-        raise RuntimeError(err)
-
-
 @shared_task(bind=True)
 def test_task(self, a, b):
     """This is a test task."""
     return a + b
+
+
+@shared_task(bind=True)
+def file_extract_callback(self, **kwds):
+    """
+
+    :param self:
+    :param kwds:
+    :return:
+    """
+    corpusid = kwds.get('corpusid')
+    if kwds.get('success') and kwds.get('data_id'):
+        insert_urlobj(
+            kwds.get('corpusid'),
+            {
+                'data_id': kwds.get('data_id'),
+                'file_id': kwds.get('file_id'),
+                'texthash': '',
+                'title': kwds.get('file_name')
+            }
+        )
+    doc = CorpusModel.file_extract_callback(
+        corpusid=corpusid, unique_file_id=kwds.get('unique_id'))
+
+    if not doc['expected_files']:
+        if doc.matrix_exists:
+            integrity_check.delay(corpusid=corpusid)
+        else:
+            set_crawl_ready(corpusid, True)
+
+
+@shared_task(bind=True)
+def integrity_check(self, corpusid: str = None):
+
+    # if not CorpusModel.inst_by_id(corpusid).matrix_exists:
+    #     return
+    path_to_zip, tmp_dir = sync_data.zip_corpus(corpusid)
+
+    requests.post(NLP_INTEGRITY_CHECK, data={
+        'payload': json.dumps({'corpusid': corpusid})
+    }, files={'file': open(path_to_zip, 'rb')})
+
+    shutil.rmtree(tmp_dir)
+
+
+@shared_task(bind=True)
+def delete_data_from_corpus(
+        self, corpusid: str = None, data_ids: List[str] = None):
+
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    corpus_files_path = corpus.corpus_files_path()
+    dataid_fileid = corpus.dataid_fileid(data_ids=data_ids)
+    resp = corpus.del_data_objects(data_ids=data_ids)
+
+    for _path in [os.path.join(corpus_files_path, _[1])
+                  for _ in dataid_fileid]:
+        if not os.path.exists(_path):
+            raise RuntimeError(_path)
+        os.remove(_path)
+
+    params = {
+        'kwargs': {'corpusid': corpusid, 'dataids': data_ids}
+    }
+    if corpus.matrix_exists:
+        params['link'] = integrity_check.s()
+
+    delete_data.apply_async(**params)

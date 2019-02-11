@@ -113,12 +113,16 @@ class Document(RmxDict):
         for key, val in doc.items():
             if key not in struct:
                 raise ValueError(doc)
-            if not isinstance(val, struct[key]):
+            if not isinstance(val, struct.get(key)):
                 raise ValueError(doc)
 
         return doc
 
     def get_id(self): return self.get('_id')
+
+    def rm_doc(self):
+        """Remove a doc from the database."""
+        return self.__collection__.delete_one({'_id': self.get_id()})
 
 
 def any_value(value):
