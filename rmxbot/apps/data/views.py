@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import stat
 
 from django.contrib import messages
 from django.http import (HttpResponseRedirect, JsonResponse)
@@ -30,7 +31,7 @@ def create_from_file(request):
 
     hasher = hashlib.md5()
     kwds = request.POST.dict()
-    corpusid  = kwds.get('corpusid')
+    corpusid = kwds.get('corpusid')
     doc, file_id = DataModel.create_empty(
         corpusid=corpusid,
         title=kwds.get('file_name'))
@@ -38,6 +39,7 @@ def create_from_file(request):
     encoding = kwds.get('charset', 'utf8')
 
     file_path = os.path.join(kwds.get('corpus_files_path'), file_id)
+    # todo(): use DataModel.data_to_corpus to create the file
     with open(file_path, '+a') as out:
         out.write('{}\n\n'.format(docid))
         for _line in request.FILES['file'].readlines():
@@ -48,6 +50,7 @@ def create_from_file(request):
             out.write('{}'.format(
                 _line.decode(encoding)
             ))
+    os.chmod(file_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
     _hash = hasher.hexdigest()
     try:
         doc.set_hashtxt(value=_hash)
@@ -95,7 +98,7 @@ def webpage(request, docid=None):
 
 def data_to_corpus(request):
 
-    # todo(): review this method.
+    # todo(): review this method. Delete this.
     obj = QueryDict(request.body).dict()
 
     docid = obj.get('docid')

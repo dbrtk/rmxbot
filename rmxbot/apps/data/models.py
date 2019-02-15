@@ -193,7 +193,7 @@ class DataModel(Document):
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
-
+        # todo(): revie this method - make it more general or delete
         path = os.path.normpath(os.path.join(path, file_id))
 
         if os.path.isfile(path):
