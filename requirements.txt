@@ -3,8 +3,11 @@ bson
 celery
 redis==2.10.6
 
+numpy
+
 requests
 pymongo
 Django
+
 django-debug-toolbar
-numpy
+remote-pdb

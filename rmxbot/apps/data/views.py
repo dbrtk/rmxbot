@@ -50,7 +50,9 @@ def create_from_file(request):
             out.write('{}'.format(
                 _line.decode(encoding)
             ))
+
     os.chmod(file_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+
     _hash = hasher.hexdigest()
     try:
         doc.set_hashtxt(value=_hash)

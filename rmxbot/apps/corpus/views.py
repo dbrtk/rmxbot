@@ -125,7 +125,7 @@ class CorpusBase(TemplateView):
     """Base class for views that retrieve corpus data."""
     def get(self, request, *args, **kwds):
 
-        _status = 'newly-created'
+        _status = 'busy'
         refering_page = request.META.get('HTTP_REFERER')
 
         if refering_page:
