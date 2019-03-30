@@ -1,18 +1,20 @@
 
 
-from django.views.generic.base import TemplateView
-from django.http import HttpResponse
-from django.template import loader
+from flask import Blueprint, render_template
 
 
-def home(request):
+home_app = Blueprint(
+    'home_app', __name__, root_path='/', template_folder='templates')
+
+
+@home_app.route('/')
+def home():
     """
     """
-    context = dict(success=True)
-    template = loader.get_template("index.html")
-    return HttpResponse(template.render(context, request))
+    return render_template("index.html")
 
 
-class HowTo(TemplateView):
-
-    template_name = 'about/howto.html'
+@home_app.route('/about/howto.html')
+def howto():
+    # todo(): delete
+    return render_template("about/howto.html")

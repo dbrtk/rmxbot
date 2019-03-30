@@ -5,6 +5,7 @@ import shutil
 from typing import List
 
 from celery import shared_task
+import celery
 import requests
 
 from ...config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
@@ -14,6 +15,9 @@ from ..data.tasks import delete_data
 from .models import (CorpusModel, get_urls_length, insert_urlobj,
                      set_crawl_ready)
 from . import sync_data
+
+# this is
+# celery_app = celery.current_app
 
 
 class Error(Exception):
@@ -107,6 +111,11 @@ def nlp_callback_success(self, **kwds):
 @shared_task(bind=True)
 def test_task(self, a, b):
     """This is a test task."""
+
+    print('test_task')
+    print(self)
+    print(self.name)
+
     return a + b
 
 

@@ -81,6 +81,8 @@ MONGODB_PORT = 27017
 MONGODB_USR = 'dbuser_if_any'
 MONGODB_PWD = 'password_if_any'
 
+MONGODB_OBJECTID_REGEX = '[a-f0-9]{24}'
+
 # names given to the mongodb collections
 DATA_COLL = 'data'
 IMAGE_COLL = 'image'

@@ -5,6 +5,9 @@ redis==2.10.6
 
 requests
 pymongo
+numpy
+
+Flask
+
 Django
 django-debug-toolbar
-numpy

@@ -7,14 +7,18 @@ from . import views
 
 urlpatterns = [
 
+    # todo(): delete - moved to flask
     path('', views.IndexView.as_view(), name='corpora_index'),
 
+    # todo(): delete - moved to flask
     path('create/', views.create),
 
     path('create-from-upload/', views.create_from_upload),
 
+    # todo(): delete - moved to flask
     path('new/', views.CreateFormView.as_view(), name='new_corpus'),
 
+    # todo(): delete - moved to flask
     path('create-from-text-files/',
          views.CreateFromTextFiles.as_view(),
          name='corpus_from_text_files'),
@@ -31,6 +35,9 @@ urlpatterns = [
 
     path('sync-matrices/', views.sync_matrices),
 
+
+
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/$',
             views.CorpusDataView.as_view(), name='data_corpus'),
 
@@ -49,6 +56,8 @@ urlpatterns = [
 
     url(r'^(?P<corpusid>[0-9a-zA-Z]*)/context/', views.lemma_context),
 
+
+
     path('nlp-callback/', views.nlp_callback),
 
     path('compute-matrices-callback/', views.compute_matrices_callback),
@@ -63,12 +72,16 @@ urlpatterns = [
     re_path(r'^(?P<docid>[0-9a-zA-Z]*)/force-directed-graph/$',
             views.force_directed_graph),
 
+
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/is-ready/(?P<feats>\d*)',
             views.is_ready),
 
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/corpus-crawl-ready/',
             views.crawl_is_ready),
 
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/corpus-from-files-ready/',
          views.corpus_from_files_ready),
 
