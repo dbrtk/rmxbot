@@ -14,13 +14,12 @@ import bson
 from pymongo import UpdateOne
 
 from ...config import DATA_COLL
-from rmxbot.contrib.db.models.document import Document
-from rmxbot.contrib.db.models.fields.urlfield import UrlField
-from rmxbot.contrib.utils import dictionary
-from rmxbot.apps.data.errors import DuplicateUrlError
+from ...contrib.db.models.document import Document
+from ...contrib.db.models.fields.urlfield import UrlField
+from ...contrib.utils import dictionary
+from .errors import DuplicateUrlError
 
-
-from rmxbot.contrib.db.connection import get_collection
+from ...contrib.db.connection import get_collection
 
 
 _COLLECTION = get_collection(collection=DATA_COLL)

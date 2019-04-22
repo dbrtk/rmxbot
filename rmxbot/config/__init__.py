@@ -4,10 +4,11 @@ import os
 
 HERE = os.path.abspath(__file__)
 
-SCRIPTS = os.path.abspath(os.path.join(
-    HERE, os.pardir, os.pardir, os.pardir, 'bin'))
-if not os.path.isdir(SCRIPTS):
-    raise RuntimeError(SCRIPTS)
+BASE_DIR = os.path.abspath(os.path.join(HERE, os.pardir, os.pardir, os.pardir))
+
+SCRIPTS = os.path.join(BASE_DIR, 'bin')
+
+TEMPLATES = os.environ['TEMPLATES_FOLDER']
 
 # SEARCH_CORPUS_SH - the grep script that searches the corpus
 SEARCH_CORPUS_SH = os.environ['RMX_SEARCH_CORPUS_SCRIPT']

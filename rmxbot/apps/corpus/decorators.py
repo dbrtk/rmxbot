@@ -4,7 +4,7 @@
 from django.http import JsonResponse
 
 from .models import CorpusModel, request_availability
-from .tasks import generate_matrices_remote
+from ...tasks.corpus import generate_matrices_remote
 
 
 def check_availability(func):

@@ -549,7 +549,7 @@ def compute_matrices_callback(request):
 
 
 class CreateFromTextFiles(TemplateView):
-
+    # todo(): delete!
     template_name = "corpus/create-from-text-files.html"
 
     def get_context_data(self, **kwds):

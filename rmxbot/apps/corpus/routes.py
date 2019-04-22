@@ -8,7 +8,7 @@ import pymongo
 import requests
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       MONGODB_OBJECTID_REGEX, SCRASYNC_CRAWL_READY)
+                       MONGODB_OBJECTID_REGEX, SCRASYNC_CRAWL_READY, TEMPLATES)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
@@ -16,8 +16,10 @@ from ..data.models import (
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
 from .status import CORPUS_STATUS, status_text
-from rmxbot.apps.corpus.tasks import (crawl_async, delete_data_from_corpus,
-                    file_extract_callback, nlp_callback_success, test_task)
+
+from ...tasks.corpus import (crawl_async, delete_data_from_corpus,
+                             file_extract_callback, nlp_callback_success,
+                             test_task)
 from . import scripts
 
 RE_ID = MONGODB_OBJECTID_REGEX
@@ -25,7 +27,7 @@ RE_ID = MONGODB_OBJECTID_REGEX
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
 
 corpus_app = Blueprint(
-    'corpus_app', __name__, root_path='/corpus', template_folder='templates')
+    'corpus_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
 
 
 @corpus_app.route('/')
