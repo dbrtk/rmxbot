@@ -308,6 +308,7 @@ class TextsDelete(View):
             '/corpus/{}/?status=remove-files'.format(corpusid))
 
 
+# todo(): delete
 class Texts(CorpusBase):
 
     template_name = "corpus/data-view.html"

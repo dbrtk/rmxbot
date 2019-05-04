@@ -1,4 +1,6 @@
 import json
+import os
+import re
 import uuid
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -183,5 +185,163 @@ def corpus_from_files_ready(corpusid):
     return jsonify({
         'ready': False,
         'corpusid': corpusid
+    })
+
+
+@corpus_app.route('/<objectid:corpusid>/data/')
+def texts(corpusid):
+
+    template_name = "corpus/data-view.html"
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    context = {}
+    if not corpus:
+        context['errors'] = [
+            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+        ]
+        return render_template(template_name, **context)
+
+    dataids = corpus.get_dataids()
+    context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL.strip(
+        '/')
+    context['datatype'] = 'crawl'
+    context['corpusid'] = corpus.get('_id')
+    context['name'] = corpus.get('name')
+    context['data'] = DataModel.query_data_project(
+        query={'_id': {'$in': dataids}},
+        project=LISTURLS_PROJECT,
+        direct=1)
+
+    return render_template(template_name, **context)
+
+
+@corpus_app.route('/<objectid:corpusid>/data/edit/', methods=['GET'])
+def edit_corpus(corpusid):
+
+    template_name = "corpus/data-view-edit.html"
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    context = {}
+    if not corpus:
+        context['errors'] = [
+            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+        ]
+        return render_template(template_name, **context)
+    dataids = corpus.get_dataids()
+    context['datatype'] = 'screenplay'
+    context['corpusid'] = corpus.get('_id')
+    context['name'] = corpus.get('name')
+    context['data'] = DataModel.query_data_project(
+        query={'_id': {'$in': dataids}},
+        project=LIST_SCREENPLAYS_PROJECT,
+        direct=1)
+    return render_template(template_name, **context)
+
+
+@corpus_app.route('/<objectid:corpusid>/data/delete-texts/',
+                  methods=['POST', 'GET'])
+def delete_texts(corpusid):
+
+    if request.method == 'GET':
+        corpus = CorpusModel.inst_by_id(corpusid)
+        dataids = corpus.get_dataids()
+
+        context = {
+            'corpusid': corpus.get('_id'),
+            'name': corpus.get('name'),
+            'data': DataModel.query_data_project(
+                query={'_id': {'$in': dataids}},
+                project=LISTURLS_PROJECT,
+                direct=1),
+        }
+        return render_template('corpus/delete-texts.html', **context)
+
+    elif request.method == 'POST':
+        set_crawl_ready(corpusid, False)
+        delete_data_from_corpus.delay(
+            corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
+        return redirect(
+            '/corpus/{}/?status=remove-files'.format(str(corpusid)))
+    else:
+        return abort(403)
+
+
+@corpus_app.route('/<objectid:corpusid>/file/<objectid:dataid>/',
+                  methods=['GET'])
+def get_text_file(corpusid, dataid):
+
+    corpus = CorpusModel.inst_by_id(corpusid)
+    try:
+        doc = corpus.get_url_doc(str(dataid))
+    except (RuntimeError, ):
+        return abort(404, 'Requested file does not exist.')
+    fileid = doc.get('file_id')
+    txt = ''
+    with open(
+            os.path.join(corpus.get_corpus_path(), 'corpus', fileid)
+    ) as _file:
+        _file.readline()
+        while True:
+            _ = _file.readline()
+            if not _.strip():
+                continue
+            else:
+                txt += _
+                break
+        for _ in _file.readlines():
+            txt += _
+    return txt
+
+
+def context_to_json(string: str = None):
+
+    pattern = r"([a-z0-9]+)\:(.*)"
+    data = re.findall(pattern, string)
+
+    out = {}
+    for docid, txt in data:
+
+        if docid not in out:
+            out[docid] = []
+        else:
+            if txt in out[docid]:
+                continue
+        out[docid].append(txt)
+
+    return out
+
+
+def tag_words_corpus(matchwords: list = None, txt: str = None):
+
+    return re.sub(
+        r"\b({})\b".format('|'.join(matchwords)),
+        r'<span class="match">\1</span>',
+        txt,
+        flags=re.IGNORECASE
+    )
+
+
+@corpus_app.route('/<objectid:corpusid>/context/')
+def lemma_context(corpusid):
+
+    corpus = CorpusModel.inst_by_id(corpusid)
+    lemma_to_words, lemma = corpus.get_lemma_words(request.args.get('lemma'))
+
+    matchwords = []
+    for i in lemma:
+        try:
+            mapping = next(_ for _ in lemma_to_words if _.get('lemma') == i)
+            matchwords.extend(mapping.get('words'))
+        except StopIteration:
+            matchwords.append(i)
+
+    result = scripts.words_context(lemma=matchwords, corpus=corpus)
+
+    result = tag_words_corpus(matchwords, result)
+    data = context_to_json(result)
+
+    return jsonify({
+        'success': True,
+        'data': data
     })
 

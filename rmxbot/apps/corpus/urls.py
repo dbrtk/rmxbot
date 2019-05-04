@@ -41,16 +41,19 @@ urlpatterns = [
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/$',
             views.CorpusDataView.as_view(), name='data_corpus'),
 
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/$',
             views.Texts.as_view(), name='corpus_data'),
 
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/edit/$',
             views.TextsEdit.as_view(), name='corpus_data_edit'),
 
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/data/delete-texts/$',
             views.TextsDelete.as_view(), name='corpus_data_delete'),
 
-
+    # todo(): delete - moved to flask
     re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/file/(?P<dataid>[0-9a-zA-Z]*)/$',
             views.get_text_file),
 

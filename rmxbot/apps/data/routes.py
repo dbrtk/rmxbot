@@ -1,12 +1,11 @@
 """ views to the DataModel model
 """
 import hashlib
-import json
 import os
 import stat
 
-from flask import (abort, Blueprint, get_flashed_messages, jsonify,
-                   redirect, render_template, request)
+from flask import (Blueprint, get_flashed_messages, jsonify, redirect,
+                   render_template, request)
 
 from ...tasks import data as data_tasks
 from ...config import TEMPLATES
