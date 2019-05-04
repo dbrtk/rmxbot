@@ -23,10 +23,4 @@ from rmxbot.app import create_app
 # os.environ['REDIS_HOST_NAME'] = 'localhost'
 # os.environ['TEMPLATES_FOLDER'] = os.path.join(BASE_DIR, 'templates')
 
-
 app = create_app()
-
-
-
-
-

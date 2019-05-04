@@ -8,7 +8,7 @@ import pymongo
 import requests
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       MONGODB_OBJECTID_REGEX, SCRASYNC_CRAWL_READY, TEMPLATES)
+                       SCRASYNC_CRAWL_READY, TEMPLATES)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
@@ -21,8 +21,6 @@ from ...tasks.corpus import (crawl_async, delete_data_from_corpus,
                              file_extract_callback, nlp_callback_success,
                              test_task)
 from . import scripts
-
-RE_ID = MONGODB_OBJECTID_REGEX
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
 
@@ -103,11 +101,11 @@ def create_from_crawl():
 @corpus_app.route('/test-task/<a>/<b>/')
 def view_test_task(a, b):
 
-    res = test_task.delay(a, b)
+    res = test_task.delay(int(a), int(b))
     return jsonify({'success': True, 'result': res.get()})
 
 
-@corpus_app.route('/<objectid:corpusid>/'.format(RE_ID), methods=['GET'])
+@corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
 def corpus_data(corpusid):
 
     context = {}
@@ -121,7 +119,7 @@ def corpus_data(corpusid):
         context['errors'] = [
             ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
         ]
-        return context
+        return render_template("corpus/data.html", **context)
 
     context['available_feats'] = corpus.get_features_count()
     context['corpus_name'] = corpus.get('name')
@@ -152,11 +150,12 @@ def corpus_crawl_ready(corpusid):
     if corpus.get('crawl_ready'):
         return jsonify({
             'ready': True,
-            'corpusid': corpusid
+            'corpusid': str(corpusid)
         })
     if corpus['data_from_the_web']:
         endpoint = '{}/'.format(
-            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, corpusid]))
+            '/'.join(s.strip('/') for s in [
+                SCRASYNC_CRAWL_READY, str(corpusid)]))
 
         resp = requests.get(endpoint).json()
 
@@ -164,7 +163,7 @@ def corpus_crawl_ready(corpusid):
             set_crawl_ready(corpusid, True)
     return jsonify({
         'ready': False,
-        'corpusid': corpusid
+        'corpusid': str(corpusid)
     })
 
 

@@ -53,8 +53,11 @@ def create_app(static_folder: str = STATIC_FOLDER):
                 )
 
     from rmxbot.contrib.utils.urls import ObjectidConverter
+    from rmxbot.contrib.rmxjson import RmxEncoder
 
     app.url_map.converters['objectid'] = ObjectidConverter
+
+    app.json_encoder = RmxEncoder
 
     # app.config.from_object('conf')
     app.config.update(
@@ -65,10 +68,10 @@ def create_app(static_folder: str = STATIC_FOLDER):
     with app.app_context():
         from .apps.corpus.routes import corpus_app
         from .apps.home.views import home_app
-        # from .apps.data.routes import data_app
+        from .apps.data.routes import data_app
 
         app.register_blueprint(corpus_app, url_prefix='/corpus')
-        # app.register_blueprint(data_app, url_prefix='/data')
+        app.register_blueprint(data_app, url_prefix='/data')
         app.register_blueprint(home_app)
 
     return app

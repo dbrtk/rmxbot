@@ -106,13 +106,8 @@ def nlp_callback_success(self, **kwds):
 
 
 @celery.task(bind=True)
-def test_task(self, a, b):
+def test_task(self, a: int = None, b: int = None) -> int:
     """This is a test task."""
-
-    print('test_task')
-    print(self)
-    print(self.name)
-
     return a + b
 
 
