@@ -1,11 +1,13 @@
 import json
 import os
 import re
+import shutil
 import uuid
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import bson
-from flask import abort, Blueprint, jsonify, redirect, render_template, request
+from flask import (abort, Blueprint, jsonify, redirect, render_template,
+                   render_template_string, request)
 import pymongo
 import requests
 
@@ -345,3 +347,139 @@ def lemma_context(corpusid):
         'data': data
     })
 
+
+@corpus_app.route('/nlp-callback/')
+def nlp_callback():
+
+    obj = request.get_json()
+    # obj = json.loads(request.POST.get('payload'))
+    corpus = CorpusModel.inst_by_id(obj.get('corpusid'))
+
+    shutil.unpack_archive(
+        request.files['file'].temporary_file_path(),
+        corpus.wf_path,
+        'zip'
+    )
+
+    error = obj.get('error')
+    if error:
+        pass
+    else:
+        nlp_callback_success.apply_async(kwargs=obj)
+
+    return jsonify({'success': True})
+
+
+@corpus_app.route('/sync-matrices/', methods=['POST'])
+def sync_matrices():
+    """Synchronizing matrices after these have been computed and returned by
+       NLP.
+    """
+    params = request.POST.dict()
+    path = request.files['file'].temporary_file_path()
+    corpus = CorpusModel.inst_by_id(params.get('corpusid'))
+
+    shutil.unpack_archive(path, corpus.matrix_path)
+
+    if os.path.exists(path):
+        os.remove(path)
+
+    corpus.del_status_feats(feats=int(params.get('feats')))
+    return jsonify({'success': True, 'corpusid': params.get('corpusid')})
+
+
+def features_to_html(feats, corpusid):
+
+    feat_tpl = 'corpus/features.html'
+    return render_template_string(
+        feat_tpl, **dict(features=feats, corpusid=corpusid))
+
+
+def documents_to_html(docs):
+
+    doc_tpl = 'corpus/documents.html'
+    return render_template_string(doc_tpl, **dict(documents=docs))
+
+
+@corpus_app.route('/<objectid:corpusid>/features/')
+@check_availability
+def request_features(reqobj):
+
+    corpus = reqobj.get('corpus')
+    del reqobj['corpus']
+
+    features, docs = corpus.get_features(**reqobj)
+    return jsonify(dict(
+        success=True,
+        features=features,
+        docs=docs
+    ))
+
+
+@corpus_app.route('/<objectid:corpusid>/features-html/')
+@check_availability
+def request_features_html(reqobj):
+    corpus = reqobj.get('corpus')
+    features, _ = corpus.get_features(**reqobj)
+    return jsonify(
+        dict(
+            features=features_to_html(features, str(corpus.get('_id')))
+        )
+    )
+
+
+@corpus_app.route('/<objectid:corpusid>/force-directed-graph/')
+@check_availability
+def force_directed_graph(reqobj):
+    """ Retrieving data (links and nodes) for a force-directed graph. This
+        function maps the documents and features to links and nodes.
+    """
+
+    corpus = reqobj.get('corpus')
+    del reqobj['corpus']
+
+    features, docs = corpus.get_features(**reqobj)
+
+    links, nodes = [], []
+
+    for f in features:
+        f['id'] = str(uuid.uuid4())
+        f['group'] = f['id']
+        f['type'] = 'feature'
+        # cleanup the feat object
+        del f['docs']
+        nodes.append(f)
+
+    def get_feat(feature):
+        for item in nodes:
+            if item.get('features') == feature:
+                return item
+        return None
+    for d in docs:
+        _f = get_feat(d['features'][0]['feature'])
+        d['group'] = _f['id']
+        d['id'] = str(uuid.uuid4())
+        d['type'] = 'document'
+
+        nodes.append(d)
+        for f in d['features']:
+            if _f and f['feature'] == _f:
+                the_feat = _f
+            else:
+                the_feat = get_feat(f['feature'])
+            _f = None
+            if not the_feat:
+                continue
+            links.append(dict(
+                source=d['id'],
+                target=the_feat['id'],
+                weight=f['weight']
+            ))
+        # cleanup the doc object
+        del d['features']
+
+    return jsonify(
+        dict(
+            links=links, nodes=nodes, corpusid=str(corpus.get('_id'))
+        )
+    )

@@ -16,16 +16,17 @@ data_app = Blueprint(
     'data_app', __name__, root_path='/data', template_folder=TEMPLATES)
 
 
-@data_app.route('/create-data-object/', methods=['POST'])
-def create():
-    """Creates a data object. This endpoint is called from scrasync for every
-       scraped page.
-    """
-    if not request.is_json:
-        raise RuntimeError(request)
-    content = request.get_json()
-    data_tasks.call_data_create.delay(**content)
-    return jsonify({'success': True})
+# @data_app.route('/create-data-object/', methods=['POST'])
+# def create():
+#     """Creates a data object. This endpoint is called from scrasync for every
+#        scraped page.
+#     """
+#     # todo(): delete!
+#     if not request.is_json:
+#         raise RuntimeError(request)
+#     content = request.get_json()
+#     data_tasks.call_data_create.delay(**content)
+#     return jsonify({'success': True})
 
 
 @data_app.route('/create-from-file/', methods=['POST'])

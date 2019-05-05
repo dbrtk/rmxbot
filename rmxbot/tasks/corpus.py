@@ -10,9 +10,9 @@ from ..apps.corpus.models import (CorpusModel, get_urls_length, insert_urlobj,
                                   set_crawl_ready)
 from ..apps.corpus import sync_data
 from ..config import (CORPUS_MAX_SIZE, NLP_COMPUTE_MATRICES,
-                       NLP_GENERATE_FEATURES_WEIGTHS, NLP_INTEGRITY_CHECK,
-                       SCRASYNC_CREATE)
+                      NLP_GENERATE_FEATURES_WEIGTHS, NLP_INTEGRITY_CHECK)
 from .data import delete_data
+from ..tasks.celeryconf import SCRASYNC_TASKS
 
 from ..app import celery
 
@@ -58,8 +58,8 @@ def generate_matrices_remote(
         compute_matrices.delay(**kwds)
 
 
-@celery.task(bind=True)
-def compute_matrices(self, **kwds):
+@celery.task
+def compute_matrices(**kwds):
     """ Calling compute matrice son the nlp server. """
 
     path_to_zip, tmp_dir = sync_data.zip_corpus(kwds.get('corpusid'))
@@ -90,12 +90,21 @@ def crawl_async(self, url_list: list = None, corpus_id=None, crawl=False,
         return False
     corpus = CorpusModel.inst_by_id(corpus_id)
     path, file_id = corpus.create_file_path()
-    requests.post(SCRASYNC_CREATE, json={
+
+    celery.send_task(SCRASYNC_TASKS['create'], kwargs={
         'endpoint': url_list,
         'corpusid': corpus_id,
         'depth': depth,
-        'corpus_file_path': corpus_file_path
+        'corpus_file_path': corpus_file_path,
     })
+
+    # todo(): delete
+    # requests.post(SCRASYNC_CREATE, json={
+    #     'endpoint': url_list,
+    #     'corpusid': corpus_id,
+    #     'depth': depth,
+    #     'corpus_file_path': corpus_file_path
+    # })
 
 
 @celery.task(bind=True)

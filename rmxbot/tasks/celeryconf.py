@@ -11,3 +11,15 @@ CELERY_ACCEPT_CONTENT = ['json', 'msgpack', 'yaml']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+CELERY_ROUTES = {
+
+    'rmxbot.tasks.*': {'queue': 'rmxbot'},
+
+    'scrasync.*': {'queue': 'scrasync'}
+}
+
+SCRASYNC_TASKS = {
+
+    'create':  'scrasync.scraper.start_crawl',
+}
+

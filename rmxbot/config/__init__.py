@@ -22,36 +22,31 @@ NLP_REMOTE_WORKER = True
 NLP_ENDPOINT = os.environ['NLP_ENDPOINT']
 
 NLP_DENDOGRAM = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'dendogram'])
+    s for s in [NLP_ENDPOINT, 'dendogram'])
 
 NLP_GENERATE_MATRICES = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'generate-matrices'])
+    s for s in [NLP_ENDPOINT, 'generate-matrices'])
 
 NLP_GENERATE_FEATURES_WEIGTHS = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'generate-features-weights'])
+    s for s in [NLP_ENDPOINT, 'generate-features-weights'])
 NLP_COMPUTE_MATRICES = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'compute-matrices'])
+    s for s in [NLP_ENDPOINT, 'compute-matrices'])
 
 NLP_GENERATE_ALL = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'generate-all'])
+    s for s in [NLP_ENDPOINT, 'generate-all'])
 
 NLP_FEATURES_AND_DOCS_ENDPOINT = '/'.join(
-    s for s in [NLP_ENDPOINT, 'nlp', 'features-docs'])
+    s for s in [NLP_ENDPOINT, 'features-docs'])
 
-NLP_INTEGRITY_CHECK = '{}/nlp/integrity-check'.format(NLP_ENDPOINT)
+NLP_INTEGRITY_CHECK = '{}/integrity-check'.format(NLP_ENDPOINT)
 
 SCRASYNC_REMOTE_WORKER = True
 
 # SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
 SCRASYNC_ENDPOINT = os.environ.get('SCRASYNC_ENDPOINT')
 
-SCRASYNC_CREATE = '/'.join(
-    s for s in [SCRASYNC_ENDPOINT, 'scrasync', 'create'])
-if not SCRASYNC_CREATE.endswith('/'):
-    SCRASYNC_CREATE = '{}/'.format(SCRASYNC_CREATE)
-
 SCRASYNC_CRAWL_READY = '/'.join(
-    s for s in [SCRASYNC_ENDPOINT, 'scrasync', 'crawl-ready'])
+    s for s in [SCRASYNC_ENDPOINT, 'crawl-ready'])
 if not SCRASYNC_CRAWL_READY.endswith('/'):
     SCRASYNC_CRAWL_READY = '{}/'.format(SCRASYNC_CRAWL_READY)
 
