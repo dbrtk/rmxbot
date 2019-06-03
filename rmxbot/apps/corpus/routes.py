@@ -344,12 +344,6 @@ def lemma_context(corpusid):
     })
 
 
-def documents_to_html(docs):
-    # todo(): delete
-    doc_tpl = 'corpus/documents.html'
-    return render_template(doc_tpl, **dict(documents=docs))
-
-
 @corpus_app.route('/<objectid:corpusid>/features/')
 @check_availability
 def request_features(reqobj):
