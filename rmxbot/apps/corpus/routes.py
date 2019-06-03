@@ -1,9 +1,8 @@
 import json
 import os
 import re
-import shutil
 import uuid
-from urllib.parse import parse_qs, urlencode, urlparse
+from urllib.parse import urlencode
 
 import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
@@ -13,17 +12,14 @@ import requests
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
                        SCRASYNC_CRAWL_READY, TEMPLATES)
-from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
 from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
-from .status import CORPUS_STATUS, status_text
+from .status import status_text
 
-from ...tasks.corpus import (crawl_async, delete_data_from_corpus,
-                             file_extract_callback, nlp_callback_success,
-                             test_task)
+from ...tasks.corpus import crawl_async, delete_data_from_corpus, test_task
 from . import scripts
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
@@ -110,7 +106,7 @@ def view_test_task(a, b):
 
 
 @corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
-def corpus_data(corpusid):
+def corpus_data_view(corpusid):
 
     context = {}
     status, message = status_text(request.args.get('status'))
@@ -348,46 +344,6 @@ def lemma_context(corpusid):
     })
 
 
-@corpus_app.route('/nlp-callback/')
-def nlp_callback():
-
-    obj = request.get_json()
-    # obj = json.loads(request.POST.get('payload'))
-    corpus = CorpusModel.inst_by_id(obj.get('corpusid'))
-
-    shutil.unpack_archive(
-        request.files['file'].temporary_file_path(),
-        corpus.wf_path,
-        'zip'
-    )
-
-    error = obj.get('error')
-    if error:
-        pass
-    else:
-        nlp_callback_success.apply_async(kwargs=obj)
-
-    return jsonify({'success': True})
-
-
-@corpus_app.route('/sync-matrices/', methods=['POST'])
-def sync_matrices():
-    """Synchronizing matrices after these have been computed and returned by
-       NLP.
-    """
-    params = request.POST.dict()
-    path = request.files['file'].temporary_file_path()
-    corpus = CorpusModel.inst_by_id(params.get('corpusid'))
-
-    shutil.unpack_archive(path, corpus.matrix_path)
-
-    if os.path.exists(path):
-        os.remove(path)
-
-    corpus.del_status_feats(feats=int(params.get('feats')))
-    return jsonify({'success': True, 'corpusid': params.get('corpusid')})
-
-
 def features_to_html(feats, corpusid):
 
     feat_tpl = 'corpus/features.html'
@@ -483,3 +439,23 @@ def force_directed_graph(reqobj):
             links=links, nodes=nodes, corpusid=str(corpus.get('_id'))
         )
     )
+
+
+@corpus_app.route('/corpus-data/')
+def corpus_data(request):
+
+    corpusid = request.GET.get('corpusid')
+    corpus = CorpusModel.inst_by_id(corpusid)
+
+    if not corpus:
+        raise abort(404)
+
+    return jsonify({
+        'success': True,
+        'corpusid': corpusid,
+        'vectors_path': corpus.get_vectors_path(),
+        'corpus_files_path': corpus.corpus_files_path(),
+        # 'lemma_path': corpus.get_lemma_path(),
+        'matrix_path': corpus.matrix_path,
+        'wf_path': corpus.wf_path,
+    })

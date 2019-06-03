@@ -95,11 +95,13 @@ urlpatterns = [
     # re_path(r'^(?P<corpusid>[0-9a-zA-Z]*)/corpus-from-files-ready/',
     #      views.corpus_from_files_ready),
 
-    path('corpus-data/', views.corpus_data, name="corpus_data"),
+    # todo(): delete - moved to flask
+    # path('corpus-data/', views.corpus_data, name="corpus_data"),
 
     path('expected-files/', views.ExpectedFiles.as_view(),
          name="expected_files"),
 
-    path('integrity-check-callback/', views.integrity_check_callback),
+    # todo(): delete
+    # path('integrity-check-callback/', views.integrity_check_callback),
 
 ]

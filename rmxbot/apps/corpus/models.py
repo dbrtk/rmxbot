@@ -317,7 +317,7 @@ class CorpusModel(Document):
         })
 
     def del_status_feats(self, feats: int = None):
-
+        # todo(): view this method and delete
         return _COLLECTION.update({'_id': self.get('_id')}, {
             '$pull': {'status': {'feats': feats}}
         })

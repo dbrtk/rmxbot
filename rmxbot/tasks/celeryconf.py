@@ -15,7 +15,10 @@ CELERY_ROUTES = {
 
     'rmxbot.tasks.*': {'queue': 'rmxbot'},
 
-    'scrasync.*': {'queue': 'scrasync'}
+    'scrasync.*': {'queue': 'scrasync'},
+
+    'nlp.*': {'queue': 'nlp'},
+
 }
 
 SCRASYNC_TASKS = {
@@ -23,3 +26,12 @@ SCRASYNC_TASKS = {
     'create':  'scrasync.scraper.start_crawl',
 }
 
+NLP_TASKS = {
+
+    'compute_matrices': 'nlp.task.compute_matrices',
+
+    'factorize_matrices': 'nlp.task.factorize_matrices',
+
+    'integrity_check': 'nlp.task.integrity_check',
+
+}

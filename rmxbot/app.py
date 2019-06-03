@@ -8,7 +8,11 @@ from .tasks import celeryconf
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'data')
+
+# DATA_ROOT = os.path.expanduser('~/Data')
+
 STATIC_FOLDER = os.path.join(BASE_DIR, 'static', 'rmx')
+UPLOAD_FOLDER = os.path.expanduser('~/Data/tmp')
 
 os.environ['RMX_SEARCH_CORPUS_SCRIPT'] = os.path.join(BASE_DIR, 'bin')
 os.environ['NLP_ENDPOINT'] = 'http://localhost:8001'
@@ -20,6 +24,8 @@ os.environ['TMP_DATA_DIR'] = os.path.join(DATA_ROOT, 'tmp')
 os.environ['MONGODB_LOCATION'] = 'localhost'
 os.environ['REDIS_HOST_NAME'] = 'localhost'
 os.environ['TEMPLATES_FOLDER'] = os.path.join(BASE_DIR, 'templates')
+
+os.environ['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 def make_celery(app):
@@ -51,6 +57,7 @@ def create_app(static_folder: str = STATIC_FOLDER):
                 static_folder=static_folder,
                 static_url_path='/static'
                 )
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
     from rmxbot.contrib.utils.urls import ObjectidConverter
     from rmxbot.contrib.rmxjson import RmxEncoder
