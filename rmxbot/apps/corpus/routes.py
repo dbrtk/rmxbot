@@ -6,7 +6,7 @@ from urllib.parse import urlencode
 
 import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
-                   render_template_string, request)
+                   request)
 import pymongo
 import requests
 
@@ -344,17 +344,10 @@ def lemma_context(corpusid):
     })
 
 
-def features_to_html(feats, corpusid):
-
-    feat_tpl = 'corpus/features.html'
-    return render_template_string(
-        feat_tpl, **dict(features=feats, corpusid=corpusid))
-
-
 def documents_to_html(docs):
-
+    # todo(): delete
     doc_tpl = 'corpus/documents.html'
-    return render_template_string(doc_tpl, **dict(documents=docs))
+    return render_template(doc_tpl, **dict(documents=docs))
 
 
 @corpus_app.route('/<objectid:corpusid>/features/')
@@ -375,13 +368,13 @@ def request_features(reqobj):
 @corpus_app.route('/<objectid:corpusid>/features-html/')
 @check_availability
 def request_features_html(reqobj):
+
     corpus = reqobj.get('corpus')
     features, _ = corpus.get_features(**reqobj)
-    return jsonify(
-        dict(
-            features=features_to_html(features, str(corpus.get('_id')))
-        )
-    )
+    features = render_template('corpus/features.html',
+                               features=features,
+                               corpusid=str(corpus.get('_id')))
+    return jsonify({'features': features})
 
 
 @corpus_app.route('/<objectid:corpusid>/force-directed-graph/')
