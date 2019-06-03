@@ -45,7 +45,6 @@ def check_availability(func):
         generate_matrices_remote.delay(
             corpusid=str(corpus.get_id()),
             feats=_features,
-            vectors_in_corpus=corpus.vectors_in_corpus,
             vectors_path=corpus.get_vectors_path(),
             words=_words,
             docs_per_feat=_docsperfeat,
