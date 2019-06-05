@@ -17,8 +17,7 @@ from django.views import View
 import pymongo
 import requests
 
-from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       SCRASYNC_CRAWL_READY)
+from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL)
 from ...contrib.db.models.fields.urlfield import validate_url_list
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
@@ -480,7 +479,7 @@ def crawl_is_ready(request, corpusid):
         })
     if corpus['data_from_the_web']:
         endpoint = '{}/'.format(
-            '/'.join(s.strip('/') for s in [SCRASYNC_CRAWL_READY, corpusid]))
+            '/'.join(s.strip('/') for s in ["", corpusid]))
 
         resp = requests.get(endpoint).json()
 

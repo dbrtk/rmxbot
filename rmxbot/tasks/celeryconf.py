@@ -24,6 +24,9 @@ CELERY_ROUTES = {
 SCRASYNC_TASKS = {
 
     'create':  'scrasync.scraper.start_crawl',
+
+    'crawl_ready': 'scrasync.tasks.crawl_ready',
+
 }
 
 NLP_TASKS = {

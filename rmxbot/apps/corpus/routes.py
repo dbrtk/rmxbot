@@ -8,10 +8,10 @@ import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
-import requests
 
+from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       SCRASYNC_CRAWL_READY, TEMPLATES)
+                       TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
@@ -20,6 +20,7 @@ from .models import CorpusModel, request_availability, set_crawl_ready
 from .status import status_text
 
 from ...tasks.corpus import crawl_async, delete_data_from_corpus, test_task
+from ...tasks.celeryconf import SCRASYNC_TASKS
 from . import scripts
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
@@ -153,11 +154,20 @@ def corpus_crawl_ready(corpusid):
             'corpusid': str(corpusid)
         })
     if corpus['data_from_the_web']:
-        endpoint = '{}/'.format(
-            '/'.join(s.strip('/') for s in [
-                SCRASYNC_CRAWL_READY, str(corpusid)]))
 
-        resp = requests.get(endpoint).json()
+        resp = celery.send_task(
+            SCRASYNC_TASKS['crawl_ready'], kwargs={'corpusid': str(corpusid)}
+        ).get()
+        print(resp)
+
+
+        # todo(): implement readiness checkwith celery
+
+        # endpoint = '{}/'.format(
+        #     '/'.join(s.strip('/') for s in [
+        #         SCRASYNC_CRAWL_READY, str(corpusid)]))
+        #
+        # resp = requests.get(endpoint).json()
 
         if resp.get('ready'):
             set_crawl_ready(corpusid, True)

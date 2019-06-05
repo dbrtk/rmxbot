@@ -15,15 +15,6 @@ SEARCH_CORPUS_SH = os.environ['RMX_SEARCH_CORPUS_SCRIPT']
 
 DEFAULT_CRAWL_DEPTH = 2
 
-SCRASYNC_REMOTE_WORKER = True
-
-# SCRASYNC_ENDPOINT = 'http://scrasync.proximity-bot.net'
-SCRASYNC_ENDPOINT = os.environ.get('SCRASYNC_ENDPOINT')
-
-SCRASYNC_CRAWL_READY = '/'.join(
-    s for s in [SCRASYNC_ENDPOINT, 'crawl-ready'])
-if not SCRASYNC_CRAWL_READY.endswith('/'):
-    SCRASYNC_CRAWL_READY = '{}/'.format(SCRASYNC_CRAWL_READY)
 
 # Configurations that are related to the corpus and its data storage
 # DATA_ROOT is the path to the directory that will store corpora and data
