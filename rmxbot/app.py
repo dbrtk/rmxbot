@@ -74,7 +74,7 @@ def create_app(static_folder: str = STATIC_FOLDER):
 
     with app.app_context():
         from .apps.corpus.routes import corpus_app
-        from .apps.home.views import home_app
+        from .apps.home.routes import home_app
         from .apps.data.routes import data_app
 
         app.register_blueprint(corpus_app, url_prefix='/corpus')

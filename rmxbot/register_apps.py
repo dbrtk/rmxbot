@@ -1,7 +1,7 @@
 
 
 from .apps.corpus.routes import corpus_app
-from .apps.home.views import home_app
+from .apps.home.routes import home_app
 
 # from .apps.data.routes import data_app
 
