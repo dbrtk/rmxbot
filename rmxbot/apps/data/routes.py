@@ -7,7 +7,6 @@ import stat
 from flask import (Blueprint, get_flashed_messages, jsonify, redirect,
                    render_template, request)
 
-from ...tasks import data as data_tasks
 from ...config import TEMPLATES
 from .models import DataModel, update_many
 
@@ -16,21 +15,15 @@ data_app = Blueprint(
     'data_app', __name__, root_path='/data', template_folder=TEMPLATES)
 
 
-# @data_app.route('/create-data-object/', methods=['POST'])
-# def create():
-#     """Creates a data object. This endpoint is called from scrasync for every
-#        scraped page.
-#     """
-#     # todo(): delete!
-#     if not request.is_json:
-#         raise RuntimeError(request)
-#     content = request.get_json()
-#     data_tasks.call_data_create.delay(**content)
-#     return jsonify({'success': True})
 
 
+
+
+# todo(): delete!!!!!
 @data_app.route('/create-from-file/', methods=['POST'])
 def create_from_file():
+
+    # todo(): delete! it is depprecated - see celery tasks for new funciton
 
     hasher = hashlib.md5()
     kwds = request.POST.dict()
@@ -122,9 +115,8 @@ def data_to_corpus():
 @data_app.route('/edit-many/', methods=['POST'])
 def edit_many():
 
-    data = request.POST
     out = {}
-    for k, v in data.items():
+    for k, v in request.form.items():
         _ = k.split('_')
         docid = _.pop(0)
         field = '_'.join(_)
@@ -132,4 +124,4 @@ def edit_many():
             out[docid] = {}
         out[docid][field] = v
     update_many(out)
-    return redirect(request.META.get('HTTP_REFERER'))
+    return redirect(request.referrer)

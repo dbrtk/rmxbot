@@ -30,8 +30,9 @@ urlpatterns = [
     #      name='corpus_from_text_files'),
 
 
-    path('file-extract-callback/',
-         views.file_extract_callback_view, name="file_extract_callback"),
+    # todo(): delete - moved to flask
+    # path('file-extract-callback/',
+    #      views.file_extract_callback_view, name="file_extract_callback"),
 
     # todo(): delete - moved to flask
     # path('sync-matrices/', views.sync_matrices),

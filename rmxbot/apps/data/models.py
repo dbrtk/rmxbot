@@ -85,7 +85,9 @@ class DataModel(Document):
         'data': list,
         'title': str,
         'corpusid': str,
+
         'hashtxt': str,
+        'hashfile': str,
 
         'links': list,
 
@@ -122,17 +124,19 @@ class DataModel(Document):
         super(DataModel, self).__init__(*args, **kwds)
 
     @classmethod
-    def create_empty(cls, corpusid: str = None, title: str = None):
+    def create_empty(cls, corpusid: str = None, title: str = None,
+                     fileid: str = None):
 
         data_obj = cls()
         data_obj['title'] = title
         data_obj['corpusid'] = corpusid
-        file_id = data_obj.file_identifier()
-        data_obj['fileid'] = file_id
+        if not fileid:
+            fileid = data_obj.file_identifier()
+        data_obj['fileid'] = fileid
 
         docid = data_obj.save()
         assert isinstance(bson.ObjectId(docid), bson.ObjectId)
-        return data_obj, file_id
+        return data_obj, fileid
 
     @classmethod
     def create(cls, data: list = None, corpus_id: str = None,

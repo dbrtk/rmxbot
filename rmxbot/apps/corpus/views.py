@@ -114,8 +114,10 @@ def file_extract_callback_view(request):
     :param request:
     :return:
     """
-    kwds = request.POST.dict()
 
+    # todo(): delete
+
+    kwds = request.POST.dict()
     file_extract_callback.delay(**kwds)
     return JsonResponse({'success': True})
 

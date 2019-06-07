@@ -438,8 +438,11 @@ def force_directed_graph(reqobj):
     )
 
 
+# todo(): delete!
 @corpus_app.route('/corpus-data/')
 def corpus_data(request):
+
+    # todo(): delete!
 
     corpusid = request.GET.get('corpusid')
     corpus = CorpusModel.inst_by_id(corpusid)
