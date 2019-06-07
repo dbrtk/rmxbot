@@ -19,6 +19,9 @@ def call_data_create(**kwds):
         'corpus_id': str
     }
     """
+
+    # todo(): review this method
+
     doc, file_id = DataModel.create(**kwds)
     if isinstance(doc, DataModel) and file_id:
         insert_urlobj(
