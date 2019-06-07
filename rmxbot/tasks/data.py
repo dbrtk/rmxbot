@@ -58,6 +58,7 @@ def create(corpusid: str = None,
     :param path:
     :param encoding:
     :param file_name:
+    :param success:
     :return:
     """
     doc, fileid = DataModel.create_empty(
@@ -72,16 +73,19 @@ def create(corpusid: str = None,
             hasher.update(bytes(line, encoding=encoding))
 
     _hash = hasher.hexdigest()
-    try:
-        doc.set_hashtxt(value=_hash)
-    except ValueError:
-        doc.rm_doc()
-        if os.path.exists(path):
-            os.remove(path)
-    return {
+    out = {
         'corpusid': corpusid,
         'data_id': str(doc.get_id()),
         'file_id': fileid,
         'file_name': file_name,
         'success': success,
     }
+    try:
+        doc.set_hashtxt(value=_hash)
+        out['texthash'] =_hash
+    except ValueError:
+        doc.rm_doc()
+        if os.path.exists(path):
+            os.remove(path)
+        out['success'] = False
+    return out

@@ -95,14 +95,14 @@ def file_extract_callback(kwds: dict = None):
     file_id = kwds.get('file_id')
     file_name = kwds.get('file_name')
     success = kwds.get('success')
-
+    texthash = kwds.get('texthash')
     if success and data_id:
         insert_urlobj(
             corpusid,
             {
                 'data_id': data_id,
                 'file_id': file_id,
-                # 'texthash': '',
+                'texthash': texthash,
                 'title': file_name,
             }
         )
