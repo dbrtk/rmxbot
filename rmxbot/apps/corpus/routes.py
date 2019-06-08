@@ -284,21 +284,23 @@ def get_text_file(corpusid, dataid):
     except (RuntimeError, ):
         return abort(404, 'Requested file does not exist.')
     fileid = doc.get('file_id')
-    txt = ''
+    txt = []
     with open(
-            os.path.join(corpus.get_corpus_path(), 'corpus', fileid)
+            os.path.join(corpus.corpus_files_path(), fileid)
     ) as _file:
-        _file.readline()
-        while True:
-            _ = _file.readline()
-            if not _.strip():
-                continue
-            else:
-                txt += _
-                break
-        for _ in _file.readlines():
-            txt += _
-    return txt
+        # _file.readline()
+        # while True:
+        #     _ = _file.readline()
+        #     if not _.strip():
+        #         continue
+        #     else:
+        #         txt += _
+        #         break
+        for _line in _file.readlines():
+            _line = _line.strip()
+            if _line:
+                txt.append(_line)
+    return jsonify({'text': txt, 'dataid': dataid, 'length': len(txt)})
 
 
 def context_to_json(string: str = None):

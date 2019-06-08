@@ -8,32 +8,59 @@ from ..app import celery
 
 
 @celery.task
-def call_data_create(**kwds):
-    """ Task called within DataModel.create.
-    expected kwds:
-    {
-        'links': list,
-        'corpus_file_path': /corpus/file/path,
-        'data': list[str],
-        'endpoint': endpoint,
-        'corpus_id': str
-    }
-    """
-
-    # todo(): review this method
-
-    doc, file_id = DataModel.create(**kwds)
-    if isinstance(doc, DataModel) and file_id:
+def create_from_web(corpusid: str = None,
+                    fileid: str = None,
+                    corpus_file_path: str = None,
+                    endpoint: str = None,
+                    title: str = None,
+                    texthash: str = None,
+                    links: list = None):
+    """ Task called within DataModel.create."""
+    # todo(): delete or implement
+    doc, fileid = DataModel.create_empty(
+        corpusid=corpusid, links=links, title=title, fileid=fileid,
+        corpus_file_path=corpus_file_path)
+    if isinstance(doc, DataModel) and fileid:
         insert_urlobj(
-            kwds.get('corpus_id'),
+            corpusid,
             {
                 'data_id': str(doc.get('_id')),
-                'url': doc.get('url'),
-                'texthash': doc.get('hashtxt'),
-                'file_id': file_id,
+                'url': endpoint,
+                'texthash': texthash,
+                'file_id': fileid,
                 'title': doc.get('title') or doc.get('url')
             })
-        return str(doc.get_id()), file_id
+        return str(doc.get_id()), fileid
+    return None, None
+
+
+@celery.task
+def create_from_webpage(corpusid: str = None,
+                        corpus_file_path: str = None,
+                        endpoint: str = None,
+                        title: str = None,
+                        texthash: str = None,
+                        data: str = None,
+                        links: list = None):
+    """ Task called within DataModel.create."""
+    doc, fileid = DataModel.create(
+        data=data,
+        corpus_id=corpusid,
+        links=links,
+        title=title,
+        endpoint=endpoint,
+        corpus_file_path=corpus_file_path)
+    if isinstance(doc, DataModel) and fileid:
+        insert_urlobj(
+            corpusid,
+            {
+                'data_id': str(doc.get('_id')),
+                'url': endpoint,
+                'texthash': texthash or doc.get('hashtxt'),
+                'file_id': fileid,
+                'title': doc.get('title') or doc.get('url')
+            })
+        return str(doc.get_id()), fileid
     return None, None
 
 
@@ -52,9 +79,11 @@ def create(corpusid: str = None,
            path: str = None,
            encoding: str = None,
            file_name: str = None,
-           success: bool = False
+           success: bool = False,
+           hashtxt: str = None,
            ):
-    """ Creating a data object for a file that exists.
+    """ Creating a data object for a file that exists. This is used when
+        uploading files.
 
     :param corpusid:
     :param fileid:
@@ -62,6 +91,7 @@ def create(corpusid: str = None,
     :param encoding:
     :param file_name:
     :param success:
+    :param hashtxt:
     :return:
     """
     doc, fileid = DataModel.create_empty(
@@ -69,13 +99,13 @@ def create(corpusid: str = None,
         title=file_name,
         fileid=fileid
     )
-    hasher = hashlib.md5()
+    if not hashtxt:
+        hasher = hashlib.md5()
+        with open(path, 'r') as _file:
+            for line in _file.readlines():
+                hasher.update(bytes(line, encoding=encoding))
 
-    with open(path, 'r') as _file:
-        for line in _file.readlines():
-            hasher.update(bytes(line, encoding=encoding))
-
-    _hash = hasher.hexdigest()
+        hashtxt = hasher.hexdigest()
     out = {
         'corpusid': corpusid,
         'data_id': str(doc.get_id()),
@@ -84,8 +114,8 @@ def create(corpusid: str = None,
         'success': success,
     }
     try:
-        doc.set_hashtxt(value=_hash)
-        out['texthash'] =_hash
+        doc.set_hashtxt(value=hashtxt)
+        out['texthash'] = hashtxt
     except ValueError:
         doc.rm_doc()
         if os.path.exists(path):

@@ -125,15 +125,25 @@ class DataModel(Document):
 
     @classmethod
     def create_empty(cls, corpusid: str = None, title: str = None,
-                     fileid: str = None):
+                     fileid: str = None, links: list = None,
+                     corpus_file_path: str = None):
 
         data_obj = cls()
         data_obj['title'] = title
         data_obj['corpusid'] = corpusid
+        if links:
+            data_obj['links'] = list(set(links))
+
         if not fileid:
             fileid = data_obj.file_identifier()
         data_obj['fileid'] = fileid
 
+        if corpus_file_path:
+            assert corpusid in corpus_file_path, \
+                ('%s - %s' % (corpusid, corpus_file_path),)
+            if not os.path.exists(corpus_file_path):
+                raise ValueError(corpus_file_path)
+            data_obj.chmod_file(path=corpus_file_path, fileid=fileid)
         docid = data_obj.save()
         assert isinstance(bson.ObjectId(docid), bson.ObjectId)
         return data_obj, fileid
@@ -196,7 +206,7 @@ class DataModel(Document):
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
-        # todo(): revie this method - make it more general or delete
+
         path = os.path.normpath(os.path.join(path, file_id))
 
         if os.path.isfile(path):
@@ -205,6 +215,8 @@ class DataModel(Document):
         self.save()
 
         hasher = hashlib.md5()
+
+        # todo(): review id_as_head
         with open(path, 'a+') as _file:
             if id_as_head:
 
@@ -221,6 +233,15 @@ class DataModel(Document):
         # permissions 'read, write, execute' to user, group, other (777)
         os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
         return file_id
+
+    def chmod_file(self, path: str = None, fileid: str = None):
+        """ permissions 'read, write, execute' to user, group, other (777)
+            on file in corpus
+        """
+        # permissions 'read, write, execute' to user, group, other (777)
+        os.chmod(os.path.normpath(os.path.join(path, fileid)),
+                 stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+        return fileid
 
     def txt_file_to_corpus(self, txt: str = None):
 

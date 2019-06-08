@@ -16,9 +16,6 @@ data_app = Blueprint(
 
 
 
-
-
-
 # todo(): delete!!!!!
 @data_app.route('/create-from-file/', methods=['POST'])
 def create_from_file():

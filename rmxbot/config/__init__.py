@@ -28,9 +28,9 @@ UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
 # TMP_DATA_DIR = '/data/tmp'
 TMP_DATA_DIR = os.environ.get('TMP_DATA_DIR')
 
-EXTRACTXT_ENDPOINT = os.environ.get('EXTRACTXT_ENDPOINT_PUBLIC')
+EXTRACTXT_ENDPOINT = os.environ.get('EXTRACTXT_ENDPOINT')
 
-EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files/'.format(EXTRACTXT_ENDPOINT)
+EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files'.format(EXTRACTXT_ENDPOINT)
 
 # The path to the directory where corpora along with matrices are stored.
 CORPUS_ROOT = os.path.join(DATA_ROOT, 'corpus')

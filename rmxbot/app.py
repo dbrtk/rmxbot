@@ -15,8 +15,10 @@ STATIC_FOLDER = os.path.join(BASE_DIR, 'static', 'rmx')
 UPLOAD_FOLDER = os.path.expanduser('~/Data/tmp')
 
 os.environ['RMX_SEARCH_CORPUS_SCRIPT'] = os.path.join(BASE_DIR, 'bin')
-os.environ['NLP_ENDPOINT'] = 'http://localhost:8001'
-os.environ['SCRASYNC_ENDPOINT'] = 'http://localhost:8002'
+
+# todo(): delete
+# os.environ['NLP_ENDPOINT'] = 'http://localhost:8001'
+# os.environ['SCRASYNC_ENDPOINT'] = 'http://localhost:8002'
 os.environ['EXTRACTXT_ENDPOINT'] = 'http://localhost:8003'
 
 os.environ['DATA_ROOT'] = DATA_ROOT

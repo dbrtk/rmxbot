@@ -189,7 +189,3 @@ def create_from_upload(name: str = None, file_objects: list = None):
         # 'corpus_path': corpus.get_corpus_path(),
         'corpus_files_path': corpus.corpus_files_path()
     }
-
-
-
-
