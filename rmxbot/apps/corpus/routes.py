@@ -19,7 +19,8 @@ from .decorators import check_availability
 from .models import CorpusModel, request_availability, set_crawl_ready
 from .status import status_text
 
-from ...tasks.corpus import crawl_async, delete_data_from_corpus, test_task
+from ...tasks.corpus import (crawl_async, delete_data_from_corpus,
+                             on_crawl_ready, test_task)
 from ...tasks.celeryconf import SCRASYNC_TASKS
 from . import scripts
 
@@ -154,23 +155,12 @@ def corpus_crawl_ready(corpusid):
             'corpusid': str(corpusid)
         })
     if corpus['data_from_the_web']:
-
-        resp = celery.send_task(
-            SCRASYNC_TASKS['crawl_ready'], kwargs={'corpusid': str(corpusid)}
-        ).get()
-        print(resp)
-
-
-        # todo(): implement readiness checkwith celery
-
-        # endpoint = '{}/'.format(
-        #     '/'.join(s.strip('/') for s in [
-        #         SCRASYNC_CRAWL_READY, str(corpusid)]))
-        #
-        # resp = requests.get(endpoint).json()
-
-        if resp.get('ready'):
-            set_crawl_ready(corpusid, True)
+        _corpusid = str(corpusid)
+        celery.send_task(
+            SCRASYNC_TASKS['crawl_ready'],
+            kwargs={'corpusid': _corpusid},
+            link=on_crawl_ready.s(_corpusid)
+        )
     return jsonify({
         'ready': False,
         'corpusid': str(corpusid)

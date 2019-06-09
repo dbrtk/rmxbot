@@ -3,7 +3,9 @@
 import datetime
 import hashlib
 import os
+import shutil
 import stat
+import tempfile
 try:
     import urlparse
 except ImportError:
@@ -13,7 +15,7 @@ import uuid
 import bson
 from pymongo import UpdateOne
 
-from ...config import DATA_COLL
+from ...config import CORPUS_ROOT, DATA_COLL
 from ...contrib.db.models.document import Document
 from ...contrib.db.models.fields.urlfield import UrlField
 from ...contrib.utils import dictionary
@@ -125,8 +127,9 @@ class DataModel(Document):
 
     @classmethod
     def create_empty(cls, corpusid: str = None, title: str = None,
-                     fileid: str = None, links: list = None,
-                     corpus_file_path: str = None):
+                     fileid: str = None, links: list = None):
+
+        corpus_file_path = corpus_path(corpusid=corpusid)
 
         data_obj = cls()
         data_obj['title'] = title
@@ -150,9 +153,11 @@ class DataModel(Document):
 
     @classmethod
     def create(cls, data: list = None, corpus_id: str = None,
-               links: list = None, corpus_file_path: str = None,
-               endpoint: str = None, title: str = None):
+               links: list = None, endpoint: str = None, title: str = None):
         """Creates a DataModel document."""
+
+        corpus_file_path = corpus_path(corpusid=corpus_id)
+
         data_obj = cls()
         data_obj['title'] = title
         data_obj['links'] = list(set(links))
@@ -234,6 +239,20 @@ class DataModel(Document):
         os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
         return file_id
 
+    def prepend_id_file(self, corpusid: str = None):
+        """This method prepends a data id to the beginning of the file
+           (in corpus).
+        """
+        corpus_file_path = corpus_path(corpusid)
+
+        out = tempfile.NamedTemporaryFile(mode='a+', delete=False)
+        out.write('%s\n' % str(self.get_id()))
+        path = os.path.join(corpus_file_path, self.get('fileid'))
+        shutil.copyfileobj(open(path, 'r'), out)
+        os.remove(path)
+        shutil.copy(out.name, path)
+        os.remove(out.name)
+
     def chmod_file(self, path: str = None, fileid: str = None):
         """ permissions 'read, write, execute' to user, group, other (777)
             on file in corpus
@@ -308,3 +327,15 @@ def update_many(id_key_vals: dict = None):
         )
     res = _COLLECTION.bulk_write(query, ordered=False)
     return res.bulk_api_result
+
+
+def corpus_path(corpusid: str = None):
+    """ Returns the path for corpus files. """
+    path = os.path.abspath(os.path.normpath(
+        os.path.join(
+            CORPUS_ROOT, corpusid, 'corpus')
+        )
+    )
+    if os.path.isdir(path):
+        return path
+    return None

@@ -8,35 +8,7 @@ from ..app import celery
 
 
 @celery.task
-def create_from_web(corpusid: str = None,
-                    fileid: str = None,
-                    corpus_file_path: str = None,
-                    endpoint: str = None,
-                    title: str = None,
-                    texthash: str = None,
-                    links: list = None):
-    """ Task called within DataModel.create."""
-    # todo(): delete or implement
-    doc, fileid = DataModel.create_empty(
-        corpusid=corpusid, links=links, title=title, fileid=fileid,
-        corpus_file_path=corpus_file_path)
-    if isinstance(doc, DataModel) and fileid:
-        insert_urlobj(
-            corpusid,
-            {
-                'data_id': str(doc.get('_id')),
-                'url': endpoint,
-                'texthash': texthash,
-                'file_id': fileid,
-                'title': doc.get('title') or doc.get('url')
-            })
-        return str(doc.get_id()), fileid
-    return None, None
-
-
-@celery.task
 def create_from_webpage(corpusid: str = None,
-                        corpus_file_path: str = None,
                         endpoint: str = None,
                         title: str = None,
                         texthash: str = None,
@@ -48,8 +20,8 @@ def create_from_webpage(corpusid: str = None,
         corpus_id=corpusid,
         links=links,
         title=title,
-        endpoint=endpoint,
-        corpus_file_path=corpus_file_path)
+        endpoint=endpoint
+    )
     if isinstance(doc, DataModel) and fileid:
         insert_urlobj(
             corpusid,
@@ -121,4 +93,6 @@ def create(corpusid: str = None,
         if os.path.exists(path):
             os.remove(path)
         out['success'] = False
+    else:
+        doc.prepend_id_file(corpusid=corpusid)
     return out

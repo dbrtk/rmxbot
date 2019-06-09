@@ -62,8 +62,7 @@ def crawl_async(url_list: list = None, corpus_id=None, crawl=False,
     celery.send_task(SCRASYNC_TASKS['create'], kwargs={
         'endpoint': url_list,
         'corpusid': corpus_id,
-        'depth': depth,
-        'corpus_file_path': corpus_file_path,
+        'depth': depth
     })
 
 
@@ -189,3 +188,10 @@ def create_from_upload(name: str = None, file_objects: list = None):
         # 'corpus_path': corpus.get_corpus_path(),
         'corpus_files_path': corpus.corpus_files_path()
     }
+
+
+@celery.task
+def on_crawl_ready(resp, corpusid):
+
+    if resp.get('ready'):
+        set_crawl_ready(corpusid, True)

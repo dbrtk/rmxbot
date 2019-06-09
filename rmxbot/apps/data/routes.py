@@ -15,55 +15,6 @@ data_app = Blueprint(
     'data_app', __name__, root_path='/data', template_folder=TEMPLATES)
 
 
-
-# todo(): delete!!!!!
-@data_app.route('/create-from-file/', methods=['POST'])
-def create_from_file():
-
-    # todo(): delete! it is depprecated - see celery tasks for new funciton
-
-    hasher = hashlib.md5()
-    kwds = request.POST.dict()
-    corpusid = kwds.get('corpusid')
-    doc, file_id = DataModel.create_empty(
-        corpusid=corpusid,
-        title=kwds.get('file_name'))
-    docid = str(doc.get('_id'))
-    encoding = kwds.get('charset', 'utf8')
-
-    file_path = os.path.join(kwds.get('corpus_files_path'), file_id)
-    # todo(): use DataModel.data_to_corpus to create the file
-    with open(file_path, '+a') as out:
-        out.write('{}\n\n'.format(docid))
-        for _line in request.FILES['file'].readlines():
-            if isinstance(_line, bytes):
-                hasher.update(_line)
-            else:
-                hasher.update(bytes(_line, encoding=encoding))
-            out.write('{}'.format(
-                _line.decode(encoding)
-            ))
-    os.chmod(file_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-    _hash = hasher.hexdigest()
-    try:
-        doc.set_hashtxt(value=_hash)
-    except ValueError:
-        doc.rm_doc()
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        return jsonify({
-            'success': False,
-            'data_id': docid,
-            'corpusid': kwds.get('corpusid')
-        })
-    return jsonify({'success': True,
-                    'data_id': docid,
-                    'texthash': _hash,
-                    'file_id': file_id,
-                    'file_path': file_path,
-                    'file_name': kwds.get('file_name')})
-
-
 @data_app.route('/')
 def index():
     """The page serving the data index that shows scrapped pages."""
