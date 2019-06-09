@@ -9,26 +9,22 @@ from .tasks import celeryconf
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'data')
 
-# DATA_ROOT = os.path.expanduser('~/Data')
+# STATIC_FOLDER = os.path.join(BASE_DIR, 'static', 'rmx')
+# UPLOAD_FOLDER = os.path.expanduser('~/Data/tmp')
 
-STATIC_FOLDER = os.path.join(BASE_DIR, 'static', 'rmx')
-UPLOAD_FOLDER = os.path.expanduser('~/Data/tmp')
+# os.environ['RMX_SEARCH_CORPUS_SCRIPT'] = os.path.join(BASE_DIR, 'bin')
+# os.environ['EXTRACTXT_ENDPOINT'] = 'http://localhost:8003'
+# os.environ['DATA_ROOT'] = DATA_ROOT
+# os.environ['TMP_DATA_DIR'] = os.path.join(DATA_ROOT, 'tmp')
+# os.environ['MONGODB_LOCATION'] = 'localhost'
+# os.environ['REDIS_HOST_NAME'] = 'localhost'
+# os.environ['TEMPLATES_FOLDER'] = os.path.join(BASE_DIR, 'templates')
+#
+# os.environ['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-os.environ['RMX_SEARCH_CORPUS_SCRIPT'] = os.path.join(BASE_DIR, 'bin')
 
-# todo(): delete
-# os.environ['NLP_ENDPOINT'] = 'http://localhost:8001'
-# os.environ['SCRASYNC_ENDPOINT'] = 'http://localhost:8002'
-os.environ['EXTRACTXT_ENDPOINT'] = 'http://localhost:8003'
-
-os.environ['DATA_ROOT'] = DATA_ROOT
-os.environ['TMP_DATA_DIR'] = os.path.join(DATA_ROOT, 'tmp')
-os.environ['MONGODB_LOCATION'] = 'localhost'
-os.environ['REDIS_HOST_NAME'] = 'localhost'
-os.environ['TEMPLATES_FOLDER'] = os.path.join(BASE_DIR, 'templates')
-
-os.environ['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+STATIC_FOLDER = os.environ.get('STATIC_FOLDER')
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
 
 def make_celery(app):
 

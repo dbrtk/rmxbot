@@ -10,6 +10,8 @@ SCRIPTS = os.path.join(BASE_DIR, 'bin')
 
 TEMPLATES = os.environ['TEMPLATES_FOLDER']
 
+REDIS_HOST_NAME = os.environ.get('REDIS_HOST_NAME')
+
 # SEARCH_CORPUS_SH - the grep script that searches the corpus
 SEARCH_CORPUS_SH = os.environ['RMX_SEARCH_CORPUS_SCRIPT']
 
