@@ -37,7 +37,7 @@ RUN chown -R rmxbotuser:rmxbotuser /app \
 ENV RMX_SEARCH_CORPUS_SCRIPT '/app/rmxbot/bin/search_corpus.sh'
 
 # the endpoint for extractxt
-ENV EXTRACTXT_ENDPOINT 'http://extweb:8003'
+ENV EXTRACTXT_ENDPOINT 'http://localhost:8003'
 
 # the data root
 ENV DATA_ROOT '/data'
@@ -57,8 +57,7 @@ ENV TEMPLATES_FOLDER '/app/templates'
 ENV STATIC_FOLDER '/app/public_code/rmx'
 
 # Install any needed packages specified in requirements.txt
-RUN pip install -U pip \
-	&& pip install -r requirements.txt
+RUN pip install -U pip && pip install .
 
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
