@@ -428,26 +428,3 @@ def force_directed_graph(reqobj):
             links=links, nodes=nodes, corpusid=str(corpus.get('_id'))
         )
     )
-
-
-# todo(): delete!
-@corpus_app.route('/corpus-data/')
-def corpus_data(request):
-
-    # todo(): delete!
-
-    corpusid = request.GET.get('corpusid')
-    corpus = CorpusModel.inst_by_id(corpusid)
-
-    if not corpus:
-        raise abort(404)
-
-    return jsonify({
-        'success': True,
-        'corpusid': corpusid,
-        'vectors_path': corpus.get_vectors_path(),
-        'corpus_files_path': corpus.corpus_files_path(),
-        # 'lemma_path': corpus.get_lemma_path(),
-        'matrix_path': corpus.matrix_path,
-        'wf_path': corpus.wf_path,
-    })
