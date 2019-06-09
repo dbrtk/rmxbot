@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+<div class="add-page-form">
+    <h2>Create new corpus <a href="/corpus/new/">from the web</a> or <a href="/corpus/create-from-text-files/">from text files</a></h2>
+</div>
+
+
+{% include "sub/simple-error.html" %}
+
+<div class="rmx-recent-data">
+    <h2>List of existing corpora</h2>
+    {% for item in data %}
+        <div class="url-box">
+            <h2><a href="/corpus/{{ item.corpusid }}/">{{ item.name }}</a></h2>
+            {% if item.description %}
+                <p>{{ item.description }}</p>
+            {% endif %}
+            <ul>
+            {% for obj in item.urls %}
+                <div class="url-box">
+                        {% if obj.url %}
+                            <li><a href="{{ obj.url }}">{{ obj.url }}</a></li>
+                        {% else %}
+                            <li><a href="/corpus/{{ item.corpusid }}/file/{{obj.data_id}}/"
+                                   target="_blank">{% if obj.title %}
+                                {{ obj.title }}
+                                {% elif obj.file_name %}
+                                {{ obj.file_name }}
+                                {% endif %}</a></li>
+                        {% endif %}
+                </div>
+            {% endfor %}
+            </ul>
+            <span>Created: {{ item.created }}</span>
+        </div>
+    {% endfor %}
+</div>
+
+{% include "sub/footernew.html" %}
+</body>
+</html>

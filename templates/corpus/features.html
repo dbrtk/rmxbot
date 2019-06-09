@@ -1,0 +1,47 @@
+
+
+<div class="features-container-loaded">
+  {% for feat in features  %}
+  <div class="feats-docs">
+
+    
+    <div class="feature feature-words container">
+      {% for f in feat.features %}
+      <div class="feature-word feature-weight">
+        <div class="word">{{ f.word }}</div>
+        <div class="weight">{{ f.weight }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    
+    <div class="documents container for-feat">
+      
+      {% for d in feat.docs %}
+      
+      <div class="document for-feat">
+
+        <div class="title-box">
+          <span class="title">{{ d.title }}</span><br>
+        </div>
+
+        <div class="weight">
+          <span>{{ d.weight }} - weight</span><br>
+        </div>
+
+        
+        <div class="links">
+          <a target="_blank" href="{{ d.url }}">{{ d.url }}</a>
+        </div>
+        
+        
+      </div>
+      
+      {% endfor %}
+      
+    </div>
+    
+  </div>
+  {% endfor %}
+</div>
+
+

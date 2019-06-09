@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+{% load staticfiles %}
+
+<script src={% static "js/libs/require.js"%} data-main={% static "js/rmx" %} tpye="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href={% static "css/main.css" %}>
+<link rel="stylesheet" type="text/css" href={% static "css/textnode.css" %}>
+<link rel="stylesheet" type="text/css" href={% static "css/logo.css" %}>
+<link rel="stylesheet" type="text/css" href={% static "css/footer.css" %}>
+
+</head>
+<body>
+
+{% include "sub/logo.html" %}
+
+
+<div class="rmx-create-form">
+    <form class="collage-creation" method="POST" action="/collage/create/">
+	{% csrf_token %}
+	<fieldset>
+	    <legend>Create a new collage</legend>
+	    Title: <input type="text" name="title">
+	    Links: <textarea 
+			name="urls" 
+			placeholder="Valid URL(s) separated by line breaks. For now you can start a new collage with 2 urls only."></textarea>
+	    <input type="submit" value="create">
+	</fieldset>
+    </form>
+</div>
+
+
+</body>
+</html>

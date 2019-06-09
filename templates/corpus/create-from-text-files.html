@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ProximityBot</title>
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+
+
+<body>
+
+  {% include "sub/logo.html" %}
+
+  <div class="new-corpus-form">
+    <h2>Corpus from text files</h2>
+    <form class="new-corpus-form" action="{{files_upload_endpoint}}" method="post" enctype="multipart/form-data" >
+      
+      <label for="name">The name of the corpus:</label>
+      <input type="text" name="name" required placeholder="The title for the corpus...">      
+      <label for="files">Files upload:</label>
+      <input type="file" name="file" multiple required>
+      <br>
+      <input type="submit">
+    </form>
+    
+  </div>
+
+  {% include "sub/simple-error.html" %}
+  {% include "sub/footernew.html" %}
+</body>
+</html>

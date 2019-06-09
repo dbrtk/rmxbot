@@ -1,0 +1,37 @@
+
+
+
+<div class="form-container feat-form doc-form">
+  <form name="features">
+    <div class="fieldset-container">
+      <fieldset>
+
+        <label>Number of features (topics):</label>
+        <input type="number" name="features" min="3" value="10">
+
+        <label>Feature numbers already computed:</label>
+        <select name="existingfeat">
+          <option value=""></option>
+          {% for feat_nmb in available_feats %}
+          <option value="{{feat_nmb}}">{{ feat_nmb }}</option>
+          {% endfor %}
+        </select>
+        
+        <label>Number of words per feature:</label>
+        <input type="number" name="words" min="3" max="25", value="20">
+        
+      </fieldset>
+      
+      
+      <fieldset>
+        <label>Number of documents per feature:</label>
+        <input type="number" name="docsperfeat" min="1" value="3">
+        
+        <label>Number of features per document:</label>
+        <input type="number" name="featsperdoc" min="1" value="3">
+      </fieldset>
+      
+    </div>
+  </form>  
+</div>
+

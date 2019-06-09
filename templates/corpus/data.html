@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<!-- d3 does not load with require.  -->
+<script src={{ url_for("static", filename="js/libs/d3.v4.min.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/libs/mustache.js") }} type="text/javascript"></script>
+
+<script src={{ url_for("static", filename="js/controller/corpus.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/view/corpus.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/view/svgbehaviour.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/view/simplegraph.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/view/thegraph.js") }} type="text/javascript"></script>
+<script src={{ url_for("static", filename="js/utils.js") }} type="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/feature.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+{% include "sub/simple-error.html" %}
+
+<div class="rmx-recent-data">
+    <h1>{{ corpus_name }}</h1>
+    <h2><a href="/corpus/{{ corpusid }}/data/">Texts</a> attached to this corpus.</h2>
+    {% for item in texts %}
+        <div class="url-box">
+            {% if item.url %}
+                <a href="{{ item.url }}">{{ item.url }}</a>
+            {% else %}
+                <a href="/corpus/{% if corpusid %}
+                {{ corpusid }}
+                {% elif item.corpusid %}
+                {{item.corpusid}}
+                {% endif %}/file/{{item.data_id}}/"
+                   target="_blank">{% if item.title %}
+                    {{item.title}}
+                    {% elif item.file_name %}
+                    {{item.file_name}}
+                    {% endif %}</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <p>{{ urls_length }} texts attached to this corpus.
+        <a href="/corpus/{{ corpusid }}/data/">View and edit.</a>
+    </p>
+</div>
+
+{% include "corpus/clustering.html" %}
+
+{% include "sub/footernew.html" %}
+
+</body>
+</html>

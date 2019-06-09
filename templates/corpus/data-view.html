@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+{% include "sub/simple-error.html" %}
+
+<div class="add-page-form">  
+  {% if datatype == 'crawl' %}
+    <h1>Texts belonging to the corpus: "<a href="/corpus/{{ corpusid }}/">{{name}}</a>"</h1>
+    <span><a href="/corpus/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/corpus/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
+  {% elif datatype == 'screenplay' %}
+    <h1>Text files that make the corpus: "{{name}}" <a href="/corpus/{{corpusid}}/data/edit/">[edit]</a> (<a href="/corpus/{{corpusid}}/">go back to corpus</a>)</h1>
+  {% endif %}
+
+    <h2>Add files to corpus</h2>
+    <form class="new-corpus-form" action="{{files_upload_endpoint}}/" method="post" enctype="multipart/form-data" >
+        <label for="files">Files upload:</label>
+        <input type="file" name="file" multiple required>
+        <input type="hidden" name="corpusid" id="corpusid" value="{{ corpusid }}">
+      <br>
+      <input type="submit">
+      
+    </form>
+    
+</div>
+
+<div class="rmx-recent-data">
+    <h2>Attached texts:</h2>
+    {% for item in data %}
+        <div class="url-box">
+            <h3><a href="/data/webpage/{{ item.id }}" target="_blank">{% if item.title %} {{item.title}} {% else %} {{item.url}} {% endif %}</a></h3>
+            {% if item.url %}
+                <a href="{{ item.url }}">{{ item.url }}</a><br>
+            {% endif %}
+            <span>The title: "{{ item.title }}"</span><br>
+            {% if item.author %}
+                <span>The author(s): {{ item.author }}</span><br>
+            {% endif %}
+            {% if item.file_name %}
+                <span>The file name: {{ item.file_name }}</span><br>
+            {% endif %}
+            <a href="/corpus/{{corpusid}}/file/{{item.id}}/" target="_blank">See the text file in corpus</a><br>
+            <span>Creation date: {{ item.created }}</span>
+        </div>
+    {% endfor %}
+
+</div>
+
+
+{% include "sub/footernew.html" %}
+</body>
+</html>
+
+

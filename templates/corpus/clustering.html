@@ -1,0 +1,34 @@
+
+
+
+
+<div class="rmx-recent-data features-container">
+
+  
+  <h2>Extracting topics (independent features) from the corpus</h2>
+  <p></p>
+
+  {% include "corpus/features-form.html" %}
+  
+  <div class="toolbar">
+    <button name="features">List all features/topics</button>
+    <button name="force-directed-graph">Show in graph</button>
+
+  </div>
+
+  <div class="server-msg">
+    {% if status %}
+    <div class="message-box"><span>{{ status_message }}</span></div>
+    {% endif %}
+
+  </div>
+
+  <div class="canvas-container">
+    <!-- <canvas width="960" height="600"></canvas> -->
+  </div>
+  
+  <div class="features-html"></div>
+  <div class="documents-html"></div>
+  
+</div>
+

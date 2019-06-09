@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+
+<html>
+
+    <head>
+	{% load staticfiles %}
+	<script src={% static "js/jquery.js"%} tpye="text/javascript"></script>	
+	<!-- <script src={% static "intersect/js/ajax.js"%} tpye="text/javascript"></script>	 -->
+	<script src={% static "intersect/js/rmx.js"%} tpye="text/javascript"></script>	
+	<script src={% static "intersect/js/data.js"%} tpye="text/javascript"></script>	
+	<script src={% static "intersect/js/controller.js"%} tpye="text/javascript"></script>	
+	<script src={% static "intersect/js/utils.js"%} tpye="text/javascript"></script>	
+	<script src={% static "intersect/js/view.js"%} tpye="text/javascript"></script>	
+
+	<link rel="stylesheet" href={% static "intersect/css/datacloud.css"%} />
+	<link rel="stylesheet" href={% static "intersect/css/styles.css"%} />
+
+	
+	<title>remix</title>
+    </head>
+    
+    <body>
+	<div class="rmx-background header grad"></div>
+	<!-- <h1 class="page-title">(displaying intersections or differences between web pages)</h1> -->
+	<div class="default-msg wait-msg"><h2>Wait while we are processing your request</h2></div>
+	<div class="cloud-details">
+	    <h2>Intersecting web pages:</h2>
+	    <ul class="url-list">
+	    </ul>
+	</div>
+	
+	<div class="remix-div container"></div>
+	<div class="sentences-div container"></div>
+	
+	
+	
+    </body>
+
+</html>
+
+
+

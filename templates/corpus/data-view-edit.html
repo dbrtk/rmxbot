@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+
+
+{% include "sub/simple-error.html" %}
+
+<div class="add-page-form">  
+
+  <h1>[edit] Text files that make the corpus: "{{name}}" (<a href="/corpus/{{corpusid}}/">go back to corpus</a>)</h1>
+  
+</div>
+
+<div class="rmx-recent-data">
+  <h2>Attached urls:</h2>
+  <form action="/data/edit-many/" method='POST'>
+
+    <input type='submit' value='Save changes'>
+    
+    {% for item in data %}
+    <fieldset id="{{item.id}}">
+      
+      <legend>{{item.title}}</legend>
+      Title: <input type="text" name="{{item.id}}_title" value="{{ item.title }}"><br>
+      Release date: <input type="date" name="{{item.id}}_release_date" value="{{ item.release_date }}"><br>
+      Written by <input type="text" name="{{item.id}}_author" value="{{ item.author }}"><br>
+      Directed by <input type="text" name="{{item.id}}_director" value="{{ item.director }}"><br>
+      <a href="/corpus/{{corpusid}}/file/{{item.id}}/" target="_blank">{{item.title}} - text file</a>
+      
+    </fieldset> 
+    {% endfor %}
+    </form>
+</div>
+
+
+{% include "sub/footernew.html" %}
+</body>
+</html>
+
+
