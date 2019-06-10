@@ -243,15 +243,19 @@ class DataModel(Document):
         """This method prepends a data id to the beginning of the file
            (in corpus).
         """
+        # todo(): this method has to go
+        # todo(): do not prepend the fileid to the file;
+        # todo(): files should be immutable.
         corpus_file_path = corpus_path(corpusid)
-
-        out = tempfile.NamedTemporaryFile(mode='a+', delete=False)
-        out.write('%s\n' % str(self.get_id()))
         path = os.path.join(corpus_file_path, self.get('fileid'))
-        shutil.copyfileobj(open(path, 'r'), out)
+        tmp = os.path.join(corpus_file_path, '{}_tmp'.format(self.get('fileid')))
+        with open(tmp, 'a+') as out:
+            out.write('%s\n' % str(self.get_id()))
+            shutil.copyfileobj(open(path, 'r'), out)
+
         os.remove(path)
-        shutil.copy(out.name, path)
-        os.remove(out.name)
+        shutil.copy(tmp, path)
+        os.remove(tmp)
 
     def chmod_file(self, path: str = None, fileid: str = None):
         """ permissions 'read, write, execute' to user, group, other (777)
