@@ -56,7 +56,7 @@ setup(
         'Operating System :: Unix',
     ],
 
-    keywords='rmxbot django site web apps',
+    keywords='rmxbot site web apps',
 
     packages=find_packages(include=['rmxbot']),
 
