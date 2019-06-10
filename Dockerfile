@@ -22,7 +22,8 @@ WORKDIR /app
 COPY . /app
 
 RUN mv bin /opt/rmxbin && chmod 755 /opt/rmxbin \
-    && chmod +x /opt/rmxbin/search_corpus.sh
+    && chmod +x /opt/rmxbin/search_corpus.sh \
+    && chown -R rmxbotuser:rmxbotuser /opt/rmxbin
 
 # cloning templates and statics to app
 RUN mkdir /app/public_code \
@@ -34,7 +35,7 @@ RUN chown -R rmxbotuser:rmxbotuser /app \
     && chmod +x /app/celery.sh
 
 # setting up the environment variables for the rmxbot configuration file
-ENV RMX_SEARCH_CORPUS_SCRIPT '/app/rmxbot/bin/search_corpus.sh'
+ENV RMX_SEARCH_CORPUS_SCRIPT '/opt/rmxbin/search_corpus.sh'
 
 # the endpoint for extractxt
 ENV EXTRACTXT_ENDPOINT 'http://localhost:8003'
