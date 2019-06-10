@@ -20,10 +20,7 @@ def words_context(lemma: list = None, corpus: CorpusModel = None,
                 path,
                 '|'.join(lemma)
             )),
-            # stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
             encoding="utf-8",
-            # this works in python3.7
             capture_output=True,
             check=True
         )
