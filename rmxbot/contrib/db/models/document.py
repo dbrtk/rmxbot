@@ -4,8 +4,8 @@ within data collecitons """
 import pymongo
 import bson
 
-from rmxbot.contrib.utils import dictionary
-from rmxbot.contrib.datamodel.rmxdict import RmxDict
+from ...utils import dictionary
+from ...datamodel.rmxdict import RmxDict
 
 
 class Document(RmxDict):

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+{% load staticfiles %}
+
+<script src={% static "js/jquery.js"%} tpye="text/javascript"></script>
+<script src={% static "js/mustache.js"%} tpye="text/javascript"></script>
+<script src={% static "js/store/collage.js"%} tpye="text/javascript"></script>
+<script src={% static "js/utils.js"%} tpye="text/javascript"></script>
+<script src={% static "js/controller/collage.js"%} tpye="text/javascript"></script>
+<script src={% static "js/view/collage.js"%} tpye="text/javascript"></script>
+<script src={% static "js/view/generic.js"%} tpye="text/javascript"></script>
+<script src={% static "js/view/textnode.js"%} tpye="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href={% static "css/textnode.css" %}>
+<link rel="stylesheet" type="text/css" href={% static "css/collage.css" %}>
+<link rel="stylesheet" type="text/css" href={% static "css/footer.css" %}>
+
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+</head>
+<body>
+
+<div class="rmx-header">
+<h2>{{ title }}</h2>
+</div>
+
+<div class="data-container">
+
+{% for item in dataids %}
+<div class="data-box data-info-box " data-id="{{ item }}">
+</div>
+{% endfor %}
+
+<div class="data-box header">
+    <span>Show data clouds: </span>
+    <select class="dataclouds">
+	<option value="">-------</option>
+	<option value="wordcount">word count</option>
+	<option value="difference">differences</option>
+	<option value="intersection">intersections</option>
+    </select>
+    
+    <button type="button" data-status="0" name="show-text">show text</button>
+    <button type="button" data-status="0" name="filter-text">filter text</button>
+</div>
+
+<div class="data-box images"></div>
+
+<div class="data-box txt"></div>
+
+
+
+
+</div>
+
+
+
+<!-- {% include "sub/footer-simple.html" %} -->
+</body>
+</html>

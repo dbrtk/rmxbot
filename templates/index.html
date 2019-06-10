@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<script src={{ url_for("static", filename="js/libs/require.js") }} tpye="text/javascript"></script>
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/textnode.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+
+<div class="query-box">
+
+  <h2>Project description</h2>
+  
+  {% include "data/about.html" %}
+  <br>
+  <h2><a href="/corpus">Browse existing corpora</a></h2>
+  <h2>Create new corpus <a href="/corpus/new/">from the web</a> or <a href="/corpus/create-from-text-files/">from text files</a></h2>
+  <h2><a href="/see-how-it-works">See how it works</a></h2>
+</div>
+
+{% include "sub/footernew.html" %}
+</body>
+</html>

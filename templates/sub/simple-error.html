@@ -1,0 +1,15 @@
+
+
+
+{% if errors %}
+<div class="error-box">
+    <h1>Errors occurred while processing your request.</h1>
+    <ul>
+    {% for err in errors %}
+    <li>
+	<h3>{{ err }}</h3>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}

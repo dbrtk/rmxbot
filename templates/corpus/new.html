@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ProximityBot</title>
+
+  <link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+  <link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+  <link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+  <link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+<div class="new-corpus-form">
+  <h2>Corpus from the web</h2>
+  <p>A url is required to start the crawler.</p>
+  <form class="new-corpus-form" action="/corpus/create/" method="post">
+
+    <label for="name">The name of the corpus:</label>
+    <input type="text" name="name" required placeholder="The title for the corpus...">
+
+    <label for="endpoint">The url, endpoint to feed the crawler:</label>    
+    <input type="text" name="endpoint" placeholder="http://www.example.com">
+    <!-- <textarea name="urls" required></textarea> -->
+    <label for="crawl">Crawl linked pages. Check if you want to scrape linked pages.</label>
+    <input type="checkbox" name="crawl" value="1" checked disabled>
+    <br>
+    <input type="submit">
+  </form>
+</div>
+
+
+{% include "sub/simple-error.html" %}
+
+
+
+{% include "sub/footernew.html" %}
+</body>
+</html>

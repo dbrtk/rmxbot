@@ -3,11 +3,8 @@ bson
 celery
 redis
 
-numpy
-
 requests
 pymongo
-Django
+numpy
 
-django-debug-toolbar
-remote-pdb
+Flask

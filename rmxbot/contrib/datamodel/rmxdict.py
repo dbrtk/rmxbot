@@ -2,7 +2,7 @@
 it is a wrapper around a dict object that is extended with methods provided by 
 collections MutableMapping.
 
-https://hg.python.org/cpython/file/3.4/Lib/collections/__init__.py
+https://hg.python.org/cpython/file/3.4/Lib/collections/appconf.py
 """
 
 import collections

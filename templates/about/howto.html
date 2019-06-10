@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset="UTF-8">
+    
+    <title>Proximity Bot</title>
+
+    {% load staticfiles %}
+    <script src={% static "js/libs/jquery.js"%} type="text/javascript"></script>
+    
+    <link rel="stylesheet" type="text/css" href={% static "css/main.css" %}>
+    <link rel="stylesheet" type="text/css" href={% static "css/data.css" %}>
+    <link rel="stylesheet" type="text/css" href={% static "css/logo.css" %}>
+    <link rel="stylesheet" type="text/css" href={% static "css/footer.css" %}>
+    
+  </head>
+  
+  <body>
+    {% include "sub/logo.html" %}
+    
+    <div class="rmx-recent-data">
+
+      <h1>How to use ProximityBot in a few video clips.</h1>
+
+      <h2>Access an existing corpus</h2>
+      <iframe src="https://player.vimeo.com/video/302673999" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+      
+      <h2>Create a corpus from the web</h2>
+      <iframe src="https://player.vimeo.com/video/302674029" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+      
+      <h2>Extracting features from a newly created corpus</h2>
+      <p>This video shows how to create a graph for a new corpus.</p>
+      <iframe src="https://player.vimeo.com/video/302674041" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+      <p>There are 2 ways of exploring the topics (features) that have been extracted from the materials. The most obvious one, is to list all the features along with the documents that belong to these; the other way is to explore the graph that displays the connections between the documents that have been analysed and the features extracted from the corpus.</p>
+      
+      <h2>List all the topics that have been extracted from the documents</h2>
+      <iframe src="https://player.vimeo.com/video/302674116" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+      <h2>Explore the graph</h2>
+      <iframe src="https://player.vimeo.com/video/302675875" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+      <h2>Create a new graph with 7 topics (features extracted from documents) and 10 words per topic</h2>
+      <iframe src="https://player.vimeo.com/video/302674051" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+
+      <p>By default, every document in the graph has a maximal number of 3 features. This parameters can be modified, it is possible to create a graph with any maximal number of topics attached to a document. On the other hand, it is possible to create a list of features containing any number of articles, documents; the default number of documents per feature is set to 3.</p>
+    </div>
+    
+    {% include "sub/footernew.html" %}
+  </body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Proximity Bot</title>
+
+
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/main.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/data.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/logo.css") }}>
+<link rel="stylesheet" type="text/css" href={{ url_for("static", filename="css/footer.css") }}>
+
+
+</head>
+
+<body>
+
+{% include "sub/logo.html" %}
+
+
+{% if errors %}
+<div class="error-box">
+    <h1>Errors occurred while processing your request.</h1>
+    <ul>
+    {% for err in errors %}
+    <li>
+	<h3>{{ err }}</h3>
+    </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+<div class="rmx-recent-data">
+    <h2>Recently scraped web-pages</h2>
+    {% for item in data %}
+    <div class="url-box">
+	<h3><a href="/data/webpage/{{ item.id }}">
+        {% if item.title %}{{ item.title }}{% else %}{{ item.url }}{% endif %}
+    </a></h3>
+	<ul>
+	    <li>
+		<a href="{{ item.url }}">{{ item.url }}</a>
+	    </li><li>
+		<span>Scraped: {{ item.created }}</span>
+	    </li>
+	</ul>
+    </div>
+    {% endfor %}
+</div>
+
+
+{% include "sub/footernew.html" %}
+</body>
+</html>

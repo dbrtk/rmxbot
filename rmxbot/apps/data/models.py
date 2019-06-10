@@ -3,7 +3,9 @@
 import datetime
 import hashlib
 import os
+import shutil
 import stat
+import tempfile
 try:
     import urlparse
 except ImportError:
@@ -13,14 +15,13 @@ import uuid
 import bson
 from pymongo import UpdateOne
 
-from ...config import DATA_COLL
-from rmxbot.contrib.db.models.document import Document
-from rmxbot.contrib.db.models.fields.urlfield import UrlField
-from rmxbot.contrib.utils import dictionary
-from rmxbot.apps.data.errors import DuplicateUrlError
+from ...config import CORPUS_ROOT, DATA_COLL
+from ...contrib.db.models.document import Document
+from ...contrib.db.models.fields.urlfield import UrlField
+from ...contrib.utils import dictionary
+from .errors import DuplicateUrlError
 
-
-from rmxbot.contrib.db.connection import get_collection
+from ...contrib.db.connection import get_collection
 
 
 _COLLECTION = get_collection(collection=DATA_COLL)
@@ -86,7 +87,9 @@ class DataModel(Document):
         'data': list,
         'title': str,
         'corpusid': str,
+
         'hashtxt': str,
+        'hashfile': str,
 
         'links': list,
 
@@ -123,23 +126,38 @@ class DataModel(Document):
         super(DataModel, self).__init__(*args, **kwds)
 
     @classmethod
-    def create_empty(cls, corpusid: str = None, title: str = None):
+    def create_empty(cls, corpusid: str = None, title: str = None,
+                     fileid: str = None, links: list = None):
+
+        corpus_file_path = corpus_path(corpusid=corpusid)
 
         data_obj = cls()
         data_obj['title'] = title
         data_obj['corpusid'] = corpusid
-        file_id = data_obj.file_identifier()
-        data_obj['fileid'] = file_id
+        if links:
+            data_obj['links'] = list(set(links))
 
+        if not fileid:
+            fileid = data_obj.file_identifier()
+        data_obj['fileid'] = fileid
+
+        if corpus_file_path:
+            assert corpusid in corpus_file_path, \
+                ('%s - %s' % (corpusid, corpus_file_path),)
+            if not os.path.exists(corpus_file_path):
+                raise ValueError(corpus_file_path)
+            data_obj.chmod_file(path=corpus_file_path, fileid=fileid)
         docid = data_obj.save()
         assert isinstance(bson.ObjectId(docid), bson.ObjectId)
-        return data_obj, file_id
+        return data_obj, fileid
 
     @classmethod
     def create(cls, data: list = None, corpus_id: str = None,
-               links: list = None, corpus_file_path: str = None,
-               endpoint: str = None, title: str = None):
+               links: list = None, endpoint: str = None, title: str = None):
         """Creates a DataModel document."""
+
+        corpus_file_path = corpus_path(corpusid=corpus_id)
+
         data_obj = cls()
         data_obj['title'] = title
         data_obj['links'] = list(set(links))
@@ -193,7 +211,7 @@ class DataModel(Document):
 
     def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
         """ Dumping data into a corpus file. """
-        # todo(): revie this method - make it more general or delete
+
         path = os.path.normpath(os.path.join(path, file_id))
 
         if os.path.isfile(path):
@@ -202,6 +220,8 @@ class DataModel(Document):
         self.save()
 
         hasher = hashlib.md5()
+
+        # todo(): review id_as_head
         with open(path, 'a+') as _file:
             if id_as_head:
 
@@ -218,6 +238,33 @@ class DataModel(Document):
         # permissions 'read, write, execute' to user, group, other (777)
         os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
         return file_id
+
+    def prepend_id_file(self, corpusid: str = None):
+        """This method prepends a data id to the beginning of the file
+           (in corpus).
+        """
+        # todo(): this method has to go
+        # todo(): do not prepend the fileid to the file;
+        # todo(): files should be immutable.
+        corpus_file_path = corpus_path(corpusid)
+        path = os.path.join(corpus_file_path, self.get('fileid'))
+        tmp = os.path.join(corpus_file_path, '{}_tmp'.format(self.get('fileid')))
+        with open(tmp, 'a+') as out:
+            out.write('%s\n' % str(self.get_id()))
+            shutil.copyfileobj(open(path, 'r'), out)
+
+        os.remove(path)
+        shutil.copy(tmp, path)
+        os.remove(tmp)
+
+    def chmod_file(self, path: str = None, fileid: str = None):
+        """ permissions 'read, write, execute' to user, group, other (777)
+            on file in corpus
+        """
+        # permissions 'read, write, execute' to user, group, other (777)
+        os.chmod(os.path.normpath(os.path.join(path, fileid)),
+                 stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
+        return fileid
 
     def txt_file_to_corpus(self, txt: str = None):
 
@@ -284,3 +331,15 @@ def update_many(id_key_vals: dict = None):
         )
     res = _COLLECTION.bulk_write(query, ordered=False)
     return res.bulk_api_result
+
+
+def corpus_path(corpusid: str = None):
+    """ Returns the path for corpus files. """
+    path = os.path.abspath(os.path.normpath(
+        os.path.join(
+            CORPUS_ROOT, corpusid, 'corpus')
+        )
+    )
+    if os.path.isdir(path):
+        return path
+    return None

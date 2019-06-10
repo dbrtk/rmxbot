@@ -1,0 +1,20 @@
+
+
+<div class="documents container">
+  {% for doc in documents  %}
+  <div class="document">
+
+    <h2>{{ doc.title }}</h2>
+    <a href="{{ doc.url }}">{{ doc.url }}</a><br>
+    <span>{{ doc.weight }}</span><br>
+
+    {% for f in doc.feature %}
+    <div class="feature-word feature-weight">
+      <span>{{ f.word }}</span>
+      <span>{{ f.weight }}</span>
+    </div>
+    {% endfor %}
+    
+  </div>
+  {% endfor %}
+</div>
