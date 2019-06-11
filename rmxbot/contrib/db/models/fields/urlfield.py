@@ -1,7 +1,6 @@
 """The URL field"""
 
-from django.core import validators
-from django.core.exceptions import ValidationError
+from ..validate_url import ValidateURL, ValidationError
 
 
 class UrlField:
@@ -31,7 +30,7 @@ class UrlField:
         """ using the django's URL Validator to validate """
         if value or self.value:
             value = value if value else self.value
-            validator = validators.URLValidator()
+            validator = ValidateURL()
             validator(value)
             return value
         return None
@@ -44,7 +43,7 @@ class UrlField:
 def validate_url_list(urls):
     """Validating a list of urls. Returns a list of valid urls."""
 
-    validate = validators.URLValidator()
+    validate = ValidateURL()
 
     for _ in urls:
         if not _:
