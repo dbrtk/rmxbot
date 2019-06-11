@@ -27,7 +27,7 @@ class UrlField:
         return str(value)
 
     def validate(self, value=None, path=None):
-        """ using the django's URL Validator to validate """
+        """Validating the url"""
         if value or self.value:
             value = value if value else self.value
             validator = ValidateURL()

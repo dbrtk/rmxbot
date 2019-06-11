@@ -11,7 +11,7 @@ class ValidationError(Error):
 
 
 class ValidateURL(object):
-    """Implementing django-like, URL validation."""
+    """Implementing URL validation."""
 
     ul = '\u00a1-\uffff'  # unicode letters range (must not be a raw string)
     # IP patterns
