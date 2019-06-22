@@ -51,13 +51,10 @@ def generate_matrices_remote(
 
 
 @celery.task
-def crawl_async(url_list: list = None, corpus_id=None, crawl=False,
-                depth=1, corpus_file_path: str = None):
+def crawl_async(url_list: list = None, corpus_id=None, depth=1):
 
-    if get_urls_length(corpus_id) >= CORPUS_MAX_SIZE:
-        return False
-    corpus = CorpusModel.inst_by_id(corpus_id)
-    path, file_id = corpus.create_file_path()
+    # if get_urls_length(corpus_id) >= CORPUS_MAX_SIZE:
+    #     return False
 
     celery.send_task(SCRASYNC_TASKS['create'], kwargs={
         'endpoint': url_list,

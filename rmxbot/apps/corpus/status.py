@@ -6,6 +6,7 @@ CORPUS_STATUS = (
     'file-upload',
     'remove-files',
     'integrity-check',
+    'crawling',
 )
 
 
@@ -20,6 +21,8 @@ def status_text(status):
         return _.newly_created
     elif status == 'file-upload':
         return _.file_upload
+    elif status == 'crawling':
+        return _.crawling
     elif status == 'remove-files':
         return _.remove_files
     elif status == 'integrity-check':
@@ -50,6 +53,11 @@ class Status(object):
     def file_upload(self):
 
         return self.status, 'File upload in progress...'
+
+    @property
+    def crawling(self):
+
+        return self.status, 'Crawling the web...'
 
     @property
     def remove_files(self):

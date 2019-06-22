@@ -79,7 +79,6 @@ def create_from_crawl():
     the_name = request.form['name']
     endpoint = request.form['endpoint']
     url_list = [endpoint]
-
     crawl = request.form.get("crawl", True)
     crawl = True if crawl else crawl
 
@@ -92,12 +91,30 @@ def create_from_crawl():
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
     # todo(): pass the corpus file path to the crawler.
-    crawl_async.delay(url_list, corpus_id=docid, crawl=crawl, depth=depth,
-                      corpus_file_path=corpus_file_path)
+    crawl_async.delay(url_list, corpus_id=docid, depth=depth)
 
     return redirect(
         '/corpus/{}/?{}'.format(
             str(docid), urlencode(dict(status='newly-created'))))
+
+
+@corpus_app.route('/crawl/', methods=['POST'])
+def crawl():
+
+    endpoint = request.form['endpoint']
+    corpusid = request.form['corpusid']
+    crawl = request.form.get("crawl", True)
+    crawl = True if crawl else crawl
+
+    if not CorpusModel.inst_by_id(corpusid):
+        abort(404)
+
+    set_crawl_ready(corpusid, False)
+    crawl_async.delay([endpoint], corpus_id=corpusid,
+                      depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
+    return redirect(
+        '/corpus/{}/?{}'.format(
+            str(corpusid), urlencode(dict(status='crawling'))))
 
 
 @corpus_app.route('/test-task/<a>/<b>/')
