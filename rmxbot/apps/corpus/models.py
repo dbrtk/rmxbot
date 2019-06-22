@@ -372,8 +372,10 @@ class CorpusModel(Document):
         """ Get the url doc for id. """
         try:
             return next(
-                _ for _ in self.get('urls') if _.get('data_id') == docid)
-        except StopIteration as err:
+                _ for _ in self.get('urls')
+                if _.get('data_id') == docid or _.get('file_id') == docid
+            )
+        except StopIteration:
             raise RuntimeError(docid)
 
     def features_to_json(self, features):

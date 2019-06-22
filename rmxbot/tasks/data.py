@@ -93,6 +93,5 @@ def create(corpusid: str = None,
         if os.path.exists(path):
             os.remove(path)
         out['success'] = False
-    else:
-        doc.prepend_id_file(corpusid=corpusid)
+
     return out
