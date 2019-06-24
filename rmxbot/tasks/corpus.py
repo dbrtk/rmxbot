@@ -2,9 +2,12 @@
 import os
 from typing import List
 
-from ..apps.corpus.models import (CorpusModel, get_urls_length, insert_urlobj,
-                                  set_crawl_ready)
-from ..config import CORPUS_MAX_SIZE
+from ..apps.corpus.models import (
+    CorpusModel, corpus_status_data, insert_urlobj,
+    integrity_check_ready,
+    set_integrity_check_in_progress,
+    set_crawl_ready)
+from ..config import CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER
 from .data import delete_data
 from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS
 
@@ -52,15 +55,17 @@ def generate_matrices_remote(
 
 @celery.task
 def crawl_async(url_list: list = None, corpus_id=None, depth=1):
-
+    """Starting the crawler in scrasync. Starting the task that will monitor
+       the crawler.
+    """
     # if get_urls_length(corpus_id) >= CORPUS_MAX_SIZE:
     #     return False
-
     celery.send_task(SCRASYNC_TASKS['create'], kwargs={
         'endpoint': url_list,
         'corpusid': corpus_id,
         'depth': depth
     })
+    monitor_crawl.apply_async((corpus_id,), countdown=CRAWL_MONITOR_COUNTDOWN)
 
 
 @celery.task
@@ -115,6 +120,8 @@ def file_extract_callback(kwds: dict = None):
 @celery.task
 def integrity_check(corpusid: str = None):
 
+    set_integrity_check_in_progress(corpusid, True)
+
     celery.send_task(NLP_TASKS['integrity_check'], kwargs={
         'corpusid': corpusid,
         'path': CorpusModel.inst_by_id(corpusid).get_corpus_path(),
@@ -124,7 +131,7 @@ def integrity_check(corpusid: str = None):
 @celery.task
 def integrity_check_callback(corpusid: str = None):
 
-    set_crawl_ready(corpusid, True)
+    integrity_check_ready(corpusid)
 
 
 @celery.task(bind=True)
@@ -188,7 +195,32 @@ def create_from_upload(name: str = None, file_objects: list = None):
 
 
 @celery.task
-def on_crawl_ready(resp, corpusid):
+def process_crawl_resp(resp, corpusid, iter: int = 0):
 
+    corpus_status = corpus_status_data(corpusid)
     if resp.get('ready'):
-        set_crawl_ready(corpusid, True)
+
+        if not corpus_status['integrity_check_in_progress']:
+            integrity_check.delay(corpusid)
+    else:
+        if iter < CRAWL_MONITOR_MAX_ITER:
+            monitor_crawl.apply_async(
+                (corpusid, ),
+                {'iter': iter},
+                countdown=CRAWL_MONITOR_COUNTDOWN)
+
+
+@celery.task
+def monitor_crawl(corpusid, iter: int = 0):
+    """This task takes care of the crawl callback.
+
+       The first parameter is empty becasue it is called as a linked task
+       receiving a list of endpoints from the scrapper.
+    """
+    iter += 1
+
+    celery.send_task(
+        SCRASYNC_TASKS['crawl_ready'],
+        kwargs={'corpusid': corpusid},
+        link=process_crawl_resp.s(corpusid, iter)
+    )

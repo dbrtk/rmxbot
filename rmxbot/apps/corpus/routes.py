@@ -9,19 +9,17 @@ from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
 
-from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
                        TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
 from .decorators import check_availability
-from .models import CorpusModel, request_availability, set_crawl_ready
+from .models import (CorpusModel, corpus_status_data, request_availability,
+                     set_crawl_ready)
 from .status import status_text
 
-from ...tasks.corpus import (crawl_async, delete_data_from_corpus,
-                             on_crawl_ready, test_task)
-from ...tasks.celeryconf import SCRASYNC_TASKS
+from ...tasks.corpus import (crawl_async, delete_data_from_corpus, test_task)
 from . import scripts
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
@@ -75,6 +73,7 @@ def create_from_txt_files():
 
 @corpus_app.route('/create/', methods=['POST'])
 def create_from_crawl():
+    """Create a corpus from a crawl using scrasync."""
 
     the_name = request.form['name']
     endpoint = request.form['endpoint']
@@ -100,7 +99,7 @@ def create_from_crawl():
 
 @corpus_app.route('/crawl/', methods=['POST'])
 def crawl():
-
+    """Launching the crawler (scrasync) on an existing corpus"""
     endpoint = request.form['endpoint']
     corpusid = request.form['corpusid']
     crawl = request.form.get("crawl", True)
@@ -161,26 +160,30 @@ def corpus_is_ready(corpusid, feats):
 
 @corpus_app.route('/<objectid:corpusid>/corpus-crawl-ready/', methods=['GET'])
 def corpus_crawl_ready(corpusid):
+    """Checking if the crawl is ready in order to load the page."""
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = corpus_status_data(corpusid)
     if not corpus:
         abort(404)
 
-    if corpus.get('crawl_ready'):
+    if corpus.get('crawl_ready') and \
+            not corpus.get('integrity_check_in_progress'):
         return jsonify({
             'ready': True,
-            'corpusid': str(corpusid)
+            'corpusid': corpusid
         })
-    if corpus['data_from_the_web']:
-        _corpusid = str(corpusid)
-        celery.send_task(
-            SCRASYNC_TASKS['crawl_ready'],
-            kwargs={'corpusid': _corpusid},
-            link=on_crawl_ready.s(_corpusid)
-        )
+    # todo(): delete.
+    # if corpus['data_from_the_web'] and \
+    #         not corpus.get('integrity_check_in_progress'):
+    #     _corpusid = str(corpusid)
+    #     celery.send_task(
+    #         SCRASYNC_TASKS['crawl_ready'],
+    #         kwargs={'corpusid': _corpusid},
+    #         link=on_crawl_ready.s(_corpusid)
+    #     )
     return jsonify({
         'ready': False,
-        'corpusid': str(corpusid)
+        'corpusid': corpusid
     })
 
 
