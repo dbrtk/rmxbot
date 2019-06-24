@@ -5,7 +5,6 @@ import hashlib
 import os
 import shutil
 import stat
-import tempfile
 try:
     import urlparse
 except ImportError:
@@ -209,24 +208,18 @@ class DataModel(Document):
         return uuid.uuid4().hex
         # return str(self.get_id())
 
-    def data_to_corpus(self, path, data, file_id: str = None, id_as_head=True):
+    def data_to_corpus(self, path, data, file_id: str = None):
         """ Dumping data into a corpus file. """
 
         path = os.path.normpath(os.path.join(path, file_id))
 
         if os.path.isfile(path):
             raise DuplicateUrlError
-
         self.save()
 
         hasher = hashlib.md5()
 
-        # todo(): review id_as_head
         with open(path, 'a+') as _file:
-            if id_as_head:
-
-                _file.write(str(self.get_id()))
-                _file.write('\n\n')
             for txt in data:
                 hasher.update(bytes(txt, 'utf-8'))
                 _file.write(txt)
@@ -238,24 +231,6 @@ class DataModel(Document):
         # permissions 'read, write, execute' to user, group, other (777)
         os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
         return file_id
-
-    def prepend_id_file(self, corpusid: str = None):
-        """This method prepends a data id to the beginning of the file
-           (in corpus).
-        """
-        # todo(): this method has to go
-        # todo(): do not prepend the fileid to the file;
-        # todo(): files should be immutable.
-        corpus_file_path = corpus_path(corpusid)
-        path = os.path.join(corpus_file_path, self.get('fileid'))
-        tmp = os.path.join(corpus_file_path, '{}_tmp'.format(self.get('fileid')))
-        with open(tmp, 'a+') as out:
-            out.write('%s\n' % str(self.get_id()))
-            shutil.copyfileobj(open(path, 'r'), out)
-
-        os.remove(path)
-        shutil.copy(tmp, path)
-        os.remove(tmp)
 
     def chmod_file(self, path: str = None, fileid: str = None):
         """ permissions 'read, write, execute' to user, group, other (777)

@@ -98,6 +98,7 @@ class CorpusModel(Document):
         'status': list,
 
         'crawl_ready': bool,
+        'integrity_check_in_progress': bool,
         'corpus_ready': bool,
 
         'screenplay': bool,
@@ -119,7 +120,10 @@ class CorpusModel(Document):
             'screenplay': False,
             'status': [],
             'active': True,
+
             'crawl_ready': False,
+            'integrity_check_in_progress': False,
+            'corpus_ready': True,
 
             'expected_files': [],
             'created': datetime.datetime.now(),
@@ -372,8 +376,10 @@ class CorpusModel(Document):
         """ Get the url doc for id. """
         try:
             return next(
-                _ for _ in self.get('urls') if _.get('data_id') == docid)
-        except StopIteration as err:
+                _ for _ in self.get('urls')
+                if _.get('data_id') == docid or _.get('file_id') == docid
+            )
+        except StopIteration:
             raise RuntimeError(docid)
 
     def features_to_json(self, features):
@@ -506,6 +512,36 @@ def set_crawl_ready(corpusid, value):
     if not isinstance(value, bool):
         raise RuntimeError(value)
     return _COLLECTION.update({'_id': _id}, {'$set': {'crawl_ready': value}})
+
+
+def set_integrity_check_in_progress(corpusid, value):
+    """ Set the value of crawl_ready on the corpus. """
+    _id = bson.ObjectId(corpusid)
+    if not isinstance(value, bool):
+        raise RuntimeError(value)
+    return _COLLECTION.update({'_id': _id}, {
+        '$set': {'integrity_check_in_progress': value}})
+
+
+def integrity_check_ready(corpusid):
+    """Called when a crawl and the integrity check succeed."""
+    return _COLLECTION.update({'_id': bson.ObjectId(corpusid)}, {
+        '$set': {
+            'integrity_check_in_progress': False,
+            'crawl_ready': True,
+            'corpus_ready': True
+        }})
+
+
+def corpus_status_data(corpusid):
+    """Retrieves status related data for a corpus id."""
+    return _COLLECTION.find_one({'_id': bson.ObjectId(corpusid)}, {
+        'crawl_ready': 1,
+        'integrity_check_in_progress': 1,
+        'corpus_ready': 1,
+        'data_from_files': 1,
+        'data_from_the_web': 1,
+    })
 
 
 def request_availability(corpusid, reqobj, corpus=None):
