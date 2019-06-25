@@ -39,7 +39,8 @@
         </form>
     </div>
   {% elif datatype == 'upload' %}
-    <h1>Text files that make the corpus: "{{name}}" <a href="/corpus/{{corpusid}}/data/edit/">[edit]</a> (<a href="/corpus/{{corpusid}}/">go back to corpus</a>)</h1>
+    <h1>Text files that make the corpus: "{{name}}" (<a href="/corpus/{{corpusid}}/">go back to corpus</a>)</h1>
+    <span><a href="/corpus/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/corpus/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
 
     <h2>Add files to corpus</h2>
     <form class="new-corpus-form" action="{{files_upload_endpoint}}/" method="post" enctype="multipart/form-data" >
