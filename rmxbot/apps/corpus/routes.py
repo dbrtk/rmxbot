@@ -85,8 +85,6 @@ def create_from_crawl():
     corpus = CorpusModel.inst_by_id(docid)
     corpus.set_corpus_type(data_from_the_web=True)
 
-    corpus_file_path = corpus.corpus_files_path()
-
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
     # todo(): pass the corpus file path to the crawler.
@@ -222,7 +220,8 @@ def texts(corpusid):
     dataids = corpus.get_dataids()
     context['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL.strip(
         '/')
-    context['datatype'] = 'crawl'
+    context['datatype'] = 'crawl' if corpus['data_from_the_web'] else \
+        'upload' if corpus['data_from_files'] else None
     context['corpusid'] = corpus.get('_id')
     context['name'] = corpus.get('name')
     context['data'] = DataModel.query_data_project(

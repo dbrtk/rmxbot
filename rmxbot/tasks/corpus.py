@@ -182,9 +182,9 @@ def create_from_upload(name: str = None, file_objects: list = None):
     docid = str(CorpusModel.inst_new_doc(name=name))
     corpus = CorpusModel.inst_by_id(docid)
     corpus['expected_files'] = file_objects
+    corpus['data_from_files'] = True
 
     # todo(): set status to busy
-    corpus.set_corpus_type(data_from_files=True)
     corpus.save()
 
     return {
