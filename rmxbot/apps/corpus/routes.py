@@ -313,34 +313,6 @@ def get_text_file(corpusid, dataid):
     return jsonify({'text': txt, 'dataid': dataid, 'length': len(txt)})
 
 
-def context_to_json(string: str = None):
-    # todo(): delete!
-    pattern = r"([a-z0-9]+)\:(.*)"
-    data = re.findall(pattern, string)
-
-    out = {}
-    for docid, txt in data:
-
-        if docid not in out:
-            out[docid] = []
-        else:
-            if txt in out[docid]:
-                continue
-        out[docid].append(txt)
-
-    return out
-
-
-def tag_words_corpus(matchwords: list = None, txt: str = None):
-    # todo(): delete!
-    return re.sub(
-        r"\b({})\b".format('|'.join(matchwords)),
-        r'<span class="match">\1</span>',
-        txt,
-        flags=re.IGNORECASE
-    )
-
-
 @corpus_app.route('/<objectid:corpusid>/context/')
 def lemma_context(corpusid):
     """ Returns the context for lemmatised words.
