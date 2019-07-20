@@ -279,7 +279,7 @@ class CorpusModel(Document):
                      words: int = 6,
                      docs_per_feat: int = 0,
                      feats_per_doc: int = 3,
-                     **kwds):
+                     **_):
         """ Getting the features from nlp. This will call a view method that
             will retrieve or generate the requested data.
         """

@@ -57,3 +57,49 @@ def check_availability(func):
     # todo(): review
     # return wraps(func, assigned=available_attrs(func))(wrapped_view)
     return wrapped_view
+
+
+def graph_availability(func):
+
+    @wraps(func)
+    def wrapped_view(reqobj):
+
+        corpusid = reqobj.get('corpusid')
+        features = reqobj.get('feats')
+        words = reqobj.get('words')
+        docs_per_feat = reqobj.get('docs_per_feat')
+        feats_per_doc = reqobj.get('feats_per_doc')
+
+        corpus = CorpusModel.inst_by_id(corpusid)
+
+        availability = request_availability(corpusid, {
+            'features': features,
+        }, corpus=corpus)
+
+        if availability.get('busy'):
+            return jsonify(dict(busy=True, success=False))
+
+        if availability.get('available'):
+
+            return func(dict(
+                words=words,
+                feats=features,
+                docs_per_feat=docs_per_feat,
+                feats_per_doc=feats_per_doc,
+                corpus=corpus
+            ))
+        generate_matrices_remote.delay(
+            corpusid=str(corpus.get_id()),
+            feats=features,
+            vectors_path=corpus.get_vectors_path(),
+            words=words,
+            docs_per_feat=docs_per_feat,
+            feats_per_doc=feats_per_doc
+        )
+        out = dict(success=False, retry=True, watch=True)
+        out.update(availability)
+        return jsonify(out)
+
+    # todo(): review
+    # return wraps(func, assigned=available_attrs(func))(wrapped_view)
+    return wrapped_view

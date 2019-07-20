@@ -10,8 +10,9 @@ from flask import (abort, Blueprint, jsonify, redirect, render_template,
 import pymongo
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       TEMPLATES)
+                       RMXGREP_ENDPOINT, TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
+from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
 from .decorators import check_availability
@@ -313,7 +314,7 @@ def get_text_file(corpusid, dataid):
 
 
 def context_to_json(string: str = None):
-
+    # todo(): delete!
     pattern = r"([a-z0-9]+)\:(.*)"
     data = re.findall(pattern, string)
 
@@ -331,7 +332,7 @@ def context_to_json(string: str = None):
 
 
 def tag_words_corpus(matchwords: list = None, txt: str = None):
-
+    # todo(): delete!
     return re.sub(
         r"\b({})\b".format('|'.join(matchwords)),
         r'<span class="match">\1</span>',
@@ -342,7 +343,11 @@ def tag_words_corpus(matchwords: list = None, txt: str = None):
 
 @corpus_app.route('/<objectid:corpusid>/context/')
 def lemma_context(corpusid):
+    """ Returns the context for lemmatised words.
 
+    :param corpusid:
+    :return:
+    """
     corpus = CorpusModel.inst_by_id(corpusid)
     lemma_to_words, lemma = corpus.get_lemma_words(request.args.get('lemma'))
 
@@ -354,14 +359,16 @@ def lemma_context(corpusid):
         except StopIteration:
             matchwords.append(i)
 
-    result = scripts.words_context(lemma=matchwords, corpus=corpus)
-
-    result = tag_words_corpus(matchwords, result)
-    data = context_to_json(result)
-
+    resp = http_request.get(
+        RMXGREP_ENDPOINT,
+        json={
+            'lemma': matchwords,
+            'corpus_path': corpus.corpus_files_path()
+        })
+    data = resp.json()
     return jsonify({
         'success': True,
-        'data': data
+        'data': data.get('data')
     })
 
 

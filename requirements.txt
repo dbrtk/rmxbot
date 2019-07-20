@@ -8,3 +8,8 @@ pymongo
 numpy
 
 Flask
+
+graphene
+
+Flask-GraphQL
+

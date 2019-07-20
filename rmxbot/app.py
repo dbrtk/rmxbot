@@ -2,25 +2,13 @@ import os
 
 from celery import Celery
 from flask import Flask
+from flask_graphql import GraphQLView
 
 from .tasks import celeryconf
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'data')
-
-# STATIC_FOLDER = os.path.join(BASE_DIR, 'static', 'rmx')
-# UPLOAD_FOLDER = os.path.expanduser('~/Data/tmp')
-
-# os.environ['RMX_SEARCH_CORPUS_SCRIPT'] = os.path.join(BASE_DIR, 'bin')
-# os.environ['EXTRACTXT_ENDPOINT'] = 'http://localhost:8003'
-# os.environ['DATA_ROOT'] = DATA_ROOT
-# os.environ['TMP_DATA_DIR'] = os.path.join(DATA_ROOT, 'tmp')
-# os.environ['MONGODB_LOCATION'] = 'localhost'
-# os.environ['REDIS_HOST_NAME'] = 'localhost'
-# os.environ['TEMPLATES_FOLDER'] = os.path.join(BASE_DIR, 'templates')
-#
-# os.environ['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
 STATIC_FOLDER = os.environ.get('STATIC_FOLDER')
@@ -75,9 +63,22 @@ def create_app(static_folder: str = STATIC_FOLDER):
         from .apps.home.routes import home_app
         from .apps.data.routes import data_app
 
+        # from .apps.graph import graph_app
+        from .schema import rmx_schema
+
         app.register_blueprint(corpus_app, url_prefix='/corpus')
         app.register_blueprint(data_app, url_prefix='/data')
+        # app.register_blueprint(graph_app, url_prefix='/graph')
         app.register_blueprint(home_app)
+
+        app.add_url_rule(
+            '/graph',
+            view_func=GraphQLView.as_view(
+                'graph',
+                schema=rmx_schema,
+                graphiql=True  # for having the GraphiQL interface
+            )
+        )
 
     return app
 

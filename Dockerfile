@@ -23,6 +23,9 @@ ENV RMX_SEARCH_CORPUS_SCRIPT '/opt/rmxgrep/search_corpus.sh'
 # the endpoint for extractxt
 ENV EXTRACTXT_ENDPOINT 'http://localhost:8003'
 
+# the endpoint for rmxgrep
+ENV RMXGREP_ENDPOINT 'http://localhost:8004'
+
 # the data root
 ENV DATA_ROOT '/data'
 # the tmp dir for rmxbot
