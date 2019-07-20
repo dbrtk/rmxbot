@@ -7,6 +7,8 @@ from ...config import SEARCH_CORPUS_SH
 from .models import CorpusModel
 
 
+# todo(): delete!
+
 def words_context(lemma: list = None, corpus: CorpusModel = None,
                   corpusid: str = None):
 

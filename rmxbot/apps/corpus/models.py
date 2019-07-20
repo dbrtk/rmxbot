@@ -11,11 +11,12 @@ import uuid
 import bson
 import pymongo
 
+from ...app import celery
 from ...config import CORPUS_COLL, CORPUS_ROOT
 from ...contrib.db.connection import get_collection
 from ...contrib.db.models.document import Document
-from ...core.data import CorpusMatrix
-from ...core.feats_docs import features_and_docs
+from ...core.matrix_files import get_available_features
+from ...tasks.celeryconf import NLP_TASKS
 
 _COLLECTION = get_collection(collection=CORPUS_COLL)
 
@@ -284,14 +285,17 @@ class CorpusModel(Document):
             will retrieve or generate the requested data.
         """
 
-        features, docs = features_and_docs(**{
-            'path': self.get_corpus_path(),
-            'feats': feats,
-            'corpusid': str(self.get_id()),
-            'words': words,
-            'docs_per_feat': docs_per_feat,
-            'feats_per_doc': feats_per_doc
-        })
+        features, docs = celery.send_task(
+            NLP_TASKS['features_and_docs'], kwargs={
+                'path': self.get_corpus_path(),
+                'feats': feats,
+                'corpusid': str(self.get_id()),
+                'words': words,
+                'docs_per_feat': docs_per_feat,
+                'feats_per_doc': feats_per_doc
+            }
+        ).get()
+
         features = sorted(
             features,
             key=lambda _: _.get('features')[0].get('weight'),
@@ -351,8 +355,9 @@ class CorpusModel(Document):
                     out['busy'] = True
         if out['busy'] is False:
             try:
-                _count = CorpusMatrix(
-                    path=self.get_corpus_path()).available_feats
+                _count = get_available_features(
+                    corpusid=str(self.get_id()),
+                    corpus_path=self.get_corpus_path())
                 next(_ for _ in _count if int(
                     _.get('featcount')) == feature_number)
                 _count = list(int(_.get('featcount')) for _ in _count)
@@ -366,7 +371,9 @@ class CorpusModel(Document):
 
     def get_features_count(self, verbose: bool = False):
         """ Returning the features count. """
-        avl = CorpusMatrix(path=self.get_corpus_path()).available_feats
+
+        avl = get_available_features(corpusid=str(self.get_id()),
+                                     corpus_path=self.get_corpus_path())
         if verbose:
             return avl
         else:
