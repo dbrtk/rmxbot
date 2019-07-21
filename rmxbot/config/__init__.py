@@ -40,13 +40,13 @@ CORPUS_ROOT = os.path.join(DATA_ROOT, 'corpus')
 CORPUS_MAX_SIZE = 400
 
 # DATABASE configuration - MONGODB
-MONGODB_NAME = 'rmx'
+MONGODB_NAME = os.environ.get('MONGODB_DATABASE')
 # MONGODB_LOCATION = '127.0.0.1'
 
 MONGODB_LOCATION = os.environ.get('MONGODB_LOCATION')
 MONGODB_PORT = 27017
-MONGODB_USR = 'dbuser_if_any'
-MONGODB_PWD = 'password_if_any'
+MONGODB_USER = os.environ.get('MONGODB_USER')
+MONGODB_PASS = os.environ.get('MONGODB_PASS')
 
 # names given to the mongodb collections
 DATA_COLL = 'data'
