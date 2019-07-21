@@ -3,8 +3,8 @@
 
 from pymongo import MongoClient
 
-from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PWD,
-                       MONGODB_PORT, MONGODB_USR)
+from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
+                       MONGODB_PORT, MONGODB_USER)
 # from ...config import MONGODB_LOCATION, MONGODB_NAME, MONGODB_PORT
 
 # guest connection
