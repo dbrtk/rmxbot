@@ -7,12 +7,6 @@ from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
                        MONGODB_PORT, MONGODB_USER)
 
 # connection for the mongodb user
-# uri = "mongodb://" % (MONGODB_LOCATION, MONGODB_PORT, MONGODB_USER, MONGODB_PASS)
-
-print('authenticating the user')
-print(MONGODB_USER)
-print(MONGODB_PASS)
-
 CLIENT = MongoClient(MONGODB_LOCATION, MONGODB_PORT)
 CLIENT.rmx.authenticate(MONGODB_USER, MONGODB_PASS, mechanism='SCRAM-SHA-1')
 
