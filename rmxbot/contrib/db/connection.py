@@ -5,14 +5,12 @@ from pymongo import MongoClient
 
 from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
                        MONGODB_PORT, MONGODB_USER)
-# from ...config import MONGODB_LOCATION, MONGODB_NAME, MONGODB_PORT
 
-# guest connection
+# connection for the mongodb user
 CLIENT = MongoClient(MONGODB_LOCATION, MONGODB_PORT)
-
-# CLIENT.rmx.authenticate(MONGODB_USR,
-#                         MONGODB_PWD,
-#                         mechanism='SCRAM-SHA-1')
+CLIENT.rmx.authenticate(MONGODB_USER,
+                        MONGODB_PASS,
+                        mechanism='SCRAM-SHA-1')
 
 
 def get_connection(db=MONGODB_NAME, collection=None):
