@@ -1,4 +1,3 @@
-# this should use python:3.7
 FROM python:3.7
 
 # Creating a user tu run the process
