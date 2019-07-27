@@ -12,6 +12,9 @@ CLIENT = MongoClient(MONGODB_LOCATION, MONGODB_PORT)
 # CLIENT.rmx.authenticate(MONGODB_USER, MONGODB_PASS, mechanism='SCRAM-SHA-1')
 
 
+print(CLIENT)
+print(CLIENT[db])
+
 def get_connection(db=MONGODB_NAME, collection=None):
     """ returns a database connection and the collection """
     assert isinstance(collection, str), "No collection name provided."
