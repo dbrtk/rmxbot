@@ -40,7 +40,7 @@ CORPUS_ROOT = os.path.join(DATA_ROOT, 'corpus')
 CORPUS_MAX_SIZE = 400
 
 # DATABASE configuration - MONGODB
-MONGODB_NAME = os.environ.get('MONGODB_DATABASE')
+MONGODB_NAME = os.environ.get('MONGODB_NAME')
 # MONGODB_LOCATION = '127.0.0.1'
 
 MONGODB_LOCATION = os.environ.get('MONGODB_LOCATION')
