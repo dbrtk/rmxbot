@@ -3,8 +3,11 @@ FROM python:3.7
 # Creating a user tu run the process
 RUN groupadd -r rmxbotuser && useradd -r -g rmxbotuser rmxbotuser
 
-RUN mkdir -p /data/corpus && mkdir /data/upload \
-	&& chown -R rmxbotuser:rmxbotuser /data/corpus
+# RUN mkdir -p /data/corpus \
+# 	&& chown -R rmxbotuser:rmxbotuser /data/corpus
+
+# VOLUME /data
+
 
 # Set the working directory to /app
 WORKDIR /app
@@ -37,8 +40,6 @@ ENV MONGODB_NAME 'rmx'
 
 # the redis host
 ENV REDIS_HOST_NAME 'redis'
-
-ENV UPLOAD_FOLDER '/data/upload'
 
 ENV TEMPLATES_FOLDER '/app/templates'
 

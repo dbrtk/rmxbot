@@ -12,7 +12,7 @@ DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'data')
 
 
 STATIC_FOLDER = os.environ.get('STATIC_FOLDER')
-UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
+
 
 def make_celery(app):
 
@@ -43,7 +43,6 @@ def create_app(static_folder: str = STATIC_FOLDER):
                 static_folder=static_folder,
                 static_url_path='/static'
                 )
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
     from rmxbot.contrib.utils.urls import ObjectidConverter
     from rmxbot.contrib.rmxjson import RmxEncoder
