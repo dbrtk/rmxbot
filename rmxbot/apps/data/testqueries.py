@@ -3,7 +3,6 @@
 from pymongo import MongoClient
 import re
 
-# CLIENT = MongoClient("localhost", 27017)
 CLIENT = MongoClient()
 
 

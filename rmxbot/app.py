@@ -14,29 +14,6 @@ DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'data')
 STATIC_FOLDER = os.environ.get('STATIC_FOLDER')
 
 
-def make_celery(app):
-
-    celery = Celery(app.import_name,
-                    include=['rmxbot.tasks.data', 'rmxbot.tasks.corpus'],
-                    broker=app.config['BROKER_URL'],
-                    backend=app.config['CELERY_RESULT_BACKEND'])
-
-    celery.conf.update(app.config)
-
-    TaskBase = celery.Task
-
-    class ContextTask(TaskBase):
-        abstract = True
-
-        def __call__(self, *args, **kwargs):
-            with app.app_context():
-                return TaskBase.__call__(self, *args, **kwargs)
-
-    celery.Task = ContextTask
-
-    return celery
-
-
 def create_app(static_folder: str = STATIC_FOLDER):
     """Building up the flask applicaiton."""
     app = Flask(__name__,
@@ -50,12 +27,6 @@ def create_app(static_folder: str = STATIC_FOLDER):
     app.url_map.converters['objectid'] = ObjectidConverter
 
     app.json_encoder = RmxEncoder
-
-    # app.config.from_object('conf')
-    app.config.update(
-        BROKER_URL='redis://localhost:6379/0',
-        CELERY_RESULT_BACKEND='redis://localhost:6379/0'
-    )
 
     with app.app_context():
         from .apps.corpus.routes import corpus_app
