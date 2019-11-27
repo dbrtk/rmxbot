@@ -2,9 +2,10 @@
 
 from flask import Blueprint, render_template
 
+from ...config import TEMPLATES
 
 home_app = Blueprint(
-    'home_app', __name__, root_path='/', template_folder='templates')
+    'home_app', __name__, root_path='/', template_folder=TEMPLATES)
 
 
 @home_app.route('/')

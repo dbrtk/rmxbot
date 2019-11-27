@@ -1,6 +1,5 @@
 import json
 import os
-import re
 import uuid
 from urllib.parse import urlencode
 
@@ -21,7 +20,6 @@ from .models import (CorpusModel, corpus_status_data, request_availability,
 from .status import status_text
 
 from ...tasks.corpus import (crawl_async, delete_data_from_corpus, test_task)
-from . import scripts
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
 
