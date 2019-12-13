@@ -57,8 +57,6 @@ class ForceDirectedGraph(graphene.ObjectType):
     #
     # feats_per_doc = graphene.Int(default_value=3)
 
-
-#
 #
 # class Query(graphene.ObjectType):
 #
