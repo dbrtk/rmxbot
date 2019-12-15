@@ -1,3 +1,4 @@
+""" Routes for the corpus module. """
 import json
 import os
 import uuid
