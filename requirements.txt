@@ -7,8 +7,3 @@ requests
 pymongo
 
 Flask
-
-graphene
-
-Flask-GraphQL
-
