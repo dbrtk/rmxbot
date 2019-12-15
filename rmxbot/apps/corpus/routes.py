@@ -30,7 +30,7 @@ corpus_app = Blueprint(
 
 @corpus_app.route('/')
 def corpus_home():
-    """
+    """ Renders the home page for the corpus.
     :return:
     """
     context = {}
