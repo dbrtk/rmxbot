@@ -34,13 +34,13 @@ def create_app(static_folder: str = STATIC_FOLDER):
         from .apps.data.routes import data_app
         from .graphschema import schema
 
-        # from .apps.graph import graph_app
+        from .apps.graph import graph_app
 
         app.register_blueprint(corpus_app, url_prefix='/corpus')
         app.register_blueprint(data_app, url_prefix='/data')
         app.register_blueprint(home_app)
 
-        # app.register_blueprint(graph_app, url_prefix='/graphql')
+        app.register_blueprint(graph_app, url_prefix='/graphql')
 
         app.add_url_rule(
             '/graphql',
