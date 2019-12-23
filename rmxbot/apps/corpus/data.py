@@ -118,8 +118,8 @@ def crawl():
             str(corpusid), urlencode(dict(status='crawling'))))
 
 
-@corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
-def corpus_data_view(corpusid):
+# @corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
+def corpus_data(corpusid):
     """This returns a corpus data view. It will contain all necesary info
     about a text corpus.
     """

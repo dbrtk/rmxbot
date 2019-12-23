@@ -41,11 +41,11 @@ class Corpus(graphene.ObjectType):
 
     docs_per_feature = graphene.Int()
 
-    create_from_crawl = graphene.ObjectType()
-
-    def resolve_create_from_crawl(self):
-
-        pass
+    # create_from_crawl = graphene.ObjectType()
+    #
+    # def resolve_create_from_crawl(self):
+    #
+    #     pass
 
 
 class ForceDirectedGraph(graphene.ObjectType):

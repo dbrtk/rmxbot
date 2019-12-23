@@ -2,62 +2,7 @@
 
 import graphene
 
-from ..apps.corpus.graph import force_directed_graph
-from .corpus import Corpus, DataObject, ForceDirectedGraph
-
-
-class RootQuery(graphene.ObjectType):
-
-    hello = graphene.String(name=graphene.String(default_value="stranger"))
-
-    goodbye = graphene.String()
-
-    corpus_all = graphene.List(Corpus)
-
-    corpus = graphene.Field(Corpus)
-
-    force_directed_graph = graphene.Field(ForceDirectedGraph)
-
-    def resolve_hello(root, info):
-
-        print("resolve hello")
-        print(root)
-        print(info)
-        return "Hello stranger!"
-
-    def resolve_corpus_all(root, info):
-
-        print("resolving corpus all")
-        print(root)
-        print(info)
-
-        return []
-
-    def resolve_corpus(root, info, corpusid):
-
-        pass
-
-    def revolve_force_directed_graph(root, info, *args, **kwds):
-
-        print("resolving features")
-        print(root)
-        print(info)
-        print(*args)
-        print(**kwds)
-
-        # force_directed_graph({
-        #     'feats': '',
-        #     'docs_pre_feat': '',
-        #     'feats_per_doc': '',
-        #     'words': '',
-        #     'corpusid': ''
-        # })
-
-    def resolve_hello(root, info, name):
-        return f'Hello {name}!'
-
-    def resolve_goodbye(root, info):
-        return 'See ya!'
+from ..apps.corpus import queries as corpus_queries
 
 
 class MutationQuery(graphene.ObjectType):
@@ -68,7 +13,7 @@ class SubscriptionQuery(graphene.ObjectType):
     pass
 
 
-class Query(graphene.ObjectType):
+class TestQuery(graphene.ObjectType):
     # this defines a Field `hello` in our Schema with a single Argument `name`
     hello = graphene.String(name=graphene.String(default_value="stranger"))
     goodbye = graphene.String()
@@ -83,6 +28,11 @@ class Query(graphene.ObjectType):
         return 'See ya!'
 
 
-schema = graphene.Schema(query=RootQuery)
+class Query(corpus_queries.Corpus,
+            TestQuery,
+            graphene.ObjectType):
+    """Defining hte Query that inherits from many objects."""
+    pass
 
 
+schema = graphene.Schema(query=TestQuery)

@@ -30,23 +30,28 @@ def create_app(static_folder: str = STATIC_FOLDER):
 
     with app.app_context():
         from .apps.corpus.routes import corpus_app
+        from .apps.corpus.queries import schema as corpus_schema
         from .apps.home.routes import home_app
         from .apps.data.routes import data_app
         from .graphschema import schema
 
-        from .apps.graph import graph_app
-
         app.register_blueprint(corpus_app, url_prefix='/corpus')
         app.register_blueprint(data_app, url_prefix='/data')
         app.register_blueprint(home_app)
-
-        app.register_blueprint(graph_app, url_prefix='/graphql')
 
         app.add_url_rule(
             '/graphql',
             view_func=GraphQLView.as_view(
                 'graphql',
                 schema=schema,
+                graphiql=True  # for having the GraphiQL interface
+            )
+        )
+        app.add_url_rule(
+            '/graphql/corpus',
+            view_func=GraphQLView.as_view(
+                'corpus',
+                schema=corpus_schema,
                 graphiql=True  # for having the GraphiQL interface
             )
         )
