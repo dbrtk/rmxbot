@@ -62,30 +62,12 @@ def corpus_home():
     return render_template("corpus/index.html", **context)
 
 
-@corpus_app.route('/new/')
-def new_corpus():
-    # todo(): delete!
-    return render_template('corpus/new.html')
-
-
-@corpus_app.route('/create-from-text-files/')
-def create_from_txt_files():
-    # todo(): delete!
-    return render_template("corpus/create-from-text-files.html",
-                           files_upload_endpoint=EXTRACTXT_FILES_UPLOAD_URL)
-
-
-@corpus_app.route('/create/', methods=['POST'])
-def create_from_crawl():
+def create_from_crawl(name: str = None, endpoint: str = None,
+                      crawl: bool = True):
     """Create a corpus from a crawl using scrasync."""
-
-    the_name = request.form['name']
-    endpoint = request.form['endpoint']
     url_list = [endpoint]
-    crawl = request.form.get("crawl", True)
-    crawl = True if crawl else crawl
 
-    docid = str(CorpusModel.inst_new_doc(name=the_name))
+    docid = str(CorpusModel.inst_new_doc(name=name))
     corpus = CorpusModel.inst_by_id(docid)
     corpus.set_corpus_type(data_from_the_web=True)
 
@@ -93,56 +75,45 @@ def create_from_crawl():
 
     # todo(): pass the corpus file path to the crawler.
     crawl_async.delay(url_list, corpus_id=docid, depth=depth)
-
-    return redirect(
-        '/corpus/{}/?{}'.format(
-            str(docid), urlencode(dict(status='newly-created'))))
+    return {'success': True}
 
 
-@corpus_app.route('/crawl/', methods=['POST'])
-def crawl():
+def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
     """Launching the crawler (scrasync) on an existing corpus"""
-    endpoint = request.form['endpoint']
-    corpusid = request.form['corpusid']
-    crawl = request.form.get("crawl", True)
-    crawl = True if crawl else crawl
-
     if not CorpusModel.inst_by_id(corpusid):
         abort(404)
-
     set_crawl_ready(corpusid, False)
     crawl_async.delay([endpoint], corpus_id=corpusid,
                       depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
-    return redirect(
-        '/corpus/{}/?{}'.format(
-            str(corpusid), urlencode(dict(status='crawling'))))
+    return {'success': True}
 
 
-# @corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
 def corpus_data(corpusid):
     """This returns a corpus data view. It will contain all necesary info
     about a text corpus.
     """
-    context = {}
+    obj = {}
     status, message = status_text(request.args.get('status'))
     if status:
-        context['status'] = status
-        context['status_message'] = message
+        obj['status'] = status
+        obj['status_message'] = message
 
     corpus = CorpusModel.inst_by_id(corpusid)
     if not corpus:
-        context['errors'] = [
+        # obj['errors'] = [
+        #     ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+        # ]
+        raise RuntimeError(
             ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
-        ]
-        return render_template("corpus/data.html", **context)
+        )
 
-    context['available_feats'] = corpus.get_features_count()
-    context['corpus_name'] = corpus.get('name')
-    context['corpusid'] = str(corpus.get_id())
-    context['urls_length'] = len(corpus.get('urls'))
-    context['texts'] = [_ for _ in corpus.get('urls')[:10]]
+    obj['available_feats'] = corpus.get_features_count()
+    obj['name'] = corpus.get('name')
+    obj['corpusid'] = str(corpus.get_id())
+    obj['urls_length'] = len(corpus.get('urls'))
+    obj['texts'] = [_ for _ in corpus.get('urls')[:10]]
 
-    return context
+    return obj
 
 
 @corpus_app.route('/<objectid:corpusid>/is-ready/<feats>/', methods=['GET'])

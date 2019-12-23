@@ -5,20 +5,6 @@ import graphene
 from . import data
 
 
-class UpdateCrawl(graphene.ObjectType):
-
-    corpusid = graphene.String(required=True)
-    endpoint = graphene.String(required=True)
-    crawl = graphene.Boolean(default_value=True)
-
-
-class LaunchCrawl(graphene.ObjectType):
-
-    name = graphene.String(required=True)
-    endpoint = graphene.String(required=True)
-    crawl = graphene.Boolean(default_value=True)
-
-
 class CorpusTexts(graphene.ObjectType):
     """
     Text objects that are contained by instances of the CorpusModel.
@@ -32,7 +18,10 @@ class CorpusTexts(graphene.ObjectType):
 
 
 class CorpusStructure(graphene.ObjectType):
-
+    """
+    the future structure for the corpus, that maps to the one of the
+    model/document.
+    """
     name = graphene.String()
     description = graphene.String()
     created = graphene.DateTime()
@@ -59,55 +48,42 @@ class CorpusStructure(graphene.ObjectType):
 
 
 class CorpusDataView(graphene.ObjectType):
-
+    """
+    Returns the corpus data view calling corpus.data.corpus_data.
+    Querying the corpus data view:
+    ```
+    query {
+      corpusData(
+        corpusid:"5e00fe205dbae8b568d496b6"
+      ), {
+      availableFeats,
+      texts {
+        dataId
+        title
+        texthash
+        url
+        fileId
+        titleId
+      },
+      corpusid,
+      name
+    }}
+    ```
+    """
     corpusid = graphene.String(required=True)
     available_feats = graphene.List(graphene.Int)
-    corpus_name = graphene.String()
+    name = graphene.String()
     texts = graphene.List(CorpusTexts, description="list holding text objects")
 
 
-class Corpus(graphene.ObjectType):
+class Query(graphene.ObjectType):
 
-    create_from_crawl = graphene.Field(LaunchCrawl)
-
-    crawl = graphene.Field(UpdateCrawl)
-
-    corpus_data = graphene.Field(CorpusDataView, corpusid=graphene.String(required=True))
+    corpus_data = graphene.Field(CorpusDataView,
+                                 corpusid=graphene.String(required=True))
 
     test = graphene.String()
 
-    def resolve_create_from_crawl(parent, info, name, endpoint, crawl):
-
-        return 'create from crawl called'
-
-    def resolve_crawl(parent, info, corpusid, endpoint, crawl):
-
-        return 'crawl called'
-
     def resolve_corpus_data(parent, info, corpusid):
-        """
-        Returns the corpus data view calling corpus.data.corpus_data.
-        Querying the corpus data view:
-        ```
-        {corpusData(corpusid:"<THE_CORPUS_ID>"), {
-          corpusid,
-          availableFeats,
-          corpusName,
-          texts {
-            dataId
-            title
-            texthash
-            url
-            fileId
-            title
-          }
-        }}
-        ```
-        """
+        """retrieve data to display a corpus"""
         return data.corpus_data(corpusid)
-
-    def resolve_test(parent, info): return 'good pferdle...'
-
-
-schema = graphene.Schema(query=Corpus)
 
