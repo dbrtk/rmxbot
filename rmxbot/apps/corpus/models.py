@@ -161,8 +161,12 @@ class CorpusModel(Document):
            list of urls.
         """
         if not projection:
-            projection = {'urls': {'$slice': 10},
-                          'name': 1, 'description': 1, 'created': 1}
+            projection = {
+                'urls': {'$slice': 10},
+                'name': 1,
+                'description': 1,
+                'created': 1
+            }
         return super().range_query(
             projection=projection,
             start=start,
@@ -341,7 +345,11 @@ class CorpusModel(Document):
         """ Checking feature's availability. """
         status = self.get_status_feats(feats=feature_number)
 
-        out = {'busy': False}
+        out = {
+            'requested_features': feature_number,
+            'corpusid': self.get_id(),
+            'busy': False
+        }
         if status:
             if status.get('busy') is True and status.get(
                     'feats') == feature_number:

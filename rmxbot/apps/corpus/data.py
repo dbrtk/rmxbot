@@ -5,7 +5,6 @@
 import json
 import os
 import uuid
-from urllib.parse import urlencode
 
 import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
@@ -31,35 +30,23 @@ corpus_app = Blueprint(
     'corpus_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
 
 
-@corpus_app.route('/')
-def corpus_home():
+def paginate(start: int = 0, limit: int = 100):
     """
+    Paginates the collection that holds corpora.
+    :param start:
+    :param limit:
     :return:
     """
-    # todo(): delete!
-    context = {}
     cursor = CorpusModel.range_query(
         query={'crawl_ready': True},
         projection=dict(),
+        limit=limit,
+        start=start,
         direction=pymongo.DESCENDING)
     encoder = RmxEncoder()
-    out = []
-    for item in cursor:
-        item = json.loads(encoder.encode(item))
-        if item.get('screenplay', False):
-            item['data'] = DataModel.query_data_project(
-                query={'_id': {
-                    '$in': [bson.ObjectId(_.get('data_id'))
-                            for _ in item.get('urls')][:10]
-                }},
-                project=LIST_SCREENPLAYS_PROJECT
-            )
-        item['corpusid'] = item['_id']
-        del item['_id']
-        out.append(item)
-
-    context['data'] = out
-    return render_template("corpus/index.html", **context)
+    return [
+        json.loads(encoder.encode(item)) for item in cursor
+    ]
 
 
 def create_from_crawl(name: str = None, endpoint: str = None,
@@ -116,7 +103,6 @@ def corpus_data(corpusid):
     return obj
 
 
-@corpus_app.route('/<objectid:corpusid>/is-ready/<feats>/', methods=['GET'])
 def corpus_is_ready(corpusid, feats):
     """Returns an object with information about the state of the corpus.
     This is called when features are being computed.
@@ -127,7 +113,6 @@ def corpus_is_ready(corpusid, feats):
     return availability
 
 
-@corpus_app.route('/<objectid:corpusid>/corpus-crawl-ready/', methods=['GET'])
 def corpus_crawl_ready(corpusid):
     """Checking if the crawl is ready in order to load the page. This is called
     when the crawler is running."""
@@ -141,15 +126,6 @@ def corpus_crawl_ready(corpusid):
             'ready': True,
             'corpusid': corpusid
         })
-    # todo(): delete.
-    # if corpus['data_from_the_web'] and \
-    #         not corpus.get('integrity_check_in_progress'):
-    #     _corpusid = str(corpusid)
-    #     celery.send_task(
-    #         SCRASYNC_TASKS['crawl_ready'],
-    #         kwargs={'corpusid': _corpusid},
-    #         link=on_crawl_ready.s(_corpusid)
-    #     )
     return {
         'ready': False,
         'corpusid': corpusid
