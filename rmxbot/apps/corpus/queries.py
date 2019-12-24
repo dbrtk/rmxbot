@@ -49,8 +49,8 @@ class CorpusDataView(graphene.ObjectType):
     query {
       corpusData(
         corpusid:"5e00fe205dbae8b568d496b6"
-      ), {
-      availableFeats,
+      ) {
+      availableFeats
       texts {
         dataId
         title
@@ -58,8 +58,8 @@ class CorpusDataView(graphene.ObjectType):
         url
         fileId
         titleId
-      },
-      corpusid,
+      }
+      corpusid
       name
     }}
     ```
@@ -97,13 +97,90 @@ class CorpusReady(graphene.ObjectType):
     feature_number = graphene.Int()
 
 
-class CrawlReady(graphene.ObjectType):
-
+class DatasetReady(graphene.ObjectType):
+    """Checking if the dataset is ready after a crawl or file upload."""
     corpusid = graphene.String()
     ready = graphene.Boolean()
 
 
+class TextInDataset(graphene.ObjectType):
+    """Lists all the texts in the database. Used by the Texts class."""
+    id = graphene.String()
+    url = graphene.String()
+    created = graphene.DateTime()
+    title = graphene.String()
+    hostname = graphene.String()
+
+
+class Texts(graphene.ObjectType):
+    """
+    Returns texts attached to the dataset.
+
+    This is the query:
+    ```
+    query {
+      texts(corpusid:"5e00fe205dbae8b568d496b6") {
+        corpusid
+        filesUploadEndpoint
+        datatype
+        name
+        data {
+          id
+          url
+          created
+          title
+          hostname
+        }
+      }
+    }
+    ```
+    """
+    files_upload_endpoint = graphene.String()
+    datatype = graphene.String()
+    corpusid = graphene.String()
+    name = graphene.String()
+    data = graphene.List(TextInDataset)
+
+
+class ContextPhrase(graphene.ObjectType):
+    """The structure for sentences with a fileid."""
+    # the unique id of the file in the dataset/folder. There is a fileid
+    # field on the level of data.models.DataModel
+    fileid = graphene.String()
+    # a list of sentences
+    sentences = graphene.List(graphene.String)
+
+
+class FeatureContext(graphene.ObjectType):
+    """
+    Retrieves sentences (from a dataset) that contain one or more feature-word.
+
+    The graphql query:
+    ```
+    query {
+      featureContext(
+        corpusid:"5dffc8c93e767601249f2fa7",
+        words:["earth","remember","dream","call","picture","plane","book",
+               "free","spirit","military","gyroscope","seed","fly","pole",
+               "nasa","fishbowl","artificial","horizon","cloud","flat"]
+      ){
+        corpusid
+        data {
+          sentences
+          fileid
+        }
+        success
+      }
+    }
+    ```
+    """
+    corpusid = graphene.String()
+    success = graphene.Boolean()
+    data = graphene.List(ContextPhrase)
+
+
 class Query(graphene.ObjectType):
+    """Query handler."""
 
     corpus_data = graphene.Field(CorpusDataView,
                                  corpusid=graphene.String(required=True))
@@ -119,9 +196,15 @@ class Query(graphene.ObjectType):
         corpusid=graphene.String(),
         feats=graphene.Int())
 
-    crawl_ready = graphene.Field(CrawlReady, corpusid=graphene.String())
+    crawl_ready = graphene.Field(DatasetReady, corpusid=graphene.String())
 
-    text_upload_ready = graphene.Boolean()
+    text_upload_ready = graphene.Field(DatasetReady, corpusid=graphene.String())
+
+    texts = graphene.Field(Texts, corpusid=graphene.String())
+
+    feature_context = graphene.Field(FeatureContext,
+                                     corpusid=graphene.String(),
+                                     words=graphene.List(graphene.String))
 
     def resolve_corpus_data(parent, info, corpusid):
         """
@@ -164,6 +247,53 @@ class Query(graphene.ObjectType):
         return data.corpus_is_ready(corpusid=corpusid, feats=feats)
 
     def resolve_crawl_ready(parent, info, corpusid):
-
+        """
+        Checks if the crawl is ready.
+        Query:
+        ```
+        query {
+          crawlReady(corpusid:"5e00fe205dbae8b568d496b6") {
+            corpusid
+            ready
+          }
+        }
+        ```
+        :param info:
+        :param corpusid:
+        :return:
+        """
         return data.corpus_crawl_ready(corpusid=corpusid)
+
+    def resolve_text_upload_ready(parent, info, corpusid):
+        """
+        Checks if the creation of a data set/corpus from file upload is ready.
+        Query:
+        ```
+        query {
+          textUploadReady(corpusid:"5e00fe205dbae8b568d496b6") {
+            corpusid
+            ready
+          }
+        }
+        ```
+        :param info:
+        :param corpusid:
+        :return:
+        """
+        return data.file_upload_ready(corpusid)
+
+    def resolve_texts(parent, info, corpusid):
+        """Retrieves texts attached to a dataset."""
+        return data.texts(corpusid)
+
+    def resolve_feature_context(parent, info, corpusid, words):
+        """
+        Retrieves a context for a feature (list of words).
+        :param info:
+        :param corpusid: the corpus id
+        :param words: list of words
+        :return:
+        """
+        return data.lemma_context(corpusid=corpusid, words=words)
+
 

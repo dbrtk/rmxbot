@@ -4,9 +4,9 @@
 
 import json
 import os
+import typing
 import uuid
 
-import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
@@ -122,36 +122,33 @@ def corpus_crawl_ready(corpusid):
 
     if corpus.get('crawl_ready') and \
             not corpus.get('integrity_check_in_progress'):
-        return jsonify({
+        return {
             'ready': True,
             'corpusid': corpusid
-        })
+        }
     return {
         'ready': False,
         'corpusid': corpusid
     }
 
 
-@corpus_app.route('/<objectid:corpusid>/corpus-from-files-ready/',
-                  methods=['GET'])
-def corpus_from_files_ready(corpusid):
+def file_upload_ready(corpusid):
     """Checks if hte corpus created from files is ready."""
     corpus = CorpusModel.inst_by_id(corpusid)
     if not corpus:
         abort(404)
 
     if corpus.get('crawl_ready'):
-        return jsonify({
+        return {
             'ready': True,
             'corpusid': corpusid
-        })
+        }
     return {
         'ready': False,
         'corpusid': corpusid
     }
 
 
-@corpus_app.route('/<objectid:corpusid>/data/')
 def texts(corpusid):
     """Returns an object that contains texts."""
     corpus = CorpusModel.inst_by_id(corpusid)
@@ -257,15 +254,20 @@ def get_text_file(corpusid, dataid):
     return jsonify({'text': txt, 'dataid': dataid, 'length': len(txt)})
 
 
-@corpus_app.route('/<objectid:corpusid>/context/')
-def lemma_context(corpusid):
-    """ Returns the context for lemmatised words.
+def lemma_context(corpusid, words: typing.List[str] = None):
+    """ Returns the context for lemmatised words. Lemmatised words are the
+    words that make a feature - feature-words. The context are all sentences
+    in the corpus that contain one or more feature-word(s).
 
-    :param corpusid:
+    :param corpusid: the corpus id
+    :param words: these are feature words (lemmatised by default)
     :return:
     """
     corpus = CorpusModel.inst_by_id(corpusid)
-    lemma_to_words, lemma = corpus.get_lemma_words(request.args.get('lemma'))
+    if not isinstance(words, list) or \
+            not all(isinstance(_, str) for _ in words):
+        raise ValueError(words)
+    lemma_to_words, lemma = corpus.get_lemma_words(words)
 
     matchwords = []
     for i in lemma:
@@ -281,11 +283,12 @@ def lemma_context(corpusid):
             'words': matchwords,
             'corpus_path': corpus.corpus_files_path()
         })
-    data = resp.json()
-    return jsonify({
+    return {
         'success': True,
-        'data': data.get('data')
-    })
+        'corpusid': corpus.get_id(),
+        'data': [{'fileid': k, 'sentences': v} for k, v in
+                 resp.json().get('data').items()]
+    }
 
 
 @corpus_app.route('/<objectid:corpusid>/features/')

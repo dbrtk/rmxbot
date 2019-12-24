@@ -219,11 +219,13 @@ class CorpusModel(Document):
             raise RuntimeError(path)
         return path
 
-    def get_lemma_words(self, lemma: list = None):
+    def get_lemma_words(self, lemma: (str, list) = None):
         """For a list of lemma, returns all the words that can be found in the
            corpus.
         """
-        lemma_list = lemma.split(',')
+        lemma_list = lemma.split(',') if isinstance(lemma, str) else lemma
+        if not all(isinstance(_, str) for _ in lemma):
+            raise ValueError(lemma)
         pattern = r"""(\{.*(%s).*\})""" % '|'.join(lemma_list)
         with open(self.get_lemma_path(), 'r') as _file:
             content = _file.read()
