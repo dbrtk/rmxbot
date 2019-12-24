@@ -225,8 +225,6 @@ def delete_texts(corpusid):
         return abort(403)
 
 
-@corpus_app.route('/<objectid:corpusid>/file/<objectid:dataid>/',
-                  methods=['GET'])
 def get_text_file(corpusid, dataid):
 
     corpus = CorpusModel.inst_by_id(corpusid)
@@ -239,19 +237,16 @@ def get_text_file(corpusid, dataid):
     with open(
             os.path.join(corpus.corpus_files_path(), fileid)
     ) as _file:
-        # _file.readline()
-        # while True:
-        #     _ = _file.readline()
-        #     if not _.strip():
-        #         continue
-        #     else:
-        #         txt += _
-        #         break
         for _line in _file.readlines():
             _line = _line.strip()
             if _line:
                 txt.append(_line)
-    return jsonify({'text': txt, 'dataid': dataid, 'length': len(txt)})
+    return {
+        'text': txt,
+        'dataid': dataid,
+        'length': len(txt),
+        'corpusid': corpus.get_id()
+    }
 
 
 def lemma_context(corpusid, words: typing.List[str] = None):

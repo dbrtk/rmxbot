@@ -179,32 +179,66 @@ class FeatureContext(graphene.ObjectType):
     data = graphene.List(ContextPhrase)
 
 
+class FileText(graphene.ObjectType):
+    """
+    For a given corpusid and dataid, returns all sentences that are contained
+    in the file.
+    Graphql query:
+    ```
+    query {
+      fileText(corpusid:"<CORPUS-ID>", dataid:"<DATA-ID>"){
+        dataid
+        corpusid
+        length
+        text
+      }
+    }
+    ```
+    """
+    corpusid = graphene.String()
+    dataid = graphene.String()
+    text = graphene.List(graphene.String)
+    length = graphene.Int()
+
+
 class Query(graphene.ObjectType):
     """Query handler."""
 
-    corpus_data = graphene.Field(CorpusDataView,
-                                 corpusid=graphene.String(required=True))
+    corpus_data = graphene.Field(
+        CorpusDataView,
+        corpusid=graphene.String(required=True)
+    )
 
-    test = graphene.String()
-
-    paginate = graphene.List(CorpusStructure,
-                             start=graphene.Int(),
-                             limit=graphene.Int())
+    paginate = graphene.List(
+        CorpusStructure,
+        start=graphene.Int(),
+        limit=graphene.Int()
+    )
 
     corpus_ready = graphene.Field(
         CorpusReady,
         corpusid=graphene.String(),
-        feats=graphene.Int())
+        feats=graphene.Int()
+    )
 
     crawl_ready = graphene.Field(DatasetReady, corpusid=graphene.String())
 
-    text_upload_ready = graphene.Field(DatasetReady, corpusid=graphene.String())
+    text_upload_ready = graphene.Field(
+        DatasetReady, corpusid=graphene.String())
 
     texts = graphene.Field(Texts, corpusid=graphene.String())
 
-    feature_context = graphene.Field(FeatureContext,
-                                     corpusid=graphene.String(),
-                                     words=graphene.List(graphene.String))
+    feature_context = graphene.Field(
+        FeatureContext,
+        corpusid=graphene.String(),
+        words=graphene.List(graphene.String)
+    )
+
+    file_text = graphene.Field(
+        FileText,
+        corpusid=graphene.String(),
+        dataid=graphene.String()
+    )
 
     def resolve_corpus_data(parent, info, corpusid):
         """
@@ -295,5 +329,9 @@ class Query(graphene.ObjectType):
         :return:
         """
         return data.lemma_context(corpusid=corpusid, words=words)
+
+    def resolve_file_text(parent, info, corpusid, dataid):
+
+        return data.get_text_file(corpusid=corpusid, dataid=dataid)
 
 
