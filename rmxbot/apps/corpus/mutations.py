@@ -92,7 +92,7 @@ class DeleteTexts(graphene.Mutation):
         return DeleteTexts(success=True)
 
 
-class Mutation(graphene.ObjectType):
+class Mutation(graphene.AbstractType):
 
     create = CreateCorpus.Field()
     crawl = UpdateCorpus.Field()

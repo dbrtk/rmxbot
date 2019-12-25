@@ -1,10 +1,19 @@
 import graphene
 
-from .apps.corpus import queries as corpus_queries
-from .apps.corpus import mutations as corpus_mutations
+from .apps.corpus.queries import Query as CorpusQuery
+from .apps.corpus.mutations import Mutation as CorpusMutation
+from .apps.data.queries import Query as DataQuery
 
 
-corpus_schema = graphene.Schema(
-    query=corpus_queries.Query,
-    mutation=corpus_mutations.Mutation
-)
+class Query(CorpusQuery, DataQuery, graphene.ObjectType):
+
+    pass
+
+
+class Mutation(CorpusMutation, graphene.ObjectType):
+
+    pass
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
+

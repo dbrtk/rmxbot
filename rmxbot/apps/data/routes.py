@@ -5,6 +5,7 @@ from flask import (Blueprint, get_flashed_messages, jsonify, redirect,
                    render_template, request)
 
 from ...config import TEMPLATES
+from . import data
 from .models import DataModel, update_many
 
 
@@ -31,12 +32,12 @@ def index():
 
 @data_app.route('/webpage/<objectid:docid>/')
 def webpage(docid):
-    """ displays the page - the doc and its structure.
     """
-    document = DataModel.inst_by_id(docid)
-    if not isinstance(document, DataModel):
-        return jsonify(dict(success=False, msg='No doc found.'))
-    return jsonify(dict(document))
+    Returns the webpage for flask.
+    :param docid:
+    :return:
+    """
+    return jsonify(data.webpage(docid=docid))
 
 
 @data_app.route('/data-to-corpus/')

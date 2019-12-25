@@ -388,7 +388,7 @@ class Graph(graphene.ObjectType):
     edge = graphene.List(Edge)
 
 
-class Query(graphene.ObjectType):
+class Query(graphene.AbstractType):
     """Query handler."""
 
     corpus_data = graphene.Field(
@@ -571,3 +571,4 @@ class Query(graphene.ObjectType):
             docsperfeat=docsperfeat,
             featsperdoc=featsperdoc
         )
+
