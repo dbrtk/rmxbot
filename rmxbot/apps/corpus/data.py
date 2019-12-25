@@ -17,7 +17,7 @@ from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
-from .decorators import check_availability
+from .decorators import check_availability, neo_availability
 from .models import (CorpusModel, corpus_status_data, request_availability,
                      set_crawl_ready)
 from .status import status_text
@@ -286,36 +286,25 @@ def lemma_context(corpusid, words: typing.List[str] = None):
     }
 
 
-@corpus_app.route('/<objectid:corpusid>/features/')
-@check_availability
+@neo_availability
 def request_features(reqobj):
-
+    """Checks for features availability and returns these.
+    :param reqobj:
+    :return:
+    """
     corpus = reqobj.get('corpus')
     del reqobj['corpus']
 
     features, docs = corpus.get_features(**reqobj)
-    return jsonify(dict(
+    return dict(
         success=True,
         features=features,
         docs=docs
-    ))
+    )
 
 
-@corpus_app.route('/<objectid:corpusid>/features-html/')
-@check_availability
-def request_features_html(reqobj):
-
-    corpus = reqobj.get('corpus')
-    features, _ = corpus.get_features(**reqobj)
-    features = render_template('corpus/features.html',
-                               features=features,
-                               corpusid=str(corpus.get('_id')))
-    return jsonify({'features': features})
-
-
-@corpus_app.route('/<objectid:corpusid>/force-directed-graph/')
-@check_availability
-def force_directed_graph(reqobj):
+@neo_availability
+def graph(reqobj):
     """ Retrieving data (links and nodes) for a force-directed graph. This
         function maps the documents and features to links and nodes.
     """
@@ -363,8 +352,4 @@ def force_directed_graph(reqobj):
         # cleanup the doc object
         del d['features']
 
-    return jsonify(
-        dict(
-            links=links, nodes=nodes, corpusid=str(corpus.get('_id'))
-        )
-    )
+    return {'edge': links, 'node': nodes, 'corpusid': corpus.get_id()}

@@ -562,7 +562,7 @@ def corpus_status_data(corpusid):
 
 
 def request_availability(corpusid, reqobj, corpus=None):
-    """ Processing a request sent through websockets.
+    """ Checks for the availability of a feature.
     The reqobj should look like this:
     {
         public: 'bool - if true, send this message to the group',

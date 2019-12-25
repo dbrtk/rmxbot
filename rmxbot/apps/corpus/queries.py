@@ -201,6 +201,193 @@ class FileText(graphene.ObjectType):
     length = graphene.Int()
 
 
+class Word(graphene.ObjectType):
+
+    weight = graphene.Float()
+    word = graphene.String()
+
+
+class Feat(graphene.ObjectType):
+
+    # the weight of the feature
+    weight = graphene.Float()
+    # a feature is a list of weighted words
+    feature = graphene.List(Word)
+
+
+class Doc(graphene.ObjectType):
+
+    dataid = graphene.String()
+    fileid = graphene.String()
+    url = graphene.String()
+    title = graphene.String()
+    weight = graphene.Float()
+
+    features = graphene.List(Feat)
+
+
+class FeaturesWithDocs(graphene.ObjectType):
+
+    docs = graphene.List(Doc)
+    features = graphene.List(Word)
+
+
+class Features(graphene.ObjectType):
+    """This class is used to return features for a given dataset and a feature
+    number. if features are not available, they will be computed. In this case
+    a success-false response is returned with extra params.
+
+    Graphql query:
+    ```
+    query {
+      features(
+        corpusid:"<CORPUS-ID>",
+        features:25,
+        docsperfeat:3,
+        featsperdoc:3,
+        words:10
+      ) {
+        corpusid
+        requestedFeatures
+        available
+        busy
+        retry
+        watch
+        success
+        docs{
+          dataid
+          features {
+            feature{
+              word
+              weight
+            }
+            weight
+          }
+          fileid
+          title
+          url
+        }
+        features{
+          docs{
+            dataid
+            title
+            url
+            weight
+          }
+          features{
+            weight
+            word
+          }
+        }
+      }
+    }
+    ```
+    """
+    corpusid = graphene.String()
+    requested_features = graphene.Int()
+
+    available = graphene.Boolean()
+    busy = graphene.Boolean()
+    retry = graphene.Boolean()
+    watch = graphene.Boolean()
+    success = graphene.Boolean()
+
+    features = graphene.List(FeaturesWithDocs)
+    docs = graphene.List(Doc)
+
+
+class FeatureNode(graphene.ObjectType):
+    """A feature node for the graph."""
+    group = graphene.String()
+    id = graphene.String()
+    type = graphene.String()
+    features = graphene.List(Word)
+
+
+class DocumentNode(graphene.ObjectType):
+    """A document node."""
+    dataid = graphene.String()
+    fileid = graphene.String()
+    url = graphene.String()
+    title = graphene.String()
+    type = graphene.String()
+    group = graphene.String()
+    id = graphene.String()
+
+
+class Nodes(graphene.Union):
+    """Returns a union of all nodes (features and documents)."""
+
+    class Meta:
+        types = (DocumentNode, FeatureNode)
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+
+        if instance.get('type') == 'document':
+            return DocumentNode
+        elif instance.get('type') == 'feature':
+            return FeatureNode
+        else:
+            raise ValueError(instance)
+
+
+class Edge(graphene.ObjectType):
+    """Weighted edges, connections between feature and document nodes."""
+    source = graphene.String()
+    target = graphene.String()
+    weight = graphene.Float()
+
+
+class Graph(graphene.ObjectType):
+    """
+    Returns the data to display the graph.
+    Graphql query:
+    ```
+    query {
+      graph(
+        corpusid:"<CORPUS-ID>",
+        features:25,
+        docsperfeat:3,
+        featsperdoc:3,
+        words:10
+      ) {
+        corpusid
+        node{
+          __typename
+          ...on FeatureNode {
+            id
+            group
+            type
+            features{
+              word
+              weight
+            }
+          }
+          ...on DocumentNode {
+            id
+            group
+            type
+            dataid
+            fileid
+            title
+            url
+          }
+        }
+        edge{
+          source
+          target
+          weight
+        }
+      }
+    }
+    ```
+    """
+    corpusid = graphene.String()
+    node = graphene.List(Nodes)
+    edge = graphene.List(Edge)
+
+
 class Query(graphene.ObjectType):
     """Query handler."""
 
@@ -238,6 +425,24 @@ class Query(graphene.ObjectType):
         FileText,
         corpusid=graphene.String(),
         dataid=graphene.String()
+    )
+
+    features = graphene.Field(
+        Features,
+        corpusid=graphene.String(),
+        words=graphene.Int(default_value=10),
+        features=graphene.Int(default_value=10),
+        docsperfeat=graphene.Int(default_value=5),
+        featsperdoc=graphene.Int(default_value=3)
+    )
+
+    graph = graphene.Field(
+        Graph,
+        corpusid=graphene.String(),
+        words=graphene.Int(default_value=10),
+        features=graphene.Int(default_value=10),
+        docsperfeat=graphene.Int(default_value=5),
+        featsperdoc=graphene.Int(default_value=3)
     )
 
     def resolve_corpus_data(parent, info, corpusid):
@@ -334,4 +539,35 @@ class Query(graphene.ObjectType):
 
         return data.get_text_file(corpusid=corpusid, dataid=dataid)
 
+    def resolve_features(parent, info, corpusid, words, features, docsperfeat,
+                         featsperdoc):
+        """
+        Retrieves 2 datasets: docs with features, and features with docs.
+        If matrices for a given features (number) don't exist, they will be
+        computed.
+        :param info:
+        :param corpusid:
+        :param words:
+        :param features:
+        :param docsperfeat:
+        :param featsperdoc:
+        :return:
+        """
+        return data.request_features(
+            corpusid=corpusid,
+            words=words,
+            features=features,
+            docsperfeat=docsperfeat,
+            featsperdoc=featsperdoc
+        )
 
+    def resolve_graph(parent, info, corpusid, words, features, docsperfeat,
+                      featsperdoc):
+
+        return data.graph(
+            corpusid=corpusid,
+            words=words,
+            features=features,
+            docsperfeat=docsperfeat,
+            featsperdoc=featsperdoc
+        )
