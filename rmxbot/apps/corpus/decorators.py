@@ -104,7 +104,11 @@ def neo_availability(func):
 
 
 def graph_availability(func):
-
+    """
+    Decorator checking the availability of a graph.
+    :param func:
+    :return:
+    """
     @wraps(func)
     def wrapped_view(reqobj):
 
