@@ -60,7 +60,10 @@ def check_availability(func):
 
 
 def neo_availability(func):
-
+    """Decorator that checks if requested features have been computed. If it's
+       not the case, they are generated. This decorator is used by the graphql
+       api.
+    """
     @wraps(func)
     def wrapped_view(corpusid: str = None, words: int = 10, features: int = 10,
                      docsperfeat: int = 5, featsperdoc: int = 3):
@@ -81,7 +84,6 @@ def neo_availability(func):
                 feats=features,
                 docs_per_feat=docsperfeat,
                 feats_per_doc=featsperdoc,
-                # html=False,
                 corpus=corpus
             ))
         generate_matrices_remote.delay(
