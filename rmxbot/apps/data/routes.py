@@ -16,10 +16,10 @@ data_app = Blueprint(
 @data_app.route('/')
 def index():
     """The page serving the data index that shows scrapped pages."""
-
+    # todo(): delete this!!!!!!!!!!
     data = DataModel.get_directory(
         start=request.args.get('start', 0),
-        limit=request.args.get('limit', 100)
+        limit=request.args.get('limit', 10000)
     )
     context = dict(
         success=True,
@@ -42,7 +42,11 @@ def webpage(docid):
 
 @data_app.route('/data-to-corpus/')
 def data_to_corpus():
-
+    """
+    This method is used internally when scraped webpages are sent from scrasync
+    to rnmxbot.
+    """
+    # todo(): delete this!!!!!!!!!!!!!!!!!!
     # todo(): review this method. Delete this.
     # obj = QueryDict(request.body).dict()
     # docid = obj.get('docid')

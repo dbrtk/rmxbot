@@ -44,7 +44,6 @@ class Query(graphene.ObjectType):
         :param dataid:
         :return:
         """
-
         return data.webpage(docid=dataid)
 
 
