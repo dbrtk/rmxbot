@@ -63,8 +63,37 @@ class UpdateCorpus(graphene.Mutation):
         return CreateCorpus(success=True)
 
 
+class DeleteTexts(graphene.Mutation):
+    """
+    Deleting texts attached to the data-set/corpus.
+    Example of a graphql query:
+    ```
+    mutation {
+      deleteTexts(
+        corpusid:"<CORPUS_ID>",
+        dataids: [<DATA-ID>, <DATA-ID>, <DATA-ID>]
+      ) {
+        success
+      }
+    }
+
+    ```
+    """
+
+    class Arguments:
+        corpusid = graphene.String(required=True)
+        dataids = graphene.List(graphene.String, required=True)
+
+    success = graphene.Boolean()
+
+    def mutate(root, info, corpusid, dataids):
+
+        data.delete_texts(corpusid=corpusid, dataids=dataids)
+        return DeleteTexts(success=True)
+
+
 class Mutation(graphene.ObjectType):
 
     create = CreateCorpus.Field()
     crawl = UpdateCorpus.Field()
-
+    delete_texts = DeleteTexts.Field()

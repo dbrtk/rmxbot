@@ -7,7 +7,7 @@ import os
 import typing
 import uuid
 
-from flask import (abort, Blueprint, jsonify, redirect, render_template,
+from flask import (abort, Blueprint, redirect, render_template,
                    request)
 import pymongo
 
@@ -17,12 +17,12 @@ from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
-from .decorators import check_availability, neo_availability
+from .decorators import neo_availability
 from .models import (CorpusModel, corpus_status_data, request_availability,
                      set_crawl_ready)
 from .status import status_text
 
-from ...tasks.corpus import (crawl_async, delete_data_from_corpus, test_task)
+from ...tasks.corpus import crawl_async, delete_data_from_corpus
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
 
@@ -174,59 +174,28 @@ def texts(corpusid):
     return outobj
 
 
-@corpus_app.route('/<objectid:corpusid>/data/edit/', methods=['GET'])
-def edit_corpus(corpusid):
+def delete_texts(corpusid: str = None, dataids: typing.List[str] = None):
+    """
+    Deleting texts from the data set.
 
-    template_name = "corpus/data-view-edit.html"
-    corpus = CorpusModel.inst_by_id(corpusid)
-
-    context = {}
-    if not corpus:
-        context['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
-        ]
-        return render_template(template_name, **context)
-    dataids = corpus.get_dataids()
-    context['datatype'] = 'screenplay'
-    context['corpusid'] = corpus.get('_id')
-    context['name'] = corpus.get('name')
-    context['data'] = DataModel.query_data_project(
-        query={'_id': {'$in': dataids}},
-        project=LIST_SCREENPLAYS_PROJECT,
-        direct=1)
-    return render_template(template_name, **context)
-
-
-@corpus_app.route('/<objectid:corpusid>/data/delete-texts/',
-                  methods=['POST', 'GET'])
-def delete_texts(corpusid):
-
-    if request.method == 'GET':
-        corpus = CorpusModel.inst_by_id(corpusid)
-        dataids = corpus.get_dataids()
-
-        context = {
-            'corpusid': corpus.get('_id'),
-            'name': corpus.get('name'),
-            'data': DataModel.query_data_project(
-                query={'_id': {'$in': dataids}},
-                project=LISTURLS_PROJECT,
-                direct=1),
-        }
-        return render_template('corpus/delete-texts.html', **context)
-
-    elif request.method == 'POST':
-        set_crawl_ready(corpusid, False)
-        delete_data_from_corpus.delay(
-            corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
-        return redirect(
-            '/corpus/{}/?status=remove-files'.format(str(corpusid)))
-    else:
-        return abort(403)
+    :param corpusid:
+    :param dataids:
+    :return:
+    """
+    if not all(isinstance(str, _) for _ in dataids):
+        raise ValueError(dataids)
+    set_crawl_ready(corpusid, False)
+    delete_data_from_corpus.delay(corpusid=corpusid, data_ids=dataids)
+    return {'success': True}
 
 
 def get_text_file(corpusid, dataid):
-
+    """
+    Returns the content of a text file in the data-set.
+    :param corpusid:
+    :param dataid:
+    :return:
+    """
     corpus = CorpusModel.inst_by_id(corpusid)
     try:
         doc = corpus.get_url_doc(str(dataid))
@@ -250,9 +219,10 @@ def get_text_file(corpusid, dataid):
 
 
 def lemma_context(corpusid, words: typing.List[str] = None):
-    """ Returns the context for lemmatised words. Lemmatised words are the
-    words that make a feature - feature-words. The context are all sentences
-    in the corpus that contain one or more feature-word(s).
+    """
+    Returns the context for lemmatised words. Lemmatised words are the words
+    that make a feature - feature-words. The context are all sentences in the
+    corpus that contain one or more feature-word(s).
 
     :param corpusid: the corpus id
     :param words: these are feature words (lemmatised by default)
