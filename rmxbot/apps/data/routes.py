@@ -13,23 +13,6 @@ data_app = Blueprint(
     'data_app', __name__, root_path='/data', template_folder=TEMPLATES)
 
 
-@data_app.route('/')
-def index():
-    """The page serving the data index that shows scrapped pages."""
-    # todo(): delete this!!!!!!!!!!
-    data = DataModel.get_directory(
-        start=request.args.get('start', 0),
-        limit=request.args.get('limit', 10000)
-    )
-    context = dict(
-        success=True,
-        data=data,
-        errors=[msg.message for msg in get_flashed_messages()
-                if msg.level_tag == 'error']
-    )
-    return render_template("data.html", **context)
-
-
 @data_app.route('/webpage/<objectid:docid>/')
 def webpage(docid):
     """

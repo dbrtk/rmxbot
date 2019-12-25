@@ -188,11 +188,6 @@ class DataModel(Document):
         return dictionary.update(cls(), doc) if doc else None
 
     @classmethod
-    def get_directory(cls, start=0, limit=100):
-        """ retrieving the list of scrapped web pages """
-        return cls.range_query_html({}, LISTURLS_PROJECT, start, limit)
-
-    @classmethod
     def query_data_project(cls, query={}, project={}, direct=-1):
         """
         """
