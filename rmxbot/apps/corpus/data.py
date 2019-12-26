@@ -15,8 +15,7 @@ from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
                        RMXGREP_ENDPOINT, TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
-from ..data.models import (
-    DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
+from ..data.models import DataModel, LISTURLS_PROJECT
 from .decorators import neo_availability
 from .models import (CorpusModel, corpus_status_data, request_availability,
                      set_crawl_ready)
