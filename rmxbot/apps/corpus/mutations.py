@@ -27,11 +27,12 @@ class CreateCorpus(graphene.Mutation):
         crawl = graphene.Boolean(default_value=True)
 
     success = graphene.String()
+    corpusid = graphene.String()
 
     def mutate(root, info, name, endpoint, crawl):
 
-        data.create_from_crawl(name=name, endpoint=endpoint, crawl=crawl)
-        return CreateCorpus(success=True)
+        resp = data.create_from_crawl(name=name, endpoint=endpoint, crawl=crawl)
+        return CreateCorpus(**resp)
 
 
 class UpdateCorpus(graphene.Mutation):
@@ -56,11 +57,12 @@ class UpdateCorpus(graphene.Mutation):
         crawl = graphene.Boolean(default_value=True)
 
     success = graphene.String()
+    corpusid = graphene.String()
 
     def mutate(root, info, corpusid, endpoint, crawl=True):
 
-        data.crawl(corpusid=corpusid, endpoint=endpoint, crawl=crawl)
-        return CreateCorpus(success=True)
+        resp = data.crawl(corpusid=corpusid, endpoint=endpoint, crawl=crawl)
+        return CreateCorpus(**resp)
 
 
 class DeleteTexts(graphene.Mutation):

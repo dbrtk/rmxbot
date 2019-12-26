@@ -62,17 +62,18 @@ def create_from_crawl(name: str = None, endpoint: str = None,
 
     # todo(): pass the corpus file path to the crawler.
     crawl_async.delay(url_list, corpus_id=docid, depth=depth)
-    return {'success': True}
+    return {'success': True, 'corpusid': corpus.get_id()}
 
 
 def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
     """Launching the crawler (scrasync) on an existing corpus"""
-    if not CorpusModel.inst_by_id(corpusid):
+    corpus = CorpusModel.inst_by_id(corpusid)
+    if not corpus:
         abort(404)
     set_crawl_ready(corpusid, False)
     crawl_async.delay([endpoint], corpus_id=corpusid,
                       depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
-    return {'success': True}
+    return {'success': True, 'corpusid': corpus.get_id()}
 
 
 def corpus_data(corpusid):
@@ -322,4 +323,9 @@ def graph(reqobj):
         # cleanup the doc object
         del d['features']
 
-    return {'edge': links, 'node': nodes, 'corpusid': corpus.get_id()}
+    return {
+        'success': True,
+        'edge': links,
+        'node': nodes,
+        'corpusid': str(corpus.get_id())
+    }

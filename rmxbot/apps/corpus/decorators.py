@@ -75,7 +75,12 @@ def neo_availability(func):
         }, corpus=corpus)
 
         if availability.get('busy'):
-            return jsonify(dict(busy=True, success=False))
+            return {
+                'busy': True,
+                'watch': True,
+                'success': False,
+                'corpusid': corpus.get_id()
+            }
 
         if availability.get('available'):
 
@@ -94,7 +99,13 @@ def neo_availability(func):
             docs_per_feat=docsperfeat,
             feats_per_doc=featsperdoc
         )
-        out = dict(success=False, retry=True, watch=True)
+        out = {
+            'success': False,
+            'retry': True,
+            'watch': True,
+            'busy': True,
+            'corpusid': corpus.get_id()
+        }
         out.update(availability)
         return out
 

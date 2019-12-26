@@ -339,53 +339,120 @@ class Edge(graphene.ObjectType):
     weight = graphene.Float()
 
 
-class Graph(graphene.ObjectType):
+class GraphInterface(graphene.Interface):
     """
-    Returns the data to display the graph.
-    Graphql query:
+    Interface to the graph. Depending on the graph's availability, this should
+    return an adequate data type:
+    - Graph if the graph is available;
+    - GraphBusy is the graph is being generated;
+    - GraphGenerate if the graph is not available and will be generated.
+
+    This endpoint can be used to watch the status of a graph being generated.
+
+    Graphql Query:
     ```
-    query {
-      graph(
-        corpusid:"<CORPUS-ID>",
-        features:25,
-        docsperfeat:3,
-        featsperdoc:3,
-        words:10
-      ) {
-        corpusid
-        node{
+        query{graph(
+            corpusid:"<CORPUS-ID>",
+            features:12,
+            docsperfeat:3,
+            featsperdoc:5,
+            words:20
+        ) {
+          corpusid
+          success
           __typename
-          ...on FeatureNode {
-            id
-            group
-            type
-            features{
-              word
+          ... on GraphBusy {
+            busy
+          }
+          ... on GraphGenerate {
+            busy
+            retry
+            watch
+            available
+            requestedFeatures
+          }
+          ... on Graph {
+            edge {
               weight
+              source
+              target
+            }
+            node{
+              __typename
+              ... on FeatureNode {
+                id
+                group
+                type
+                features{
+                  word
+                  weight
+                }
+              }
+              ... on DocumentNode {
+                id
+                group
+                type
+                dataid
+                fileid
+                title
+                url
+              }
             }
           }
-          ...on DocumentNode {
-            id
-            group
-            type
-            dataid
-            fileid
-            title
-            url
-          }
-        }
-        edge{
-          source
-          target
-          weight
-        }
-      }
-    }
+        }}
     ```
     """
     corpusid = graphene.String()
+    success = graphene.Boolean()
+
+    @classmethod
+    def resolve_type(cls, instance, info):
+
+        if instance.get('success') is False:
+            if instance.get('available') is False \
+                    and instance.get('watch') is True:
+                return GraphGenerate
+            elif instance.get('busy'):
+                return GraphBusy
+        else:
+            return Graph
+
+
+class Graph(graphene.ObjectType):
+    """
+    Returns the data to display the graph, these include nodes and edges.
+    """
+    class Meta:
+        interfaces = (GraphInterface, )
+
     node = graphene.List(Nodes)
     edge = graphene.List(Edge)
+
+
+class GraphGenerate(graphene.ObjectType):
+    """
+    Reteruned when the graph isn't available and will be generated.
+    """
+    class Meta:
+        interfaces = (GraphInterface, )
+
+    busy = graphene.Boolean()
+    retry = graphene.Boolean()
+    watch = graphene.Boolean()
+    available = graphene.Boolean()
+    requested_features = graphene.String()
+
+
+class GraphBusy(graphene.ObjectType):
+    """
+    Type returned when the system is busy generating the graph for the
+    requested amount of features.
+    """
+    class Meta:
+        interfaces = (GraphInterface, )
+
+    busy = graphene.Boolean()
+    watch = graphene.Boolean()
 
 
 class Query(graphene.AbstractType):
@@ -437,7 +504,7 @@ class Query(graphene.AbstractType):
     )
 
     graph = graphene.Field(
-        Graph,
+        GraphInterface,
         corpusid=graphene.String(),
         words=graphene.Int(default_value=10),
         features=graphene.Int(default_value=10),
