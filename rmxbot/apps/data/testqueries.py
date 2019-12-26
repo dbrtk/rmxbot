@@ -97,7 +97,3 @@ def test_query(query, imgs=0):
 if __name__ == '__main__':    
     # test_query('drug', imgs=1)
     query('drug', imgs=1)
-
-
-
-    

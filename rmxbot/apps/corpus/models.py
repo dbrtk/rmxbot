@@ -161,8 +161,12 @@ class CorpusModel(Document):
            list of urls.
         """
         if not projection:
-            projection = {'urls': {'$slice': 10},
-                          'name': 1, 'description': 1, 'created': 1}
+            projection = {
+                'urls': {'$slice': 10},
+                'name': 1,
+                'description': 1,
+                'created': 1
+            }
         return super().range_query(
             projection=projection,
             start=start,
@@ -215,11 +219,13 @@ class CorpusModel(Document):
             raise RuntimeError(path)
         return path
 
-    def get_lemma_words(self, lemma: list = None):
+    def get_lemma_words(self, lemma: (str, list) = None):
         """For a list of lemma, returns all the words that can be found in the
            corpus.
         """
-        lemma_list = lemma.split(',')
+        lemma_list = lemma.split(',') if isinstance(lemma, str) else lemma
+        if not all(isinstance(_, str) for _ in lemma):
+            raise ValueError(lemma)
         pattern = r"""(\{.*(%s).*\})""" % '|'.join(lemma_list)
         with open(self.get_lemma_path(), 'r') as _file:
             content = _file.read()
@@ -341,7 +347,11 @@ class CorpusModel(Document):
         """ Checking feature's availability. """
         status = self.get_status_feats(feats=feature_number)
 
-        out = {'busy': False}
+        out = {
+            'requested_features': feature_number,
+            'corpusid': self.get_id(),
+            'busy': False
+        }
         if status:
             if status.get('busy') is True and status.get(
                     'feats') == feature_number:
@@ -552,7 +562,7 @@ def corpus_status_data(corpusid):
 
 
 def request_availability(corpusid, reqobj, corpus=None):
-    """ Processing a request sent through websockets.
+    """ Checks for the availability of a feature.
     The reqobj should look like this:
     {
         public: 'bool - if true, send this message to the group',

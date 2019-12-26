@@ -333,6 +333,7 @@ def lemma_context(corpusid):
     resp = http_request.get(
         RMXGREP_ENDPOINT,
         params={
+            'highlight': True,
             'words': matchwords,
             'corpus_path': corpus.corpus_files_path()
         })

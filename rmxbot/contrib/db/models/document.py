@@ -93,20 +93,6 @@ class Document(RmxDict):
                 start).limit(limit)
 
     @classmethod
-    def range_query_html(cls, query={}, project={}, start=0, limit=100):
-        """
-        """
-        data = cls.__collection__.aggregate([
-            {'$match': query},
-            {'$sort': {'created': -1}},
-            {'$skip': start},
-            {'$limit': limit},
-            {'$project': project}
-        ])
-        # todo(): fix this!
-        return list(data)  # return data.get('result')
-
-    @classmethod
     def simple_validation(cls, doc):
         """ Simple validation going one level into the doc."""
         struct = cls.structure

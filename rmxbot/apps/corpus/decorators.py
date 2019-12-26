@@ -59,8 +59,67 @@ def check_availability(func):
     return wrapped_view
 
 
-def graph_availability(func):
+def neo_availability(func):
+    """Decorator that checks if requested features have been computed. If it's
+       not the case, they are generated. This decorator is used by the graphql
+       api.
+    """
+    @wraps(func)
+    def wrapped_view(corpusid: str = None, words: int = 10, features: int = 10,
+                     docsperfeat: int = 5, featsperdoc: int = 3):
 
+        corpus = CorpusModel.inst_by_id(corpusid)
+
+        availability = request_availability(corpusid, {
+            'features': features,
+        }, corpus=corpus)
+
+        if availability.get('busy'):
+            return {
+                'busy': True,
+                'watch': True,
+                'success': False,
+                'corpusid': corpus.get_id()
+            }
+
+        if availability.get('available'):
+
+            return func(dict(
+                words=words,
+                feats=features,
+                docs_per_feat=docsperfeat,
+                feats_per_doc=featsperdoc,
+                corpus=corpus
+            ))
+        generate_matrices_remote.delay(
+            corpusid=str(corpus.get_id()),
+            feats=features,
+            vectors_path=corpus.get_vectors_path(),
+            words=words,
+            docs_per_feat=docsperfeat,
+            feats_per_doc=featsperdoc
+        )
+        out = {
+            'success': False,
+            'retry': True,
+            'watch': True,
+            'busy': True,
+            'corpusid': corpus.get_id()
+        }
+        out.update(availability)
+        return out
+
+    # todo(): review
+    # return wraps(func, assigned=available_attrs(func))(wrapped_view)
+    return wrapped_view
+
+
+def graph_availability(func):
+    """
+    Decorator checking the availability of a graph.
+    :param func:
+    :return:
+    """
     @wraps(func)
     def wrapped_view(reqobj):
 
