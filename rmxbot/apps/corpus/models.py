@@ -346,8 +346,8 @@ class ContainerModel(Document):
         if out['busy'] is False:
             try:
                 _count = get_available_features(
-                    corpusid=str(self.get_id()),
-                    corpus_path=self.get_folder_path())
+                    containerid=str(self.get_id()),
+                    folder_path=self.get_folder_path())
                 next(_ for _ in _count if int(
                     _.get('featcount')) == feature_number)
                 _count = list(int(_.get('featcount')) for _ in _count)
@@ -362,8 +362,8 @@ class ContainerModel(Document):
     def get_features_count(self, verbose: bool = False):
         """ Returning the features count. """
 
-        avl = get_available_features(corpusid=str(self.get_id()),
-                                     corpus_path=self.get_folder_path())
+        avl = get_available_features(containerid=str(self.get_id()),
+                                     folder_path=self.get_folder_path())
         if verbose:
             return avl
         else:
