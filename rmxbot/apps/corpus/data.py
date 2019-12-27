@@ -7,8 +7,7 @@ import os
 import typing
 import uuid
 
-from flask import (abort, Blueprint, redirect, render_template,
-                   request)
+from flask import abort, Blueprint, request
 import pymongo
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
