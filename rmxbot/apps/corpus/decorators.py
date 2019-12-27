@@ -68,18 +68,18 @@ def neo_availability(func):
     def wrapped_view(corpusid: str = None, words: int = 10, features: int = 10,
                      docsperfeat: int = 5, featsperdoc: int = 3):
 
-        corpus = ContainerModel.inst_by_id(corpusid)
+        container = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': features,
-        }, container=corpus)
+        }, container=container)
 
         if availability.get('busy'):
             return {
                 'busy': True,
                 'watch': True,
                 'success': False,
-                'corpusid': corpus.get_id()
+                'corpusid': container.get_id()
             }
 
         if availability.get('available'):
@@ -89,12 +89,12 @@ def neo_availability(func):
                 feats=features,
                 docs_per_feat=docsperfeat,
                 feats_per_doc=featsperdoc,
-                corpus=corpus
+                corpus=container
             ))
         generate_matrices_remote.delay(
-            corpusid=str(corpus.get_id()),
+            corpusid=str(container.get_id()),
             feats=features,
-            vectors_path=corpus.get_vectors_path(),
+            vectors_path=container.get_vectors_path(),
             words=words,
             docs_per_feat=docsperfeat,
             feats_per_doc=featsperdoc
@@ -104,7 +104,7 @@ def neo_availability(func):
             'retry': True,
             'watch': True,
             'busy': True,
-            'corpusid': corpus.get_id()
+            'corpusid': container.get_id()
         }
         out.update(availability)
         return out

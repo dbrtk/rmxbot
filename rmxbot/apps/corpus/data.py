@@ -279,10 +279,10 @@ def graph(reqobj):
         function maps the documents and features to links and nodes.
     """
 
-    corpus = reqobj.get('corpus')
+    container = reqobj.get('corpus')
     del reqobj['corpus']
 
-    features, docs = corpus.get_features(**reqobj)
+    features, docs = container.get_features(**reqobj)
 
     links, nodes = [], []
 
@@ -326,5 +326,5 @@ def graph(reqobj):
         'success': True,
         'edge': links,
         'node': nodes,
-        'corpusid': str(corpus.get_id())
+        'corpusid': str(container.get_id())
     }
