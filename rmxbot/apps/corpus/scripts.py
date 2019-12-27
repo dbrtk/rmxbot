@@ -13,7 +13,7 @@ def words_context(lemma: list = None, corpus: ContainerModel = None,
                   corpusid: str = None):
 
     corpus = corpus if corpus else ContainerModel.inst_by_id(corpusid)
-    path = corpus.corpus_files_path()
+    path = corpus.texts_path()
 
     try:
         results = subprocess.run(

@@ -232,7 +232,7 @@ class ContainerModel(Document):
             dicts = [_[0] for _ in re.findall(pattern, content)]
             return map(json.loads, dicts), lemma_list
 
-    def corpus_files_path(self):
+    def texts_path(self):
         """ Returns the path that will contain the files that make the corpus.
         """
         return os.path.join(self.get_corpus_path(), 'corpus')
@@ -243,7 +243,7 @@ class ContainerModel(Document):
         fileid = str(uuid.uuid4())
         return os.path.normpath(
             os.path.join(
-                self.corpus_files_path(), fileid)
+                self.texts_path(), fileid)
         ), fileid
 
     def create_corpus_dir(self):
@@ -267,7 +267,7 @@ class ContainerModel(Document):
         return path
 
     def remove_corpus_txt_files(self, inclusive=False):
-        path = self.corpus_files_path()
+        path = self.texts_path()
         if inclusive:
             shutil.rmtree(path)
         else:

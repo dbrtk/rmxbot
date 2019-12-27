@@ -140,7 +140,7 @@ def delete_data_from_corpus(
 
     corpus = ContainerModel.inst_by_id(corpusid)
 
-    corpus_files_path = corpus.corpus_files_path()
+    corpus_files_path = corpus.texts_path()
     dataid_fileid = corpus.dataid_fileid(data_ids=data_ids)
 
     corpus.del_data_objects(data_ids=data_ids)
@@ -170,7 +170,7 @@ def expected_files(corpusid: str = None, file_objects: list = None):
     return {
         'corpusid': corpusid,
         # 'vectors_path': corpus.get_vectors_path(),
-        'corpus_files_path': corpus.corpus_files_path(),
+        'corpus_files_path': corpus.texts_path(),
         # 'matrix_path': corpus.matrix_path,
         # 'wf_path': corpus.wf_path,
     }
@@ -190,7 +190,7 @@ def create_from_upload(name: str = None, file_objects: list = None):
     return {
         'corpusid': docid,
         # 'corpus_path': corpus.get_corpus_path(),
-        'corpus_files_path': corpus.corpus_files_path()
+        'corpus_files_path': corpus.texts_path()
     }
 
 

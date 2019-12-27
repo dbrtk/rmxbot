@@ -204,7 +204,7 @@ def get_text_file(corpusid, dataid):
     fileid = doc.get('file_id')
     txt = []
     with open(
-            os.path.join(corpus.corpus_files_path(), fileid)
+            os.path.join(corpus.texts_path(), fileid)
     ) as _file:
         for _line in _file.readlines():
             _line = _line.strip()
@@ -246,7 +246,7 @@ def lemma_context(corpusid, words: typing.List[str] = None):
         RMXGREP_ENDPOINT,
         params={
             'words': matchwords,
-            'corpus_path': corpus.corpus_files_path()
+            'corpus_path': corpus.texts_path()
         })
     return {
         'success': True,

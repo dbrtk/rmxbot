@@ -295,7 +295,7 @@ def get_text_file(corpusid, dataid):
     fileid = doc.get('file_id')
     txt = []
     with open(
-            os.path.join(corpus.corpus_files_path(), fileid)
+            os.path.join(corpus.texts_path(), fileid)
     ) as _file:
         # _file.readline()
         # while True:
@@ -335,7 +335,7 @@ def lemma_context(corpusid):
         params={
             'highlight': True,
             'words': matchwords,
-            'corpus_path': corpus.corpus_files_path()
+            'corpus_path': corpus.texts_path()
         })
     data = resp.json()
     return jsonify({
