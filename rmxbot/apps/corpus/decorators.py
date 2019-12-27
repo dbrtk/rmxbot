@@ -4,7 +4,7 @@ from functools import wraps
 from flask import jsonify, request
 
 from .models import ContainerModel, request_availability
-from ...tasks.corpus import generate_matrices_remote
+from ...tasks.container import generate_matrices_remote
 
 
 def check_availability(func):

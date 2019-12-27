@@ -21,7 +21,7 @@ from .models import (ContainerModel, corpus_status_data, request_availability,
                      set_crawl_ready)
 from .status import status_text
 
-from ...tasks.corpus import crawl_async, delete_data_from_corpus
+from ...tasks.container import crawl_async, delete_data_from_corpus
 
 ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
 
