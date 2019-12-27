@@ -43,7 +43,7 @@ def generate_matrices_remote(
         'words': words,
         'docs_per_feat': int(docs_per_feat),
         'feats_per_doc': int(feats_per_doc),
-        'path': corpus.get_corpus_path(),
+        'path': corpus.get_folder_path(),
     }
     if os.path.isfile(vectors_path):
         celery.send_task(NLP_TASKS['factorize_matrices'], kwargs=kwds)
@@ -124,7 +124,7 @@ def integrity_check(corpusid: str = None):
 
     celery.send_task(NLP_TASKS['integrity_check'], kwargs={
         'corpusid': corpusid,
-        'path': ContainerModel.inst_by_id(corpusid).get_corpus_path(),
+        'path': ContainerModel.inst_by_id(corpusid).get_folder_path(),
     })
 
 

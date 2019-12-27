@@ -149,7 +149,7 @@ class ContainerModel(Document):
 
         if save:
             docid = _doc.save()
-            _doc.create_corpus_dir()
+            _doc.create_folder()
             return docid
         else:
             return _doc
@@ -177,7 +177,7 @@ class ContainerModel(Document):
     def get_dataids(self):
         return [bson.ObjectId(_.get('data_id')) for _ in self.get('urls')]
 
-    def get_corpus_path(self):
+    def get_folder_path(self):
         """ Returns the path to the corpus directory. """
         return os.path.abspath(os.path.normpath(
             os.path.join(
@@ -190,7 +190,7 @@ class ContainerModel(Document):
 
     def get_vectors_path(self):
         """ Returns the path of the file that contains the vectors. """
-        return os.path.join(self.get_corpus_path(), 'matrix', 'vectors.npy')
+        return os.path.join(self.get_folder_path(), 'matrix', 'vectors.npy')
 
     @property
     def vectors_in_corpus(self):
@@ -199,7 +199,7 @@ class ContainerModel(Document):
 
     @property
     def matrix_path(self):
-        return os.path.join(self.get_corpus_path(), 'matrix')
+        return os.path.join(self.get_folder_path(), 'matrix')
 
     @property
     def matrix_exists(self):
@@ -214,7 +214,7 @@ class ContainerModel(Document):
         """Returns the path to the json file that contains the mapping between
            lemma and words, as these appear in the corpus.
         """
-        path = os.path.join(self.get_corpus_path(), 'matrix', 'lemma.json')
+        path = os.path.join(self.get_folder_path(), 'matrix', 'lemma.json')
         if not os.path.isfile(path):
             raise RuntimeError(path)
         return path
@@ -235,7 +235,7 @@ class ContainerModel(Document):
     def texts_path(self):
         """ Returns the path that will contain the files that make the corpus.
         """
-        return os.path.join(self.get_corpus_path(), 'corpus')
+        return os.path.join(self.get_folder_path(), 'corpus')
 
     def create_file_path(self):
         """Creating a path to a file and returning it along with the file id.
@@ -246,7 +246,7 @@ class ContainerModel(Document):
                 self.texts_path(), fileid)
         ), fileid
 
-    def create_corpus_dir(self):
+    def create_folder(self):
         """ Creating the directory for the corpus.
 
             permissions 'read, write, execute' to user, group and
@@ -254,7 +254,7 @@ class ContainerModel(Document):
 
         """
         # (_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH)
-        path = self.get_corpus_path()
+        path = self.get_folder_path()
         if not os.path.isdir(path):
             os.makedirs(path, exist_ok=False)
             os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
@@ -279,7 +279,7 @@ class ContainerModel(Document):
                     os.remove(_)
 
     def remove_corpus_dir(self):
-        shutil.rmtree(self.get_corpus_path())
+        shutil.rmtree(self.get_folder_path())
 
     def get_features(self,
                      feats: int = 10,
@@ -293,7 +293,7 @@ class ContainerModel(Document):
 
         features, docs = celery.send_task(
             NLP_TASKS['features_and_docs'], kwargs={
-                'path': self.get_corpus_path(),
+                'path': self.get_folder_path(),
                 'feats': feats,
                 'corpusid': str(self.get_id()),
                 'words': words,
@@ -367,7 +367,7 @@ class ContainerModel(Document):
             try:
                 _count = get_available_features(
                     corpusid=str(self.get_id()),
-                    corpus_path=self.get_corpus_path())
+                    corpus_path=self.get_folder_path())
                 next(_ for _ in _count if int(
                     _.get('featcount')) == feature_number)
                 _count = list(int(_.get('featcount')) for _ in _count)
@@ -383,7 +383,7 @@ class ContainerModel(Document):
         """ Returning the features count. """
 
         avl = get_available_features(corpusid=str(self.get_id()),
-                                     corpus_path=self.get_corpus_path())
+                                     corpus_path=self.get_folder_path())
         if verbose:
             return avl
         else:
