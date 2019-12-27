@@ -17,7 +17,7 @@ from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import DataModel, LISTURLS_PROJECT
 from .decorators import neo_availability
-from .models import (CorpusModel, corpus_status_data, request_availability,
+from .models import (ContainerModel, corpus_status_data, request_availability,
                      set_crawl_ready)
 from .status import status_text
 
@@ -36,7 +36,7 @@ def paginate(start: int = 0, limit: int = 100):
     :param limit:
     :return:
     """
-    cursor = CorpusModel.range_query(
+    cursor = ContainerModel.range_query(
         query={'crawl_ready': True},
         projection=dict(),
         limit=limit,
@@ -53,8 +53,8 @@ def create_from_crawl(name: str = None, endpoint: str = None,
     """Create a corpus from a crawl using scrasync."""
     url_list = [endpoint]
 
-    docid = str(CorpusModel.inst_new_doc(name=name))
-    corpus = CorpusModel.inst_by_id(docid)
+    docid = str(ContainerModel.inst_new_doc(name=name))
+    corpus = ContainerModel.inst_by_id(docid)
     corpus.set_corpus_type(data_from_the_web=True)
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
@@ -66,7 +66,7 @@ def create_from_crawl(name: str = None, endpoint: str = None,
 
 def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
     """Launching the crawler (scrasync) on an existing corpus"""
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         abort(404)
     set_crawl_ready(corpusid, False)
@@ -85,7 +85,7 @@ def corpus_data(corpusid):
         obj['status'] = status
         obj['status_message'] = message
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         # obj['errors'] = [
         #     ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
@@ -134,7 +134,7 @@ def corpus_crawl_ready(corpusid):
 
 def file_upload_ready(corpusid):
     """Checks if hte corpus created from files is ready."""
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         abort(404)
 
@@ -151,7 +151,7 @@ def file_upload_ready(corpusid):
 
 def texts(corpusid):
     """Returns an object that contains texts."""
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
 
     outobj = {}
     if not corpus:
@@ -196,7 +196,7 @@ def get_text_file(corpusid, dataid):
     :param dataid:
     :return:
     """
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     try:
         doc = corpus.get_url_doc(str(dataid))
     except (RuntimeError, ):
@@ -228,7 +228,7 @@ def lemma_context(corpusid, words: typing.List[str] = None):
     :param words: these are feature words (lemmatised by default)
     :return:
     """
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not isinstance(words, list) or \
             not all(isinstance(_, str) for _ in words):
         raise ValueError(words)

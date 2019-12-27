@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from ..apps.corpus.models import (
-    CorpusModel, corpus_status_data, insert_urlobj,
+    ContainerModel, corpus_status_data, insert_urlobj,
     integrity_check_ready,
     set_integrity_check_in_progress,
     set_crawl_ready)
@@ -34,7 +34,7 @@ def generate_matrices_remote(
     """ Generating matrices on the remote server. This is used when nlp lives
         on its own machine.
     """
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     corpus.set_status_feats(busy=True, feats=feats, task_name=self.name,
                             task_id=self.request.id)
     kwds = {
@@ -74,7 +74,7 @@ def nlp_callback_success(**kwds):
 
        This task is called by the nlp container.
     """
-    corpus = CorpusModel.inst_by_id(kwds.get('corpusid'))
+    corpus = ContainerModel.inst_by_id(kwds.get('corpusid'))
     corpus.update_on_nlp_callback(feats=kwds.get('feats'))
 
 
@@ -107,7 +107,7 @@ def file_extract_callback(kwds: dict = None):
                 'title': file_name,
             }
         )
-    doc = CorpusModel.file_extract_callback(
+    doc = ContainerModel.file_extract_callback(
         corpusid=corpusid, unique_file_id=file_id)
 
     if not doc['expected_files']:
@@ -124,7 +124,7 @@ def integrity_check(corpusid: str = None):
 
     celery.send_task(NLP_TASKS['integrity_check'], kwargs={
         'corpusid': corpusid,
-        'path': CorpusModel.inst_by_id(corpusid).get_corpus_path(),
+        'path': ContainerModel.inst_by_id(corpusid).get_corpus_path(),
     })
 
 
@@ -138,7 +138,7 @@ def integrity_check_callback(corpusid: str = None):
 def delete_data_from_corpus(
         self, corpusid: str = None, data_ids: List[str] = None):
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
 
     corpus_files_path = corpus.corpus_files_path()
     dataid_fileid = corpus.dataid_fileid(data_ids=data_ids)
@@ -163,10 +163,10 @@ def delete_data_from_corpus(
 @celery.task
 def expected_files(corpusid: str = None, file_objects: list = None):
     """Updates the corpus with expected files that are processed."""
-    CorpusModel.update_expected_files(
+    ContainerModel.update_expected_files(
         corpusid=corpusid, file_objects=file_objects)
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     return {
         'corpusid': corpusid,
         # 'vectors_path': corpus.get_vectors_path(),
@@ -179,8 +179,8 @@ def expected_files(corpusid: str = None, file_objects: list = None):
 @celery.task
 def create_from_upload(name: str = None, file_objects: list = None):
     """Creating a corpus from file upload."""
-    docid = str(CorpusModel.inst_new_doc(name=name))
-    corpus = CorpusModel.inst_by_id(docid)
+    docid = str(ContainerModel.inst_new_doc(name=name))
+    corpus = ContainerModel.inst_by_id(docid)
     corpus['expected_files'] = file_objects
     corpus['data_from_files'] = True
 

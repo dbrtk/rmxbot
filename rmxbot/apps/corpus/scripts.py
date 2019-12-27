@@ -4,15 +4,15 @@ import shlex
 import subprocess
 
 from ...config import SEARCH_CORPUS_SH
-from .models import CorpusModel
+from .models import ContainerModel
 
 
 # todo(): delete!
 
-def words_context(lemma: list = None, corpus: CorpusModel = None,
+def words_context(lemma: list = None, corpus: ContainerModel = None,
                   corpusid: str = None):
 
-    corpus = corpus if corpus else CorpusModel.inst_by_id(corpusid)
+    corpus = corpus if corpus else ContainerModel.inst_by_id(corpusid)
     path = corpus.corpus_files_path()
 
     try:

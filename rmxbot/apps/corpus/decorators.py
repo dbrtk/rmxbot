@@ -3,7 +3,7 @@ from functools import wraps
 
 from flask import jsonify, request
 
-from .models import CorpusModel, request_availability
+from .models import ContainerModel, request_availability
 from ...tasks.corpus import generate_matrices_remote
 
 
@@ -23,7 +23,7 @@ def check_availability(func):
         _featsperdoc = int(reqobj.get('featsperdoc', 3))
         _html = reqobj.get('html', False)
 
-        corpus = CorpusModel.inst_by_id(corpusid)
+        corpus = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': _features,
@@ -68,7 +68,7 @@ def neo_availability(func):
     def wrapped_view(corpusid: str = None, words: int = 10, features: int = 10,
                      docsperfeat: int = 5, featsperdoc: int = 3):
 
-        corpus = CorpusModel.inst_by_id(corpusid)
+        corpus = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': features,
@@ -129,7 +129,7 @@ def graph_availability(func):
         docs_per_feat = reqobj.get('docs_per_feat')
         feats_per_doc = reqobj.get('feats_per_doc')
 
-        corpus = CorpusModel.inst_by_id(corpusid)
+        corpus = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': features,

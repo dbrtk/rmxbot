@@ -80,7 +80,7 @@ class CorpusStatus(Document):
         super().__init__(*args, **kwds)
 
 
-class CorpusModel(Document):
+class ContainerModel(Document):
 
     __collection__ = _COLLECTION
 
@@ -578,7 +578,7 @@ def request_availability(corpusid, reqobj, corpus=None):
         if not isinstance(v, structure.get(k)):
             raise ValueError(reqobj)
 
-    corpus = corpus or CorpusModel.inst_by_id(corpusid)
+    corpus = corpus or ContainerModel.inst_by_id(corpusid)
 
     availability = corpus.features_availability(
         feature_number=reqobj['features'])

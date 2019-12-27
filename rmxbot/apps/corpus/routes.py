@@ -16,7 +16,7 @@ from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
 from .decorators import check_availability
-from .models import (CorpusModel, corpus_status_data, request_availability,
+from .models import (ContainerModel, corpus_status_data, request_availability,
                      set_crawl_ready)
 from .status import status_text
 
@@ -34,7 +34,7 @@ def corpus_home():
     :return:
     """
     context = {}
-    cursor = CorpusModel.range_query(
+    cursor = ContainerModel.range_query(
         query={'crawl_ready': True},
         projection=dict(),
         direction=pymongo.DESCENDING)
@@ -81,8 +81,8 @@ def create_from_crawl():
     crawl = request.form.get("crawl", True)
     crawl = True if crawl else crawl
 
-    docid = str(CorpusModel.inst_new_doc(name=the_name))
-    corpus = CorpusModel.inst_by_id(docid)
+    docid = str(ContainerModel.inst_new_doc(name=the_name))
+    corpus = ContainerModel.inst_by_id(docid)
     corpus.set_corpus_type(data_from_the_web=True)
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
@@ -103,7 +103,7 @@ def crawl():
     crawl = request.form.get("crawl", True)
     crawl = True if crawl else crawl
 
-    if not CorpusModel.inst_by_id(corpusid):
+    if not ContainerModel.inst_by_id(corpusid):
         abort(404)
 
     set_crawl_ready(corpusid, False)
@@ -130,7 +130,7 @@ def corpus_data_view(corpusid):
         context['status'] = status
         context['status_message'] = message
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         context['errors'] = [
             ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
@@ -189,7 +189,7 @@ def corpus_crawl_ready(corpusid):
                   methods=['GET'])
 def corpus_from_files_ready(corpusid):
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         abort(404)
 
@@ -208,7 +208,7 @@ def corpus_from_files_ready(corpusid):
 def texts(corpusid):
 
     template_name = "corpus/data-view.html"
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
 
     context = {}
     if not corpus:
@@ -236,7 +236,7 @@ def texts(corpusid):
 def edit_corpus(corpusid):
 
     template_name = "corpus/data-view-edit.html"
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
 
     context = {}
     if not corpus:
@@ -260,7 +260,7 @@ def edit_corpus(corpusid):
 def delete_texts(corpusid):
 
     if request.method == 'GET':
-        corpus = CorpusModel.inst_by_id(corpusid)
+        corpus = ContainerModel.inst_by_id(corpusid)
         dataids = corpus.get_dataids()
 
         context = {
@@ -287,7 +287,7 @@ def delete_texts(corpusid):
                   methods=['GET'])
 def get_text_file(corpusid, dataid):
 
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     try:
         doc = corpus.get_url_doc(str(dataid))
     except (RuntimeError, ):
@@ -319,7 +319,7 @@ def lemma_context(corpusid):
     :param corpusid:
     :return:
     """
-    corpus = CorpusModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(corpusid)
     lemma_to_words, lemma = corpus.get_lemma_words(request.args.get('lemma'))
 
     matchwords = []
