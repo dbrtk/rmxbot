@@ -186,7 +186,7 @@ class ContainerModel(Document):
         ))
 
     @property
-    def corpus_name(self): return str(self.get_id())
+    def folder_name(self): return str(self.get_id())
 
     def get_vectors_path(self):
         """ Returns the path of the file that contains the vectors. """
@@ -195,7 +195,7 @@ class ContainerModel(Document):
     @property
     def vectors_in_corpus(self):
         """Returns the location of vectors within a corpus."""
-        return os.path.join(self.corpus_name, 'matrix', 'vectors.npy')
+        return os.path.join(self.folder_name, 'matrix', 'vectors.npy')
 
     @property
     def matrix_path(self):
