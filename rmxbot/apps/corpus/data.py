@@ -75,7 +75,7 @@ def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
     return {'success': True, 'corpusid': corpus.get_id()}
 
 
-def corpus_data(corpusid):
+def container_data(containerid):
     """This returns a corpus data view. It will contain all necesary info
     about a text corpus.
     """
@@ -85,13 +85,13 @@ def corpus_data(corpusid):
         obj['status'] = status
         obj['status_message'] = message
 
-    corpus = ContainerModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(containerid)
     if not corpus:
         # obj['errors'] = [
         #     ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
         # ]
         raise RuntimeError(
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+            ERR_MSGS.get('corpus_does_not_exist').format(containerid)
         )
 
     obj['available_feats'] = corpus.get_features_count()
@@ -103,70 +103,70 @@ def corpus_data(corpusid):
     return obj
 
 
-def corpus_is_ready(corpusid, feats):
+def container_is_ready(containerid, feats):
     """Returns an object with information about the state of the corpus.
     This is called when features are being computed.
     """
     feats = int(feats)
-    availability = request_availability(corpusid, dict(features=feats))
+    availability = request_availability(containerid, dict(features=feats))
     availability.update(dict(features=feats))
     return availability
 
 
-def corpus_crawl_ready(corpusid):
+def crawl_is_ready(containerid):
     """Checking if the crawl is ready in order to load the page. This is called
     when the crawler is running."""
-    corpus = container_status(corpusid)
-    if not corpus:
+    container = container_status(containerid)
+    if not container:
         abort(404)
 
-    if corpus.get('crawl_ready') and \
-            not corpus.get('integrity_check_in_progress'):
+    if container.get('crawl_ready') and \
+            not container.get('integrity_check_in_progress'):
         return {
             'ready': True,
-            'corpusid': corpusid
+            'corpusid': containerid
         }
     return {
         'ready': False,
-        'corpusid': corpusid
+        'corpusid': containerid
     }
 
 
-def file_upload_ready(corpusid):
+def file_upload_ready(containerid):
     """Checks if hte corpus created from files is ready."""
-    corpus = ContainerModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(containerid)
     if not corpus:
         abort(404)
 
     if corpus.get('crawl_ready'):
         return {
             'ready': True,
-            'corpusid': corpusid
+            'corpusid': containerid
         }
     return {
         'ready': False,
-        'corpusid': corpusid
+        'corpusid': containerid
     }
 
 
-def texts(corpusid):
+def texts(containerid):
     """Returns an object that contains texts."""
-    corpus = ContainerModel.inst_by_id(corpusid)
+    container = ContainerModel.inst_by_id(containerid)
 
     outobj = {}
-    if not corpus:
+    if not container:
         outobj['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+            ERR_MSGS.get('corpus_does_not_exist').format(containerid)
         ]
         return outobj
 
-    dataids = corpus.get_dataids()
+    dataids = container.get_dataids()
     outobj['files_upload_endpoint'] = EXTRACTXT_FILES_UPLOAD_URL.strip(
         '/')
-    outobj['datatype'] = 'crawl' if corpus['data_from_the_web'] else \
-        'upload' if corpus['data_from_files'] else None
-    outobj['corpusid'] = corpus.get('_id')
-    outobj['name'] = corpus.get('name')
+    outobj['datatype'] = 'crawl' if container['data_from_the_web'] else \
+        'upload' if container['data_from_files'] else None
+    outobj['corpusid'] = container.get('_id')
+    outobj['name'] = container.get('name')
     outobj['data'] = DataModel.query_data_project(
         query={'_id': {'$in': dataids}},
         project=LISTURLS_PROJECT,
@@ -174,37 +174,37 @@ def texts(corpusid):
     return outobj
 
 
-def delete_texts(corpusid: str = None, dataids: typing.List[str] = None):
+def delete_texts(containerid: str = None, dataids: typing.List[str] = None):
     """
     Deleting texts from the data set.
 
-    :param corpusid:
+    :param containerid:
     :param dataids:
     :return:
     """
     if not all(isinstance(str, _) for _ in dataids):
         raise ValueError(dataids)
-    set_crawl_ready(corpusid, False)
-    delete_data_from_corpus.delay(corpusid=corpusid, data_ids=dataids)
+    set_crawl_ready(containerid, False)
+    delete_data_from_corpus.delay(corpusid=containerid, data_ids=dataids)
     return {'success': True}
 
 
-def get_text_file(corpusid, dataid):
+def get_text_file(containerid, dataid):
     """
     Returns the content of a text file in the data-set.
-    :param corpusid:
+    :param containerid:
     :param dataid:
     :return:
     """
-    corpus = ContainerModel.inst_by_id(corpusid)
+    container = ContainerModel.inst_by_id(containerid)
     try:
-        doc = corpus.get_url_doc(str(dataid))
+        doc = container.get_url_doc(str(dataid))
     except (RuntimeError, ):
         return abort(404, 'Requested file does not exist.')
     fileid = doc.get('file_id')
     txt = []
     with open(
-            os.path.join(corpus.texts_path(), fileid)
+            os.path.join(container.texts_path(), fileid)
     ) as _file:
         for _line in _file.readlines():
             _line = _line.strip()
@@ -214,25 +214,25 @@ def get_text_file(corpusid, dataid):
         'text': txt,
         'dataid': dataid,
         'length': len(txt),
-        'corpusid': corpus.get_id()
+        'corpusid': container.get_id()
     }
 
 
-def lemma_context(corpusid, words: typing.List[str] = None):
+def lemma_context(containerid, words: typing.List[str] = None):
     """
     Returns the context for lemmatised words. Lemmatised words are the words
     that make a feature - feature-words. The context are all sentences in the
     corpus that contain one or more feature-word(s).
 
-    :param corpusid: the corpus id
+    :param containerid: the corpus id
     :param words: these are feature words (lemmatised by default)
     :return:
     """
-    corpus = ContainerModel.inst_by_id(corpusid)
+    container = ContainerModel.inst_by_id(containerid)
     if not isinstance(words, list) or \
             not all(isinstance(_, str) for _ in words):
         raise ValueError(words)
-    lemma_to_words, lemma = corpus.get_lemma_words(words)
+    lemma_to_words, lemma = container.get_lemma_words(words)
 
     matchwords = []
     for i in lemma:
@@ -246,11 +246,11 @@ def lemma_context(corpusid, words: typing.List[str] = None):
         RMXGREP_ENDPOINT,
         params={
             'words': matchwords,
-            'corpus_path': corpus.texts_path()
+            'corpus_path': container.texts_path()
         })
     return {
         'success': True,
-        'corpusid': corpus.get_id(),
+        'corpusid': container.get_id(),
         'data': [{'fileid': k, 'sentences': v} for k, v in
                  resp.json().get('data').items()]
     }

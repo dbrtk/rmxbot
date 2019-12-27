@@ -90,7 +90,7 @@ class DeleteTexts(graphene.Mutation):
 
     def mutate(root, info, corpusid, dataids):
 
-        data.delete_texts(corpusid=corpusid, dataids=dataids)
+        data.delete_texts(containerid=corpusid, dataids=dataids)
         return DeleteTexts(success=True)
 
 

@@ -519,7 +519,7 @@ class Query(graphene.AbstractType):
         :param corpusid:
         :return:
         """
-        return data.corpus_data(corpusid)
+        return data.container_data(corpusid)
 
     def resolve_paginate(parent, info, start, limit):
         """
@@ -550,7 +550,7 @@ class Query(graphene.AbstractType):
 
     def resolve_corpus_ready(parent, info, corpusid, feats):
 
-        return data.corpus_is_ready(corpusid=corpusid, feats=feats)
+        return data.container_is_ready(containerid=corpusid, feats=feats)
 
     def resolve_crawl_ready(parent, info, corpusid):
         """
@@ -568,7 +568,7 @@ class Query(graphene.AbstractType):
         :param corpusid:
         :return:
         """
-        return data.corpus_crawl_ready(corpusid=corpusid)
+        return data.crawl_is_ready(containerid=corpusid)
 
     def resolve_text_upload_ready(parent, info, corpusid):
         """
@@ -600,11 +600,11 @@ class Query(graphene.AbstractType):
         :param words: list of words
         :return:
         """
-        return data.lemma_context(corpusid=corpusid, words=words)
+        return data.lemma_context(containerid=corpusid, words=words)
 
     def resolve_file_text(parent, info, corpusid, dataid):
 
-        return data.get_text_file(corpusid=corpusid, dataid=dataid)
+        return data.get_text_file(containerid=corpusid, dataid=dataid)
 
     def resolve_features(parent, info, corpusid, words, features, docsperfeat,
                          featsperdoc):
