@@ -193,11 +193,6 @@ class ContainerModel(Document):
         return os.path.join(self.get_folder_path(), 'matrix', 'vectors.npy')
 
     @property
-    def vectors_in_corpus(self):
-        """Returns the location of vectors within a corpus."""
-        return os.path.join(self.folder_name, 'matrix', 'vectors.npy')
-
-    @property
     def matrix_path(self):
         return os.path.join(self.get_folder_path(), 'matrix')
 

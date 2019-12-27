@@ -47,10 +47,8 @@ def generate_matrices_remote(
     }
     if os.path.isfile(vectors_path):
         celery.send_task(NLP_TASKS['factorize_matrices'], kwargs=kwds)
-        # compute_features_weights.delay(vectors_in_corpus, **kwds)
     else:
         celery.send_task(NLP_TASKS['compute_matrices'], kwargs=kwds)
-        # compute_matrices.delay(**kwds)
 
 
 @celery.task
