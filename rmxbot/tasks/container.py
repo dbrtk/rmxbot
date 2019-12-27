@@ -56,8 +56,6 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
     """Starting the crawler in scrasync. Starting the task that will monitor
        the crawler.
     """
-    # if get_urls_length(corpus_id) >= CORPUS_MAX_SIZE:
-    #     return False
     celery.send_task(SCRASYNC_TASKS['create'], kwargs={
         'endpoint': url_list,
         'corpusid': corpus_id,
@@ -106,7 +104,7 @@ def file_extract_callback(kwds: dict = None):
             }
         )
     doc = ContainerModel.file_extract_callback(
-        corpusid=corpusid, unique_file_id=file_id)
+        containerid=corpusid, unique_file_id=file_id)
 
     if not doc['expected_files']:
         if doc.matrix_exists:
@@ -162,7 +160,7 @@ def delete_data_from_corpus(
 def expected_files(corpusid: str = None, file_objects: list = None):
     """Updates the corpus with expected files that are processed."""
     ContainerModel.update_expected_files(
-        corpusid=corpusid, file_objects=file_objects)
+        containerid=corpusid, file_objects=file_objects)
 
     corpus = ContainerModel.inst_by_id(corpusid)
     return {

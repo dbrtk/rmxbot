@@ -27,7 +27,7 @@ def check_availability(func):
 
         availability = request_availability(corpusid, {
             'features': _features,
-        }, corpus=corpus)
+        }, container=corpus)
 
         if availability.get('busy'):
             return jsonify(dict(busy=True, success=False))
@@ -72,7 +72,7 @@ def neo_availability(func):
 
         availability = request_availability(corpusid, {
             'features': features,
-        }, corpus=corpus)
+        }, container=corpus)
 
         if availability.get('busy'):
             return {
@@ -133,7 +133,7 @@ def graph_availability(func):
 
         availability = request_availability(corpusid, {
             'features': features,
-        }, corpus=corpus)
+        }, container=corpus)
 
         if availability.get('busy'):
             return jsonify(dict(busy=True, success=False))

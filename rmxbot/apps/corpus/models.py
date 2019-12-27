@@ -22,7 +22,8 @@ _COLLECTION = get_collection(collection=CORPUS_COLL)
 
 
 class DataObject(Document):
-    """Class mapping the corpus urls to their original Data objects."""
+    """Class mapping the urls in the container to their original Data objects.
+    """
 
     structure = {
         'data_id': str,
@@ -399,32 +400,32 @@ class ContainerModel(Document):
 
     @classmethod
     def file_extract_callback(cls,
-                              corpusid: str = None,
+                              containerid: str = None,
                               unique_file_id: str = None):
         """
-        :param corpusid:
+        :param containerid:
         :param unique_file_id:
         :return:
         """
-        _COLLECTION.update_one({'_id': bson.ObjectId(corpusid)}, {
+        _COLLECTION.update_one({'_id': bson.ObjectId(containerid)}, {
             '$pull': {'expected_files': {'unique_id': unique_file_id}}
         })
-        doc = cls.inst_by_id(corpusid)
+        doc = cls.inst_by_id(containerid)
         return doc
 
     @classmethod
     def update_expected_files(
-            cls, corpusid: str = None, file_objects: list = None):
+            cls, containerid: str = None, file_objects: list = None):
         """ Updaing the expected_files field with file objects that are
         created.
-        :param corpusid:
+        :param containerid:
         :param file_objects:
         :return:
         """
         # for item in file_objects:
         #     ExpectedFile.simple_validation(item)
         return _COLLECTION.update_one(
-            {'_id': bson.ObjectId(corpusid)},
+            {'_id': bson.ObjectId(containerid)},
             {
                 '$addToSet': {'expected_files': {'$each': file_objects}},
                 '$set': {
@@ -483,36 +484,31 @@ class ContainerModel(Document):
         )
 
 
-def insert_urlobj(corpus_id: (str, bson.ObjectId) = None,
+def insert_urlobj(containerid: (str, bson.ObjectId) = None,
                   url_obj: dict = None):
     """ Validating the url object and inserting it in the corpus list of urls.
     """
     DataObject.simple_validation(url_obj)
 
-    corpus_id = bson.ObjectId(corpus_id)
+    containerid = bson.ObjectId(containerid)
     _COLLECTION.update_one(
-        {'_id': corpus_id},
+        {'_id': containerid},
         {'$push': {'urls': url_obj}}
     )
-    return corpus_id
+    return containerid
 
 
-def get_urls_length(corpus_id):
-    doc = _COLLECTION.find_one({'_id': bson.ObjectId(corpus_id)}, {'urls': 1})
-    return len(doc.get('urls'))
-
-
-def set_crawl_ready(corpusid, value):
+def set_crawl_ready(containerid, value):
     """ Set the value of crawl_ready on the corpus. """
-    _id = bson.ObjectId(corpusid)
+    _id = bson.ObjectId(containerid)
     if not isinstance(value, bool):
         raise RuntimeError(value)
     return _COLLECTION.update({'_id': _id}, {'$set': {'crawl_ready': value}})
 
 
-def set_integrity_check_in_progress(corpusid, value):
+def set_integrity_check_in_progress(containerid, value):
     """ Set the value of crawl_ready on the corpus. """
-    _id = bson.ObjectId(corpusid)
+    _id = bson.ObjectId(containerid)
     if not isinstance(value, bool):
         raise RuntimeError(value)
     return _COLLECTION.update({'_id': _id}, {
@@ -540,7 +536,7 @@ def container_status(containerid):
     })
 
 
-def request_availability(containerid, reqobj, corpus=None):
+def request_availability(containerid, reqobj, container=None):
     """ Checks for the availability of a feature.
     The reqobj should look like this:
     {
@@ -557,9 +553,9 @@ def request_availability(containerid, reqobj, corpus=None):
         if not isinstance(v, structure.get(k)):
             raise ValueError(reqobj)
 
-    corpus = corpus or ContainerModel.inst_by_id(containerid)
+    container = container or ContainerModel.inst_by_id(containerid)
 
-    availability = corpus.features_availability(
+    availability = container.features_availability(
         feature_number=reqobj['features'])
 
     return availability
