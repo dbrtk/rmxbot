@@ -60,7 +60,7 @@ class ExpectedFile(Document):
     }
 
 
-class CorpusStatus(Document):
+class ContainerStatus(Document):
     """Status object used when computing features."""
     structure = {
         'busy': bool,
@@ -318,7 +318,7 @@ class ContainerModel(Document):
 
             return True
         return _COLLECTION.update({'_id': self.get('_id')}, {
-            '$push': {'status': CorpusStatus(
+            '$push': {'status': ContainerStatus(
                 busy=busy,
                 feats=feats,
                 **kwds
