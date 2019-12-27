@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from ..apps.corpus.models import (
-    ContainerModel, corpus_status_data, insert_urlobj,
+    ContainerModel, container_status, insert_urlobj,
     integrity_check_ready,
     set_integrity_check_in_progress,
     set_crawl_ready)
@@ -195,7 +195,7 @@ def create_from_upload(name: str = None, file_objects: list = None):
 @celery.task
 def process_crawl_resp(resp, corpusid, iter: int = 0):
 
-    corpus_status = corpus_status_data(corpusid)
+    corpus_status = container_status(corpusid)
     if resp.get('ready'):
 
         if not corpus_status['integrity_check_in_progress']:

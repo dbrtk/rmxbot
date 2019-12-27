@@ -17,7 +17,7 @@ from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import DataModel, LISTURLS_PROJECT
 from .decorators import neo_availability
-from .models import (ContainerModel, corpus_status_data, request_availability,
+from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
 
@@ -55,7 +55,7 @@ def create_from_crawl(name: str = None, endpoint: str = None,
 
     docid = str(ContainerModel.inst_new_doc(name=name))
     corpus = ContainerModel.inst_by_id(docid)
-    corpus.set_corpus_type(data_from_the_web=True)
+    corpus.set_container_type(data_from_the_web=True)
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
@@ -116,7 +116,7 @@ def corpus_is_ready(corpusid, feats):
 def corpus_crawl_ready(corpusid):
     """Checking if the crawl is ready in order to load the page. This is called
     when the crawler is running."""
-    corpus = corpus_status_data(corpusid)
+    corpus = container_status(corpusid)
     if not corpus:
         abort(404)
 

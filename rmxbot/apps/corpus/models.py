@@ -129,12 +129,10 @@ class ContainerModel(Document):
             'expected_files': [],
             'created': datetime.datetime.now(),
 
-            # corpus type
+            # container type
             'data_from_files': False,
             'data_from_the_web': False,
 
-            # todo(): delete
-            # 'lemma_words': {}
         }
         super().__init__(*args, **kwds)
         self.featcount = None
@@ -199,8 +197,8 @@ class ContainerModel(Document):
     @property
     def matrix_exists(self):
         """Returns True is the matix directory with its files exists."""
-        return os.path.exists(self.matrix_path) and \
-               os.listdir(self.matrix_path)
+        return os.path.exists(self.matrix_path) and os.listdir(
+            self.matrix_path)
 
     @property
     def wf_path(self): return os.path.join(self.matrix_path, 'wf')
@@ -272,9 +270,6 @@ class ContainerModel(Document):
                     shutil.rmtree(_)
                 elif os.path.isfile(_):
                     os.remove(_)
-
-    def remove_corpus_dir(self):
-        shutil.rmtree(self.get_folder_path())
 
     def get_features(self,
                      feats: int = 10,
@@ -452,9 +447,9 @@ class ContainerModel(Document):
 
     def get_expected_files(self): return self['expected_files']
 
-    def set_corpus_type(self,
-                        data_from_files: bool = False,
-                        data_from_the_web: bool = False):
+    def set_container_type(self,
+                           data_from_files: bool = False,
+                           data_from_the_web: bool = False):
         """
         :param data_from_files: bool
         :param data_from_the_web: bool
@@ -535,9 +530,9 @@ def set_integrity_check_in_progress(corpusid, value):
         '$set': {'integrity_check_in_progress': value}})
 
 
-def integrity_check_ready(corpusid):
+def integrity_check_ready(containerid):
     """Called when a crawl and the integrity check succeed."""
-    return _COLLECTION.update({'_id': bson.ObjectId(corpusid)}, {
+    return _COLLECTION.update({'_id': bson.ObjectId(containerid)}, {
         '$set': {
             'integrity_check_in_progress': False,
             'crawl_ready': True,
@@ -545,9 +540,9 @@ def integrity_check_ready(corpusid):
         }})
 
 
-def corpus_status_data(corpusid):
+def container_status(containerid):
     """Retrieves status related data for a corpus id."""
-    return _COLLECTION.find_one({'_id': bson.ObjectId(corpusid)}, {
+    return _COLLECTION.find_one({'_id': bson.ObjectId(containerid)}, {
         'crawl_ready': 1,
         'integrity_check_in_progress': 1,
         'corpus_ready': 1,
@@ -556,7 +551,7 @@ def corpus_status_data(corpusid):
     })
 
 
-def request_availability(corpusid, reqobj, corpus=None):
+def request_availability(containerid, reqobj, corpus=None):
     """ Checks for the availability of a feature.
     The reqobj should look like this:
     {
@@ -573,7 +568,7 @@ def request_availability(corpusid, reqobj, corpus=None):
         if not isinstance(v, structure.get(k)):
             raise ValueError(reqobj)
 
-    corpus = corpus or ContainerModel.inst_by_id(corpusid)
+    corpus = corpus or ContainerModel.inst_by_id(containerid)
 
     availability = corpus.features_availability(
         feature_number=reqobj['features'])
