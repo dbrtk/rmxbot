@@ -176,7 +176,7 @@ class ContainerModel(Document):
         return [bson.ObjectId(_.get('data_id')) for _ in self.get('urls')]
 
     def get_folder_path(self):
-        """ Returns the path to the corpus directory. """
+        """ Returns the path to the container directory. """
         return os.path.abspath(os.path.normpath(
             os.path.join(
                 CORPUS_ROOT, str(self.get('_id'))
@@ -205,7 +205,7 @@ class ContainerModel(Document):
 
     def get_lemma_path(self):
         """Returns the path to the json file that contains the mapping between
-           lemma and words, as these appear in the corpus.
+           lemma and words, as these appear in texts.
         """
         path = os.path.join(self.get_folder_path(), 'matrix', 'lemma.json')
         if not os.path.isfile(path):
@@ -213,8 +213,8 @@ class ContainerModel(Document):
         return path
 
     def get_lemma_words(self, lemma: (str, list) = None):
-        """For a list of lemma, returns all the words that can be found in the
-           corpus.
+        """For a list of lemma, returns all the words that can be found in
+           texts.
         """
         lemma_list = lemma.split(',') if isinstance(lemma, str) else lemma
         if not all(isinstance(_, str) for _ in lemma):
@@ -226,7 +226,8 @@ class ContainerModel(Document):
             return map(json.loads, dicts), lemma_list
 
     def texts_path(self):
-        """ Returns the path that will contain the files that make the corpus.
+        """ Returns the path that will contain the files that make the
+            container.
         """
         return os.path.join(self.get_folder_path(), 'corpus')
 
@@ -240,7 +241,7 @@ class ContainerModel(Document):
         ), fileid
 
     def create_folder(self):
-        """ Creating the directory for the corpus.
+        """ Creating the directory for the texts and matrices.
 
             permissions 'read, write, execute' to user, group and
             other (777).
@@ -258,18 +259,6 @@ class ContainerModel(Document):
                 os.chmod(_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
 
         return path
-
-    def remove_corpus_txt_files(self, inclusive=False):
-        path = self.texts_path()
-        if inclusive:
-            shutil.rmtree(path)
-        else:
-            for item in os.listdir(path):
-                _ = os.path.join(path, item)
-                if os.path.isdir(_):
-                    shutil.rmtree(_)
-                elif os.path.isfile(_):
-                    os.remove(_)
 
     def get_features(self,
                      feats: int = 10,
