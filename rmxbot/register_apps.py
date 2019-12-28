@@ -8,5 +8,5 @@ from .apps.home.routes import home_app
 
 def register_apps(app):
 
-    app.register_blueprint(container_app, url_prefix='/corpus')
+    app.register_blueprint(container_app, url_prefix='/container')
     app.register_blueprint(home_app)

@@ -32,13 +32,13 @@
 
 <div class="rmx-recent-data">
     <h1>{{ corpus_name }}</h1>
-    <h2><a href="/corpus/{{ corpusid }}/data/">Texts</a> attached to this corpus.</h2>
+    <h2><a href="/container/{{ corpusid }}/data/">Texts</a> attached to this corpus.</h2>
     {% for item in texts %}
         <div class="url-box">
             {% if item.url %}
                 <a href="{{ item.url }}">{{ item.url }}</a>
             {% else %}
-                <a href="/corpus/{% if corpusid %}
+                <a href="/container/{% if corpusid %}
                 {{ corpusid }}
                 {% elif item.corpusid %}
                 {{item.corpusid}}
@@ -52,7 +52,7 @@
         </div>
     {% endfor %}
     <p>{{ urls_length }} texts attached to this corpus.
-        <a href="/corpus/{{ corpusid }}/data/">View and edit.</a>
+        <a href="/container/{{ corpusid }}/data/">View and edit.</a>
     </p>
 </div>
 

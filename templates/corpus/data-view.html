@@ -19,13 +19,13 @@
 {% include "sub/simple-error.html" %}
 
 <div class="add-page-form">
-  <h1>Texts belonging to the corpus: "<a href="/corpus/{{ corpusid }}/">{{name}}</a>"</h1>
-  <span><a href="/corpus/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/corpus/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
+  <h1>Texts belonging to the corpus: "<a href="/container/{{ corpusid }}/">{{name}}</a>"</h1>
+  <span><a href="/container/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/container/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
 
   {% if datatype == 'crawl' %}
     <div class="new-corpus-form">
         <h2>Add web-pages to this corpus</h2>
-        <form class="new-corpus-form" action="/corpus/crawl/" method="post">
+        <form class="new-corpus-form" action="/container/crawl/" method="post">
 
             <label for="endpoint">The url, endpoint to feed the crawler:</label>
             <input type="text" name="endpoint" placeholder="http://www.example.com">
@@ -69,7 +69,7 @@
             {% if item.file_name %}
                 <span>The file name: {{ item.file_name }}</span><br>
             {% endif %}
-            <a href="/corpus/{{corpusid}}/file/{{item.id}}/" target="_blank">See the text file in corpus</a><br>
+            <a href="/container/{{corpusid}}/file/{{item.id}}/" target="_blank">See the text file in corpus</a><br>
             <span>Creation date: {{ item.created }}</span>
         </div>
     {% endfor %}

@@ -34,14 +34,14 @@ def create_app(static_folder: str = STATIC_FOLDER):
         from .apps.data.routes import data_app
         from .graphql_schema import schema
 
-        app.register_blueprint(container_app, url_prefix='/corpus')
+        app.register_blueprint(container_app, url_prefix='/container')
         app.register_blueprint(data_app, url_prefix='/data')
         app.register_blueprint(home_app)
 
         app.add_url_rule(
             '/graphql',
             view_func=GraphQLView.as_view(
-                'corpus',
+                'graphql',
                 schema=schema,
                 graphiql=True  # for having the GraphiQL interface
             )

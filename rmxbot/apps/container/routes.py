@@ -27,7 +27,7 @@ ERR_MSGS = dict(
     container_does_not_exist='A container with id: "{}" does not exist.')
 
 container_app = Blueprint(
-    'container_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
+    'container_app', __name__, root_path='/container', template_folder=TEMPLATES)
 
 
 @container_app.route('/')
@@ -93,7 +93,7 @@ def create_from_crawl():
     crawl_async.delay(url_list, corpus_id=docid, depth=depth)
 
     return redirect(
-        '/corpus/{}/?{}'.format(
+        '/container/{}/?{}'.format(
             str(docid), urlencode(dict(status='newly-created'))))
 
 
@@ -112,7 +112,7 @@ def crawl():
     crawl_async.delay([endpoint], corpus_id=corpusid,
                       depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
     return redirect(
-        '/corpus/{}/?{}'.format(
+        '/container/{}/?{}'.format(
             str(corpusid), urlencode(dict(status='crawling'))))
 
 
@@ -280,7 +280,7 @@ def delete_texts(corpusid):
         delete_data_from_corpus.delay(
             corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
         return redirect(
-            '/corpus/{}/?status=remove-files'.format(str(corpusid)))
+            '/container/{}/?status=remove-files'.format(str(corpusid)))
     else:
         return abort(403)
 

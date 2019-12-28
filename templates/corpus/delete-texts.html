@@ -20,10 +20,10 @@
 
 <div class="add-page-form">
   {% if datatype == 'crawl' %}
-    <h1>Texts belonging to the corpus: "<a href="/corpus/{{ corpusid }}/">{{name}}</a>"</h1>
-    <span><a href="/corpus/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/corpus/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
+    <h1>Texts belonging to the corpus: "<a href="/container/{{ corpusid }}/">{{name}}</a>"</h1>
+    <span><a href="/container/{{corpusid}}/data/edit/">Edit the corpus</a> - <a href="/container/{{corpusid}}/data/delete-texts/">delete texts from the corpus</a></span>
   {% elif datatype == 'screenplay' %}
-    <h1>Text files that make the corpus: "{{name}}" <a href="/corpus/{{corpusid}}/data/edit/">[edit]</a> (<a href="/corpus/{{corpusid}}/">go back to corpus</a>)</h1>
+    <h1>Text files that make the corpus: "{{name}}" <a href="/container/{{corpusid}}/data/edit/">[edit]</a> (<a href="/container/{{corpusid}}/">go back to corpus</a>)</h1>
   {% endif %}
 
     <h2>Delete files from the corpus "{{ name }}"</h2>
@@ -32,7 +32,7 @@
 
 <div class="rmx-recent-data">
     <h2>Attached texts:</h2>
-    <form action="/corpus/{{corpusid}}/data/delete-texts/" method="POST">
+    <form action="/container/{{corpusid}}/data/delete-texts/" method="POST">
         <label for="input">Remove the selected files from the corpus:</label>
         <input type="submit" name="submit">
 
@@ -53,7 +53,7 @@
             {% if item.file_name %}
                 <span>The file name: {{ item.file_name }}</span><br>
             {% endif %}
-            <a href="/corpus/{{corpusid}}/file/{{item.id}}/" target="_blank">See the text file in corpus</a><br>
+            <a href="/container/{{corpusid}}/file/{{item.id}}/" target="_blank">See the text file in corpus</a><br>
             <span>Creation date: {{ item.created }}</span>
         </div>
     {% endfor %}

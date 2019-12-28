@@ -572,7 +572,7 @@ class Query(graphene.AbstractType):
 
     def resolve_text_upload_ready(parent, info, corpusid):
         """
-        Checks if the creation of a data set/corpus from file upload is ready.
+        Checks if the creation of a data set/container from file upload is ready.
         Query:
         ```
         query {

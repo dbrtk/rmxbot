@@ -12,7 +12,7 @@ from .apps.data.queries import Data
 from .apps.data.queries import Query as DataQuery
 
 
-class Query(CorpusQuery, DataQuery, graphene.ObjectType):
+class RootQuery(CorpusQuery, DataQuery, graphene.ObjectType):
 
     pass
 
@@ -23,7 +23,7 @@ class Mutation(CorpusMutation, graphene.ObjectType):
 
 
 schema = graphene.Schema(
-    query=Query,
+    query=RootQuery,
     mutation=Mutation,
     types=[ContextPhrase, CorpusDataView, CorpusReady, CorpusStructure,
            DatasetReady, Doc, DocumentNode, Edge, Feat, FeatureContext,

@@ -67,7 +67,7 @@ class UpdateCorpus(graphene.Mutation):
 
 class DeleteTexts(graphene.Mutation):
     """
-    Deleting texts attached to the data-set/corpus.
+    Deleting texts attached to the data-set/container.
     Example of a graphql query:
     ```
     mutation {
