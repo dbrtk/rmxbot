@@ -8,9 +8,6 @@ COPY . /app
 
 RUN chmod +x /app/run.sh && chmod +x /app/celery.sh
 
-# setting up the environment variables for the rmxbot configuration file
-ENV RMX_SEARCH_CORPUS_SCRIPT '/opt/rmxgrep/search_corpus.sh'
-
 # the endpoint for extractxt
 ENV EXTRACTXT_ENDPOINT 'http://extractxt:8003'
 
