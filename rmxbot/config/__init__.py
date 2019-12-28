@@ -29,7 +29,9 @@ EXTRACTXT_ENDPOINT = os.environ.get('EXTRACTXT_ENDPOINT')
 EXTRACTXT_FILES_UPLOAD_URL = '{}/upload-files'.format(EXTRACTXT_ENDPOINT)
 
 # The path to the directory where corpora along with matrices are stored.
-CORPUS_ROOT = os.path.join(DATA_ROOT, 'corpus')
+CORPUS_ROOT = os.path.join(DATA_ROOT, 'container')
+TEXT_FOLDER = 'text'
+MATRIX_FOLDER = 'matrix'
 
 CORPUS_MAX_SIZE = 400
 

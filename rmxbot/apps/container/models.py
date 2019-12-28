@@ -10,7 +10,7 @@ import bson
 import pymongo
 
 from ...app import celery
-from ...config import CORPUS_COLL, CORPUS_ROOT
+from ...config import CORPUS_COLL, CORPUS_ROOT, MATRIX_FOLDER, TEXT_FOLDER
 from ...contrib.db.connection import get_collection
 from ...contrib.db.models.document import Document
 from ...core.matrix_files import get_available_features
@@ -178,11 +178,11 @@ class ContainerModel(Document):
 
     def get_vectors_path(self):
         """ Returns the path of the file that contains the vectors. """
-        return os.path.join(self.get_folder_path(), 'matrix', 'vectors.npy')
+        return os.path.join(self.matrix_path, 'vectors.npy')
 
     @property
     def matrix_path(self):
-        return os.path.join(self.get_folder_path(), 'matrix')
+        return os.path.join(self.get_folder_path(), MATRIX_FOLDER)
 
     @property
     def matrix_exists(self):
@@ -197,7 +197,7 @@ class ContainerModel(Document):
         """Returns the path to the json file that contains the mapping between
            lemma and words, as these appear in texts.
         """
-        path = os.path.join(self.get_folder_path(), 'matrix', 'lemma.json')
+        path = os.path.join(self.matrix_path, 'lemma.json')
         if not os.path.isfile(path):
             raise RuntimeError(path)
         return path
@@ -219,7 +219,7 @@ class ContainerModel(Document):
         """ Returns the path that will contain the files that make the
             container.
         """
-        return os.path.join(self.get_folder_path(), 'corpus')
+        return os.path.join(self.get_folder_path(), TEXT_FOLDER)
 
     def create_folder(self):
         """ Creating the directory for the texts and matrices.
@@ -233,8 +233,8 @@ class ContainerModel(Document):
         if not os.path.isdir(path):
             os.makedirs(path, exist_ok=False)
             os.chmod(path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)
-        for _path in [os.path.join(path, 'matrix'),
-                      os.path.join(path, 'corpus')]:
+        for _path in [os.path.join(path, MATRIX_FOLDER),
+                      os.path.join(path, TEXT_FOLDER)]:
             if not os.path.isdir(_path):
                 os.makedirs(_path, exist_ok=False)
                 os.chmod(_path, stat.S_IRWXU | stat.S_IRWXG | stat.S_IRWXO)

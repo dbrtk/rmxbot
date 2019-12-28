@@ -9,7 +9,7 @@ import uuid
 import bson
 from pymongo import UpdateOne
 
-from ...config import CORPUS_ROOT, DATA_COLL
+from ...config import CORPUS_ROOT, DATA_COLL, TEXT_FOLDER
 from ...contrib.db.models.document import Document
 from ...contrib.db.models.fields.urlfield import UrlField
 from ...contrib.utils import dictionary
@@ -290,7 +290,7 @@ def corpus_path(corpusid: str = None):
     """ Returns the path for corpus files. """
     path = os.path.abspath(os.path.normpath(
         os.path.join(
-            CORPUS_ROOT, corpusid, 'corpus')
+            CORPUS_ROOT, corpusid, TEXT_FOLDER)
         )
     )
     if os.path.isdir(path):
