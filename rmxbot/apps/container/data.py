@@ -66,13 +66,13 @@ def create_from_crawl(name: str = None, endpoint: str = None,
     return {'success': True, 'containerid': corpus.get_id()}
 
 
-def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
+def crawl(containerid: str = None, endpoint: str = None, crawl: bool = True):
     """Launching the crawler (scrasync) on an existing corpus"""
-    corpus = ContainerModel.inst_by_id(corpusid)
+    corpus = ContainerModel.inst_by_id(containerid)
     if not corpus:
         abort(404)
-    set_crawl_ready(corpusid, False)
-    crawl_async.delay([endpoint], corpus_id=corpusid,
+    set_crawl_ready(containerid, False)
+    crawl_async.delay([endpoint], corpus_id=containerid,
                       depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
     return {'success': True, 'containerid': corpus.get_id()}
 
@@ -264,10 +264,10 @@ def request_features(reqobj):
     :param reqobj:
     :return:
     """
-    corpus = reqobj.get('container')
+    container = reqobj.get('container')
     del reqobj['corpus']
 
-    features, docs = corpus.get_features(**reqobj)
+    features, docs = container.get_features(**reqobj)
     return dict(
         success=True,
         features=features,

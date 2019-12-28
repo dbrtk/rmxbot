@@ -61,7 +61,7 @@ class UpdateCorpus(graphene.Mutation):
 
     def mutate(root, info, corpusid, endpoint, crawl=True):
 
-        resp = data.crawl(corpusid=corpusid, endpoint=endpoint, crawl=crawl)
+        resp = data.crawl(containerid=corpusid, endpoint=endpoint, crawl=crawl)
         return CreateCorpus(**resp)
 
 
