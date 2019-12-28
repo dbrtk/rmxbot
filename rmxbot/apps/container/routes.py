@@ -158,7 +158,7 @@ def corpus_is_ready(corpusid, feats):
     return jsonify(availability)
 
 
-@container_app.route('/<objectid:corpusid>/corpus-crawl-ready/', methods=['GET'])
+@container_app.route('/<objectid:corpusid>/container-crawl-ready/', methods=['GET'])
 def corpus_crawl_ready(corpusid):
     """Checking if the crawl is ready in order to load the page."""
 
@@ -187,7 +187,7 @@ def corpus_crawl_ready(corpusid):
     })
 
 
-@container_app.route('/<objectid:corpusid>/corpus-from-files-ready/',
+@container_app.route('/<objectid:corpusid>/container-from-files-ready/',
                      methods=['GET'])
 def corpus_from_files_ready(corpusid):
 
