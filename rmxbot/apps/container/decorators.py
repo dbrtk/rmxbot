@@ -74,14 +74,16 @@ def neo_availability(func):
         availability = request_availability(containerid, {
             'features': features,
         }, container=container)
-
+        out = {
+            'busy': True,
+            'retry': True,
+            'success': False,
+            'available': False,
+            'features': features,
+            'containerid': container.get_id()
+        }
         if availability.get('busy'):
-            return {
-                'busy': True,
-                'watch': True,
-                'success': False,
-                'corpusid': container.get_id()
-            }
+            return out
 
         if availability.get('available'):
             return func({
@@ -99,13 +101,6 @@ def neo_availability(func):
             docs_per_feat=docsperfeat,
             feats_per_doc=featsperdoc
         )
-        out = {
-            'success': False,
-            'retry': True,
-            'watch': True,
-            'busy': True,
-            'corpusid': container.get_id()
-        }
         out.update(availability)
         return out
 

@@ -188,7 +188,7 @@ def delete_texts(containerid: str = None, dataids: typing.List[str] = None):
         raise ValueError(dataids)
     set_crawl_ready(containerid, False)
     delete_data_from_corpus.delay(corpusid=containerid, data_ids=dataids)
-    return {'success': True}
+    return {'success': True, 'containerid': containerid}
 
 
 def get_text_file(containerid, dataid):
@@ -328,5 +328,6 @@ def graph(reqobj):
         'success': True,
         'edge': links,
         'node': nodes,
+        'features': reqobj.get('feats'),
         'containerid': str(container.get_id())
     }

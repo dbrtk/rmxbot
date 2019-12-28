@@ -76,7 +76,7 @@ class CorpusReady(graphene.ObjectType):
 
     The graphql query:
     ```
-    {corpusReady(
+    query{corpusReady(
       containerid:"5e00fe205dbae8b568d496b6",
       feats:10
     ) {
@@ -344,7 +344,6 @@ class GraphInterface(graphene.Interface):
     Interface to the graph. Depending on the graph's availability, this should
     return an adequate data type:
     - Graph if the graph is available;
-    - GraphBusy is the graph is being generated;
     - GraphGenerate if the graph is not available and will be generated.
 
     This endpoint can be used to watch the status of a graph being generated.
@@ -352,7 +351,7 @@ class GraphInterface(graphene.Interface):
     Graphql Query:
     ```
         query{graph(
-            containerid:"<CORPUS-ID>",
+            containerid:"<CONTAINER-ID>",
             features:12,
             docsperfeat:3,
             featsperdoc:5,
@@ -360,16 +359,12 @@ class GraphInterface(graphene.Interface):
         ) {
           containerid
           success
+          features
           __typename
-          ... on GraphBusy {
-            busy
-          }
           ... on GraphGenerate {
             busy
             retry
-            watch
             available
-            requestedFeatures
           }
           ... on Graph {
             edge {
@@ -403,19 +398,18 @@ class GraphInterface(graphene.Interface):
     ```
     """
     containerid = graphene.String()
+    features = graphene.Int()
     success = graphene.Boolean()
 
     @classmethod
     def resolve_type(cls, instance, info):
 
-        if instance.get('success') is False:
-            if instance.get('available') is False \
-                    and instance.get('watch') is True:
-                return GraphGenerate
-            elif instance.get('busy'):
-                return GraphBusy
-        else:
+        if instance.get('success'):
             return Graph
+        elif not instance.get('success'):
+            return GraphGenerate
+        else:
+            raise RuntimeError(instance)
 
 
 class Graph(graphene.ObjectType):
@@ -438,21 +432,7 @@ class GraphGenerate(graphene.ObjectType):
 
     busy = graphene.Boolean()
     retry = graphene.Boolean()
-    watch = graphene.Boolean()
     available = graphene.Boolean()
-    requested_features = graphene.String()
-
-
-class GraphBusy(graphene.ObjectType):
-    """
-    Type returned when the system is busy generating the graph for the
-    requested amount of features.
-    """
-    class Meta:
-        interfaces = (GraphInterface, )
-
-    busy = graphene.Boolean()
-    watch = graphene.Boolean()
 
 
 class Query(graphene.AbstractType):

@@ -17,6 +17,7 @@ class CreateCorpus(graphene.Mutation):
         crawl:true
       ) {
         success
+        containerid
       }
     }
     ```
@@ -27,7 +28,7 @@ class CreateCorpus(graphene.Mutation):
         crawl = graphene.Boolean(default_value=True)
 
     success = graphene.String()
-    corpusid = graphene.String()
+    containerid = graphene.String()
 
     def mutate(root, info, name, endpoint, crawl):
 
@@ -43,25 +44,26 @@ class UpdateCorpus(graphene.Mutation):
     mutation {
       crawl(
         endpoint:"https://another-endpoint.com/",
-        corpusid:"<CORPUS_ID>",
+        containerid:"<CORPUS_ID>",
         crawl:true
       ) {
         success
+        containerid
       }
     }
     ```
     """
     class Arguments:
-        corpusid = graphene.String(required=True)
+        containerid = graphene.String(required=True)
         endpoint = graphene.String(required=True)
         crawl = graphene.Boolean(default_value=True)
 
     success = graphene.String()
-    corpusid = graphene.String()
+    containerid = graphene.String()
 
-    def mutate(root, info, corpusid, endpoint, crawl=True):
+    def mutate(root, info, containerid, endpoint, crawl=True):
 
-        resp = data.crawl(containerid=corpusid, endpoint=endpoint, crawl=crawl)
+        resp = data.crawl(containerid=containerid, endpoint=endpoint, crawl=crawl)
         return CreateCorpus(**resp)
 
 
@@ -72,10 +74,11 @@ class DeleteTexts(graphene.Mutation):
     ```
     mutation {
       deleteTexts(
-        corpusid:"<CORPUS_ID>",
+        containerid:"<CORPUS_ID>",
         dataids: [<DATA-ID>, <DATA-ID>, <DATA-ID>]
       ) {
         success
+        containerid
       }
     }
 
@@ -83,14 +86,15 @@ class DeleteTexts(graphene.Mutation):
     """
 
     class Arguments:
-        corpusid = graphene.String(required=True)
+        containerid = graphene.String(required=True)
         dataids = graphene.List(graphene.String, required=True)
 
     success = graphene.Boolean()
+    containerid = graphene.String()
 
-    def mutate(root, info, corpusid, dataids):
+    def mutate(root, info, containerid, dataids):
 
-        data.delete_texts(containerid=corpusid, dataids=dataids)
+        data.delete_texts(containerid=containerid, dataids=dataids)
         return DeleteTexts(success=True)
 
 
