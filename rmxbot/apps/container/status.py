@@ -32,7 +32,7 @@ class Status(object):
     @property
     def newly_created(self):
 
-        return self.status, 'Corpus being created...'
+        return self.status, 'Container with texts being created...'
 
     @property
     def busy(self):
