@@ -107,14 +107,14 @@ class DataModel(Document):
         super(DataModel, self).__init__(*args, **kwds)
 
     @classmethod
-    def create_empty(cls, corpusid: str = None, title: str = None,
+    def create_empty(cls, containerid: str = None, title: str = None,
                      fileid: str = None, links: list = None):
 
-        corpus_file_path = corpus_path(corpusid=corpusid)
+        corpus_file_path = corpus_path(corpusid=containerid)
 
         data_obj = cls()
         data_obj['title'] = title
-        data_obj['corpusid'] = corpusid
+        data_obj['corpusid'] = containerid
         if links:
             data_obj['links'] = list(set(links))
 
@@ -123,8 +123,8 @@ class DataModel(Document):
         data_obj['fileid'] = fileid
 
         if corpus_file_path:
-            assert corpusid in corpus_file_path, \
-                ('%s - %s' % (corpusid, corpus_file_path),)
+            assert containerid in corpus_file_path, \
+                ('%s - %s' % (containerid, corpus_file_path),)
             if not os.path.exists(corpus_file_path):
                 raise ValueError(corpus_file_path)
             data_obj.chmod_file(path=corpus_file_path, fileid=fileid)

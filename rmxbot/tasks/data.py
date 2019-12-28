@@ -67,7 +67,7 @@ def create(corpusid: str = None,
     :return:
     """
     doc, fileid = DataModel.create_empty(
-        corpusid=corpusid,
+        containerid=corpusid,
         title=file_name,
         fileid=fileid
     )
