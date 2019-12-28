@@ -39,8 +39,14 @@ def paginate(start: int = 0, limit: int = 100):
         start=start,
         direction=pymongo.DESCENDING)
     encoder = RmxEncoder()
+
+    def process_id(_):
+
+        _['containerid'] = _.get('_id')
+        del _['_id']
+        return _
     return [
-        json.loads(encoder.encode(item)) for item in cursor
+        json.loads(encoder.encode(process_id(item))) for item in cursor
     ]
 
 
@@ -57,7 +63,7 @@ def create_from_crawl(name: str = None, endpoint: str = None,
 
     # todo(): pass the corpus file path to the crawler.
     crawl_async.delay(url_list, corpus_id=docid, depth=depth)
-    return {'success': True, 'corpusid': corpus.get_id()}
+    return {'success': True, 'containerid': corpus.get_id()}
 
 
 def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
@@ -68,7 +74,7 @@ def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
     set_crawl_ready(corpusid, False)
     crawl_async.delay([endpoint], corpus_id=corpusid,
                       depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
-    return {'success': True, 'corpusid': corpus.get_id()}
+    return {'success': True, 'containerid': corpus.get_id()}
 
 
 def container_data(containerid):
@@ -92,7 +98,7 @@ def container_data(containerid):
 
     obj['available_feats'] = corpus.get_features_count()
     obj['name'] = corpus.get('name')
-    obj['corpusid'] = str(corpus.get_id())
+    obj['containerid'] = str(corpus.get_id())
     obj['urls_length'] = len(corpus.get('urls'))
     obj['texts'] = [_ for _ in corpus.get('urls')[:10]]
 
@@ -120,11 +126,11 @@ def crawl_is_ready(containerid):
             not container.get('integrity_check_in_progress'):
         return {
             'ready': True,
-            'corpusid': containerid
+            'containerid': containerid
         }
     return {
         'ready': False,
-        'corpusid': containerid
+        'containerid': containerid
     }
 
 
@@ -137,11 +143,11 @@ def file_upload_ready(containerid):
     if corpus.get('crawl_ready'):
         return {
             'ready': True,
-            'corpusid': containerid
+            'containerid': containerid
         }
     return {
         'ready': False,
-        'corpusid': containerid
+        'containerid': containerid
     }
 
 
@@ -161,7 +167,7 @@ def texts(containerid):
         '/')
     outobj['datatype'] = 'crawl' if container['data_from_the_web'] else \
         'upload' if container['data_from_files'] else None
-    outobj['corpusid'] = container.get('_id')
+    outobj['containerid'] = container.get('_id')
     outobj['name'] = container.get('name')
     outobj['data'] = DataModel.query_data_project(
         query={'_id': {'$in': dataids}},
@@ -210,7 +216,7 @@ def get_text_file(containerid, dataid):
         'text': txt,
         'dataid': dataid,
         'length': len(txt),
-        'corpusid': container.get_id()
+        'containerid': container.get_id()
     }
 
 
@@ -246,7 +252,7 @@ def lemma_context(containerid, words: typing.List[str] = None):
         })
     return {
         'success': True,
-        'corpusid': container.get_id(),
+        'containerid': container.get_id(),
         'data': [{'fileid': k, 'sentences': v} for k, v in
                  resp.json().get('data').items()]
     }
@@ -322,5 +328,5 @@ def graph(reqobj):
         'success': True,
         'edge': links,
         'node': nodes,
-        'corpusid': str(container.get_id())
+        'containerid': str(container.get_id())
     }

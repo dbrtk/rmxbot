@@ -22,7 +22,7 @@ class CorpusStructure(graphene.ObjectType):
     The basic structure for the corpus, that maps to the one of the
     model/document as it is saved in the database.
     """
-    _id = graphene.String()
+    containerid = graphene.String()
     name = graphene.String()
     description = graphene.String()
     created = graphene.DateTime()
@@ -48,7 +48,7 @@ class CorpusDataView(graphene.ObjectType):
     ```
     query {
       corpusData(
-        corpusid:"5e00fe205dbae8b568d496b6"
+        containerid:"<CONTAINER-ID>"
       ) {
       availableFeats
       texts {
@@ -59,12 +59,12 @@ class CorpusDataView(graphene.ObjectType):
         fileId
         titleId
       }
-      corpusid
+      containerid
       name
     }}
     ```
     """
-    corpusid = graphene.String(required=True)
+    containerid = graphene.String(required=True)
     available_feats = graphene.List(graphene.Int)
     name = graphene.String()
     texts = graphene.List(TxtDatum, description="list holding text objects")
@@ -77,10 +77,10 @@ class CorpusReady(graphene.ObjectType):
     The graphql query:
     ```
     {corpusReady(
-      corpusid:"5e00fe205dbae8b568d496b6",
+      containerid:"5e00fe205dbae8b568d496b6",
       feats:10
     ) {
-      corpusid
+      containerid
       requestedFeatures
       busy
       available
@@ -89,7 +89,7 @@ class CorpusReady(graphene.ObjectType):
     }}
     ```
     """
-    corpusid = graphene.String()
+    containerid = graphene.String()
     busy = graphene.Boolean()
     available = graphene.Boolean()
     requested_features = graphene.Int()
@@ -99,7 +99,7 @@ class CorpusReady(graphene.ObjectType):
 
 class DatasetReady(graphene.ObjectType):
     """Checking if the dataset is ready after a crawl or file upload."""
-    corpusid = graphene.String()
+    containerid = graphene.String()
     ready = graphene.Boolean()
 
 
@@ -119,8 +119,8 @@ class Texts(graphene.ObjectType):
     This is the query:
     ```
     query {
-      texts(corpusid:"5e00fe205dbae8b568d496b6") {
-        corpusid
+      texts(containerid:"5e00fe205dbae8b568d496b6") {
+        containerid
         filesUploadEndpoint
         datatype
         name
@@ -137,7 +137,7 @@ class Texts(graphene.ObjectType):
     """
     files_upload_endpoint = graphene.String()
     datatype = graphene.String()
-    corpusid = graphene.String()
+    containerid = graphene.String()
     name = graphene.String()
     data = graphene.List(TextInDataset)
 
@@ -159,12 +159,12 @@ class FeatureContext(graphene.ObjectType):
     ```
     query {
       featureContext(
-        corpusid:"5dffc8c93e767601249f2fa7",
+        containerid:"5dffc8c93e767601249f2fa7",
         words:["earth","remember","dream","call","picture","plane","book",
                "free","spirit","military","gyroscope","seed","fly","pole",
                "nasa","fishbowl","artificial","horizon","cloud","flat"]
       ){
-        corpusid
+        containerid
         data {
           sentences
           fileid
@@ -174,28 +174,28 @@ class FeatureContext(graphene.ObjectType):
     }
     ```
     """
-    corpusid = graphene.String()
+    containerid = graphene.String()
     success = graphene.Boolean()
     data = graphene.List(ContextPhrase)
 
 
 class FileText(graphene.ObjectType):
     """
-    For a given corpusid and dataid, returns all sentences that are contained
+    For a given containerid and dataid, returns all sentences that are contained
     in the file.
     Graphql query:
     ```
     query {
-      fileText(corpusid:"<CORPUS-ID>", dataid:"<DATA-ID>"){
+      fileText(containerid:"<CORPUS-ID>", dataid:"<DATA-ID>"){
         dataid
-        corpusid
+        containerid
         length
         text
       }
     }
     ```
     """
-    corpusid = graphene.String()
+    containerid = graphene.String()
     dataid = graphene.String()
     text = graphene.List(graphene.String)
     length = graphene.Int()
@@ -241,13 +241,13 @@ class Features(graphene.ObjectType):
     ```
     query {
       features(
-        corpusid:"<CORPUS-ID>",
+        containerid:"<CORPUS-ID>",
         features:25,
         docsperfeat:3,
         featsperdoc:3,
         words:10
       ) {
-        corpusid
+        containerid
         requestedFeatures
         available
         busy
@@ -283,7 +283,7 @@ class Features(graphene.ObjectType):
     }
     ```
     """
-    corpusid = graphene.String()
+    containerid = graphene.String()
     requested_features = graphene.Int()
 
     available = graphene.Boolean()
@@ -352,13 +352,13 @@ class GraphInterface(graphene.Interface):
     Graphql Query:
     ```
         query{graph(
-            corpusid:"<CORPUS-ID>",
+            containerid:"<CORPUS-ID>",
             features:12,
             docsperfeat:3,
             featsperdoc:5,
             words:20
         ) {
-          corpusid
+          containerid
           success
           __typename
           ... on GraphBusy {
@@ -402,7 +402,7 @@ class GraphInterface(graphene.Interface):
         }}
     ```
     """
-    corpusid = graphene.String()
+    containerid = graphene.String()
     success = graphene.Boolean()
 
     @classmethod
@@ -460,7 +460,7 @@ class Query(graphene.AbstractType):
 
     corpus_data = graphene.Field(
         CorpusDataView,
-        corpusid=graphene.String(required=True)
+        containerid=graphene.String(required=True)
     )
 
     paginate = graphene.List(
@@ -471,32 +471,32 @@ class Query(graphene.AbstractType):
 
     corpus_ready = graphene.Field(
         CorpusReady,
-        corpusid=graphene.String(),
+        containerid=graphene.String(),
         feats=graphene.Int()
     )
 
-    crawl_ready = graphene.Field(DatasetReady, corpusid=graphene.String())
+    crawl_ready = graphene.Field(DatasetReady, containerid=graphene.String())
 
     text_upload_ready = graphene.Field(
-        DatasetReady, corpusid=graphene.String())
+        DatasetReady, containerid=graphene.String())
 
-    texts = graphene.Field(Texts, corpusid=graphene.String())
+    texts = graphene.Field(Texts, containerid=graphene.String())
 
     feature_context = graphene.Field(
         FeatureContext,
-        corpusid=graphene.String(),
+        containerid=graphene.String(),
         words=graphene.List(graphene.String)
     )
 
     file_text = graphene.Field(
         FileText,
-        corpusid=graphene.String(),
+        containerid=graphene.String(),
         dataid=graphene.String()
     )
 
     features = graphene.Field(
         Features,
-        corpusid=graphene.String(),
+        containerid=graphene.String(),
         words=graphene.Int(default_value=10),
         features=graphene.Int(default_value=10),
         docsperfeat=graphene.Int(default_value=5),
@@ -505,21 +505,21 @@ class Query(graphene.AbstractType):
 
     graph = graphene.Field(
         GraphInterface,
-        corpusid=graphene.String(),
+        containerid=graphene.String(),
         words=graphene.Int(default_value=10),
         features=graphene.Int(default_value=10),
         docsperfeat=graphene.Int(default_value=5),
         featsperdoc=graphene.Int(default_value=3)
     )
 
-    def resolve_corpus_data(parent, info, corpusid):
+    def resolve_corpus_data(parent, info, containerid):
         """
         Retrieve data that summarise a corpus/crawl
         :param info:
-        :param corpusid:
+        :param containerid:
         :return:
         """
-        return data.container_data(corpusid)
+        return data.container_data(containerid)
 
     def resolve_paginate(parent, info, start, limit):
         """
@@ -528,8 +528,8 @@ class Query(graphene.AbstractType):
 
         This is the query:
         ```
-        {paginate(start:0, limit:100){
-          Id
+        query{paginate(start:0, limit:100){
+          containerid
           description
           name
           urls{
@@ -548,72 +548,72 @@ class Query(graphene.AbstractType):
         """
         return data.paginate(start=start, limit=limit)
 
-    def resolve_corpus_ready(parent, info, corpusid, feats):
+    def resolve_corpus_ready(parent, info, containerid, feats):
 
-        return data.container_is_ready(containerid=corpusid, feats=feats)
+        return data.container_is_ready(containerid=containerid, feats=feats)
 
-    def resolve_crawl_ready(parent, info, corpusid):
+    def resolve_crawl_ready(parent, info, containerid):
         """
         Checks if the crawl is ready.
         Query:
         ```
         query {
-          crawlReady(corpusid:"5e00fe205dbae8b568d496b6") {
-            corpusid
+          crawlReady(containerid:"5e00fe205dbae8b568d496b6") {
+            containerid
             ready
           }
         }
         ```
         :param info:
-        :param corpusid:
+        :param containerid:
         :return:
         """
-        return data.crawl_is_ready(containerid=corpusid)
+        return data.crawl_is_ready(containerid=containerid)
 
-    def resolve_text_upload_ready(parent, info, corpusid):
+    def resolve_text_upload_ready(parent, info, containerid):
         """
         Checks if the creation of a data set/container from file upload is ready.
         Query:
         ```
         query {
-          textUploadReady(corpusid:"5e00fe205dbae8b568d496b6") {
-            corpusid
+          textUploadReady(containerid:"5e00fe205dbae8b568d496b6") {
+            containerid
             ready
           }
         }
         ```
         :param info:
-        :param corpusid:
+        :param containerid:
         :return:
         """
-        return data.file_upload_ready(corpusid)
+        return data.file_upload_ready(containerid)
 
-    def resolve_texts(parent, info, corpusid):
+    def resolve_texts(parent, info, containerid):
         """Retrieves texts attached to a dataset."""
-        return data.texts(corpusid)
+        return data.texts(containerid)
 
-    def resolve_feature_context(parent, info, corpusid, words):
+    def resolve_feature_context(parent, info, containerid, words):
         """
         Retrieves a context for a feature (list of words).
         :param info:
-        :param corpusid: the corpus id
+        :param containerid: the corpus id
         :param words: list of words
         :return:
         """
-        return data.lemma_context(containerid=corpusid, words=words)
+        return data.lemma_context(containerid=containerid, words=words)
 
-    def resolve_file_text(parent, info, corpusid, dataid):
+    def resolve_file_text(parent, info, containerid, dataid):
 
-        return data.get_text_file(containerid=corpusid, dataid=dataid)
+        return data.get_text_file(containerid=containerid, dataid=dataid)
 
-    def resolve_features(parent, info, corpusid, words, features, docsperfeat,
+    def resolve_features(parent, info, containerid, words, features, docsperfeat,
                          featsperdoc):
         """
         Retrieves 2 datasets: docs with features, and features with docs.
         If matrices for a given features (number) don't exist, they will be
         computed.
         :param info:
-        :param corpusid:
+        :param containerid:
         :param words:
         :param features:
         :param docsperfeat:
@@ -621,21 +621,20 @@ class Query(graphene.AbstractType):
         :return:
         """
         return data.request_features(
-            corpusid=corpusid,
+            containerid=containerid,
             words=words,
             features=features,
             docsperfeat=docsperfeat,
             featsperdoc=featsperdoc
         )
 
-    def resolve_graph(parent, info, corpusid, words, features, docsperfeat,
+    def resolve_graph(parent, info, containerid, words, features, docsperfeat,
                       featsperdoc):
 
         return data.graph(
-            corpusid=corpusid,
+            containerid=containerid,
             words=words,
             features=features,
             docsperfeat=docsperfeat,
             featsperdoc=featsperdoc
         )
-

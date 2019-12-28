@@ -65,12 +65,13 @@ def neo_availability(func):
        api.
     """
     @wraps(func)
-    def wrapped_view(corpusid: str = None, words: int = 10, features: int = 10,
-                     docsperfeat: int = 5, featsperdoc: int = 3):
+    def wrapped_view(containerid: str = None, words: int = 10,
+                     features: int = 10, docsperfeat: int = 5,
+                     featsperdoc: int = 3):
 
-        container = ContainerModel.inst_by_id(corpusid)
+        container = ContainerModel.inst_by_id(containerid)
 
-        availability = request_availability(corpusid, {
+        availability = request_availability(containerid, {
             'features': features,
         }, container=container)
 
