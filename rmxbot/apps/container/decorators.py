@@ -83,14 +83,13 @@ def neo_availability(func):
             }
 
         if availability.get('available'):
-
-            return func(dict(
-                words=words,
-                feats=features,
-                docs_per_feat=docsperfeat,
-                feats_per_doc=featsperdoc,
-                corpus=container
-            ))
+            return func({
+                'words': words,
+                'feats': features,
+                'docs_per_feat': docsperfeat,
+                'feats_per_doc': featsperdoc,
+                'corpus': container
+            })
         generate_matrices_remote.delay(
             corpusid=str(container.get_id()),
             feats=features,

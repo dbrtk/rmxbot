@@ -7,11 +7,11 @@ import os
 import typing
 import uuid
 
-from flask import abort, Blueprint, request
+from flask import abort, request
 import pymongo
 
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       RMXGREP_ENDPOINT, TEMPLATES)
+                       RMXGREP_ENDPOINT)
 from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import DataModel, LISTURLS_PROJECT
@@ -22,10 +22,7 @@ from .status import status_text
 
 from ...tasks.container import crawl_async, delete_data_from_corpus
 
-ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
-
-corpus_app = Blueprint(
-    'corpus_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
+ERR_MSGS = dict(container_does_not_exist='A container with id: "{}" does not exist.')
 
 
 def paginate(start: int = 0, limit: int = 100):
@@ -49,7 +46,7 @@ def paginate(start: int = 0, limit: int = 100):
 
 def create_from_crawl(name: str = None, endpoint: str = None,
                       crawl: bool = True):
-    """Create a corpus from a crawl using scrasync."""
+    """Create a container from a crawl using scrasync."""
     url_list = [endpoint]
 
     docid = str(ContainerModel.inst_new_doc(name=name))
@@ -75,8 +72,8 @@ def crawl(corpusid: str = None, endpoint: str = None, crawl: bool = True):
 
 
 def container_data(containerid):
-    """This returns a corpus data view. It will contain all necesary info
-    about a text corpus.
+    """This returns a container data view. It will contain all necesary info
+    about a text container.
     """
     obj = {}
     status, message = status_text(request.args.get('status'))
@@ -87,10 +84,10 @@ def container_data(containerid):
     corpus = ContainerModel.inst_by_id(containerid)
     if not corpus:
         # obj['errors'] = [
-        #     ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+        #     ERR_MSGS.get('container_does_not_exist').format(corpusid)
         # ]
         raise RuntimeError(
-            ERR_MSGS.get('corpus_does_not_exist').format(containerid)
+            ERR_MSGS.get('container_does_not_exist').format(containerid)
         )
 
     obj['available_feats'] = corpus.get_features_count()
@@ -103,7 +100,7 @@ def container_data(containerid):
 
 
 def container_is_ready(containerid, feats):
-    """Returns an object with information about the state of the corpus.
+    """Returns an object with information about the state of the container.
     This is called when features are being computed.
     """
     feats = int(feats)
@@ -132,7 +129,7 @@ def crawl_is_ready(containerid):
 
 
 def file_upload_ready(containerid):
-    """Checks if hte corpus created from files is ready."""
+    """Checks if hte container created from files is ready."""
     corpus = ContainerModel.inst_by_id(containerid)
     if not corpus:
         abort(404)
@@ -155,7 +152,7 @@ def texts(containerid):
     outobj = {}
     if not container:
         outobj['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(containerid)
+            ERR_MSGS.get('container_does_not_exist').format(containerid)
         ]
         return outobj
 
@@ -221,9 +218,9 @@ def lemma_context(containerid, words: typing.List[str] = None):
     """
     Returns the context for lemmatised words. Lemmatised words are the words
     that make a feature - feature-words. The context are all sentences in the
-    corpus that contain one or more feature-word(s).
+    container that contain one or more feature-word(s).
 
-    :param containerid: the corpus id
+    :param containerid: the container id
     :param words: these are feature words (lemmatised by default)
     :return:
     """
@@ -261,7 +258,7 @@ def request_features(reqobj):
     :param reqobj:
     :return:
     """
-    corpus = reqobj.get('corpus')
+    corpus = reqobj.get('container')
     del reqobj['corpus']
 
     features, docs = corpus.get_features(**reqobj)
@@ -286,7 +283,7 @@ def graph(reqobj):
     links, nodes = [], []
 
     for f in features:
-        f['id'] = str(uuid.uuid4())
+        f['id'] = uuid.uuid4().hex
         f['group'] = f['id']
         f['type'] = 'feature'
         # cleanup the feat object
@@ -301,7 +298,7 @@ def graph(reqobj):
     for d in docs:
         _f = get_feat(d['features'][0]['feature'])
         d['group'] = _f['id']
-        d['id'] = str(uuid.uuid4())
+        d['id'] = uuid.uuid4().hex
         d['type'] = 'document'
 
         nodes.append(d)

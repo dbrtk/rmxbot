@@ -1,15 +1,5 @@
 
 
-CORPUS_STATUS = (
-    'busy',
-    'newly-created',
-    'file-upload',
-    'remove-files',
-    'integrity-check',
-    'crawling',
-)
-
-
 def status_text(status):
 
     if not status:

@@ -3,13 +3,7 @@
 import datetime
 import hashlib
 import os
-import shutil
 import stat
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse
-import uuid
 
 import bson
 from pymongo import UpdateOne
@@ -24,14 +18,6 @@ from ...contrib.db.connection import get_collection
 
 
 _COLLECTION = get_collection(collection=DATA_COLL)
-
-SPECIAL_TAGS = ['img']
-MEDIA_TAGS = ['img', 'video', 'canvas', 'audio']
-BLOCK_TAGS = MEDIA_TAGS + ['meta', 'button', 'nav']
-
-# miscellaneous tags are basically difficult tags.
-MISCELLANEOUS_TAGS = ['div', 'a', 'ul', 'li', 'span']
-
 
 LISTURLS_PROJECT = {
     'id': '$_id',
@@ -51,10 +37,6 @@ LIST_SCREENPLAYS_PROJECT = {
     'fileid': '$fileid',
     'filename': '$filename'
 }
-
-
-PROXY_SCRAPER = 1
-Code = bson.code.Code
 
 
 class DataModel(Document):

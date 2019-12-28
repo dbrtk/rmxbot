@@ -1,13 +1,13 @@
 import graphene
 
-from .apps.corpus.queries import Query as CorpusQuery
-from .apps.corpus.queries import (
+from .apps.container.queries import Query as CorpusQuery
+from .apps.container.queries import (
     ContextPhrase, CorpusDataView, CorpusReady, CorpusStructure, DatasetReady,
     Doc, DocumentNode, Edge, Feat, FeatureContext, Features, FeatureNode,
     FeaturesWithDocs, FileText, Graph, GraphBusy, GraphGenerate, TextInDataset,
     Texts, TxtDatum, Word
 )
-from .apps.corpus.mutations import Mutation as CorpusMutation
+from .apps.container.mutations import Mutation as CorpusMutation
 from .apps.data.queries import Data
 from .apps.data.queries import Query as DataQuery
 

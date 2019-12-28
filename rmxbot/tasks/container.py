@@ -2,7 +2,7 @@
 import os
 from typing import List
 
-from ..apps.corpus.models import (
+from ..apps.container.models import (
     ContainerModel, container_status, insert_urlobj,
     integrity_check_ready,
     set_integrity_check_in_progress,
@@ -158,7 +158,7 @@ def delete_data_from_corpus(
 
 @celery.task
 def expected_files(corpusid: str = None, file_objects: list = None):
-    """Updates the corpus with expected files that are processed."""
+    """Updates the container with expected files that are processed."""
     ContainerModel.update_expected_files(
         containerid=corpusid, file_objects=file_objects)
 
@@ -174,7 +174,7 @@ def expected_files(corpusid: str = None, file_objects: list = None):
 
 @celery.task
 def create_from_upload(name: str = None, file_objects: list = None):
-    """Creating a corpus from file upload."""
+    """Creating a container from file upload."""
     docid = str(ContainerModel.inst_new_doc(name=name))
     corpus = ContainerModel.inst_by_id(docid)
     corpus['expected_files'] = file_objects

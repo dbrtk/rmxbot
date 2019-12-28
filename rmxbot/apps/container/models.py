@@ -5,7 +5,6 @@ import os
 import re
 import stat
 from typing import List
-import uuid
 
 import bson
 import pymongo
@@ -42,11 +41,6 @@ class DataObject(Document):
 
         'checked': bool,
     }
-
-
-def file_hash():
-
-    pass
 
 
 class ExpectedFile(Document):
@@ -135,7 +129,6 @@ class ContainerModel(Document):
 
         }
         super().__init__(*args, **kwds)
-        self.featcount = None
 
     @classmethod
     def inst_new_doc(cls, name=None, save=1, **kwds):
@@ -183,9 +176,6 @@ class ContainerModel(Document):
             )
         ))
 
-    @property
-    def folder_name(self): return str(self.get_id())
-
     def get_vectors_path(self):
         """ Returns the path of the file that contains the vectors. """
         return os.path.join(self.get_folder_path(), 'matrix', 'vectors.npy')
@@ -230,15 +220,6 @@ class ContainerModel(Document):
             container.
         """
         return os.path.join(self.get_folder_path(), 'corpus')
-
-    def create_file_path(self):
-        """Creating a path to a file and returning it along with the file id.
-        """
-        fileid = str(uuid.uuid4())
-        return os.path.normpath(
-            os.path.join(
-                self.texts_path(), fileid)
-        ), fileid
 
     def create_folder(self):
         """ Creating the directory for the texts and matrices.
@@ -434,8 +415,6 @@ class ContainerModel(Document):
                 }
             })
 
-    def get_expected_files(self): return self['expected_files']
-
     def set_container_type(self,
                            data_from_files: bool = False,
                            data_from_the_web: bool = False):
@@ -485,7 +464,7 @@ class ContainerModel(Document):
 
 def insert_urlobj(containerid: (str, bson.ObjectId) = None,
                   url_obj: dict = None):
-    """ Validating the url object and inserting it in the corpus list of urls.
+    """ Validating the url object and inserting it in the container list of urls.
     """
     DataObject.simple_validation(url_obj)
 
@@ -498,7 +477,7 @@ def insert_urlobj(containerid: (str, bson.ObjectId) = None,
 
 
 def set_crawl_ready(containerid, value):
-    """ Set the value of crawl_ready on the corpus. """
+    """ Set the value of crawl_ready on the container. """
     _id = bson.ObjectId(containerid)
     if not isinstance(value, bool):
         raise RuntimeError(value)
@@ -506,7 +485,7 @@ def set_crawl_ready(containerid, value):
 
 
 def set_integrity_check_in_progress(containerid, value):
-    """ Set the value of crawl_ready on the corpus. """
+    """ Set the value of crawl_ready on the container. """
     _id = bson.ObjectId(containerid)
     if not isinstance(value, bool):
         raise RuntimeError(value)
@@ -525,7 +504,7 @@ def integrity_check_ready(containerid):
 
 
 def container_status(containerid):
-    """Retrieves status related data for a corpus id."""
+    """Retrieves status related data for a container id."""
     return _COLLECTION.find_one({'_id': bson.ObjectId(containerid)}, {
         'crawl_ready': 1,
         'integrity_check_in_progress': 1,

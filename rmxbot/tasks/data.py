@@ -3,7 +3,7 @@ import os
 from typing import List
 
 from ..apps.data.models import DataModel
-from ..apps.corpus.models import insert_urlobj
+from ..apps.container.models import insert_urlobj
 from ..app import celery
 
 

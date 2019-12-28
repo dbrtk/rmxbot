@@ -15,6 +15,7 @@ from ...contrib.rmxjson import RmxEncoder
 from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
+from . import data
 from .decorators import check_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
@@ -22,14 +23,15 @@ from .status import status_text
 
 from ...tasks.container import (crawl_async, delete_data_from_corpus, test_task)
 
-ERR_MSGS = dict(corpus_does_not_exist='A corpus with id: "{}" does not exist.')
+ERR_MSGS = dict(
+    container_does_not_exist='A container with id: "{}" does not exist.')
 
-corpus_app = Blueprint(
-    'corpus_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
+container_app = Blueprint(
+    'container_app', __name__, root_path='/corpus', template_folder=TEMPLATES)
 
 
-@corpus_app.route('/')
-def corpus_home():
+@container_app.route('/')
+def container_home():
     """ Renders the home page for the corpus.
     :return:
     """
@@ -58,20 +60,20 @@ def corpus_home():
     return render_template("corpus/index.html", **context)
 
 
-@corpus_app.route('/new/')
+@container_app.route('/new/')
 def new_corpus():
 
     return render_template('corpus/new.html')
 
 
-@corpus_app.route('/create-from-text-files/')
+@container_app.route('/create-from-text-files/')
 def create_from_txt_files():
 
     return render_template("corpus/create-from-text-files.html",
                            files_upload_endpoint=EXTRACTXT_FILES_UPLOAD_URL)
 
 
-@corpus_app.route('/create/', methods=['POST'])
+@container_app.route('/create/', methods=['POST'])
 def create_from_crawl():
     """Create a corpus from a crawl using scrasync."""
 
@@ -95,7 +97,7 @@ def create_from_crawl():
             str(docid), urlencode(dict(status='newly-created'))))
 
 
-@corpus_app.route('/crawl/', methods=['POST'])
+@container_app.route('/crawl/', methods=['POST'])
 def crawl():
     """Launching the crawler (scrasync) on an existing corpus"""
     endpoint = request.form['endpoint']
@@ -114,14 +116,14 @@ def crawl():
             str(corpusid), urlencode(dict(status='crawling'))))
 
 
-@corpus_app.route('/test-task/<a>/<b>/')
+@container_app.route('/test-task/<a>/<b>/')
 def view_test_task(a, b):
 
     res = test_task.delay(int(a), int(b))
     return jsonify({'success': True, 'result': res.get()})
 
 
-@corpus_app.route('/<objectid:corpusid>/', methods=['GET'])
+@container_app.route('/<objectid:corpusid>/', methods=['GET'])
 def corpus_data_view(corpusid):
 
     context = {}
@@ -133,7 +135,7 @@ def corpus_data_view(corpusid):
     corpus = ContainerModel.inst_by_id(corpusid)
     if not corpus:
         context['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+            ERR_MSGS.get('container_does_not_exist').format(corpusid)
         ]
         return render_template("corpus/data.html", **context)
 
@@ -146,7 +148,7 @@ def corpus_data_view(corpusid):
     return render_template("corpus/data.html", **context)
 
 
-@corpus_app.route('/<objectid:corpusid>/is-ready/<feats>/', methods=['GET'])
+@container_app.route('/<objectid:corpusid>/is-ready/<feats>/', methods=['GET'])
 def corpus_is_ready(corpusid, feats):
 
     feats = int(feats)
@@ -156,7 +158,7 @@ def corpus_is_ready(corpusid, feats):
     return jsonify(availability)
 
 
-@corpus_app.route('/<objectid:corpusid>/corpus-crawl-ready/', methods=['GET'])
+@container_app.route('/<objectid:corpusid>/corpus-crawl-ready/', methods=['GET'])
 def corpus_crawl_ready(corpusid):
     """Checking if the crawl is ready in order to load the page."""
 
@@ -185,8 +187,8 @@ def corpus_crawl_ready(corpusid):
     })
 
 
-@corpus_app.route('/<objectid:corpusid>/corpus-from-files-ready/',
-                  methods=['GET'])
+@container_app.route('/<objectid:corpusid>/corpus-from-files-ready/',
+                     methods=['GET'])
 def corpus_from_files_ready(corpusid):
 
     corpus = ContainerModel.inst_by_id(corpusid)
@@ -204,7 +206,7 @@ def corpus_from_files_ready(corpusid):
     })
 
 
-@corpus_app.route('/<objectid:corpusid>/data/')
+@container_app.route('/<objectid:corpusid>/data/')
 def texts(corpusid):
 
     template_name = "corpus/data-view.html"
@@ -213,7 +215,7 @@ def texts(corpusid):
     context = {}
     if not corpus:
         context['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+            ERR_MSGS.get('container_does_not_exist').format(corpusid)
         ]
         return render_template(template_name, **context)
 
@@ -232,7 +234,7 @@ def texts(corpusid):
     return render_template(template_name, **context)
 
 
-@corpus_app.route('/<objectid:corpusid>/data/edit/', methods=['GET'])
+@container_app.route('/<objectid:corpusid>/data/edit/', methods=['GET'])
 def edit_corpus(corpusid):
 
     template_name = "corpus/data-view-edit.html"
@@ -241,7 +243,7 @@ def edit_corpus(corpusid):
     context = {}
     if not corpus:
         context['errors'] = [
-            ERR_MSGS.get('corpus_does_not_exist').format(corpusid)
+            ERR_MSGS.get('container_does_not_exist').format(corpusid)
         ]
         return render_template(template_name, **context)
     dataids = corpus.get_dataids()
@@ -255,8 +257,8 @@ def edit_corpus(corpusid):
     return render_template(template_name, **context)
 
 
-@corpus_app.route('/<objectid:corpusid>/data/delete-texts/',
-                  methods=['POST', 'GET'])
+@container_app.route('/<objectid:corpusid>/data/delete-texts/',
+                     methods=['POST', 'GET'])
 def delete_texts(corpusid):
 
     if request.method == 'GET':
@@ -283,8 +285,8 @@ def delete_texts(corpusid):
         return abort(403)
 
 
-@corpus_app.route('/<objectid:corpusid>/file/<objectid:dataid>/',
-                  methods=['GET'])
+@container_app.route('/<objectid:corpusid>/file/<objectid:dataid>/',
+                     methods=['GET'])
 def get_text_file(corpusid, dataid):
 
     corpus = ContainerModel.inst_by_id(corpusid)
@@ -312,7 +314,7 @@ def get_text_file(corpusid, dataid):
     return jsonify({'text': txt, 'dataid': dataid, 'length': len(txt)})
 
 
-@corpus_app.route('/<objectid:corpusid>/context/')
+@container_app.route('/<objectid:corpusid>/context/')
 def lemma_context(corpusid):
     """ Returns the context for lemmatised words.
 
@@ -344,7 +346,7 @@ def lemma_context(corpusid):
     })
 
 
-@corpus_app.route('/<objectid:corpusid>/features/')
+@container_app.route('/<objectid:corpusid>/features/')
 @check_availability
 def request_features(reqobj):
 
@@ -359,7 +361,7 @@ def request_features(reqobj):
     ))
 
 
-@corpus_app.route('/<objectid:corpusid>/features-html/')
+@container_app.route('/<objectid:corpusid>/features-html/')
 @check_availability
 def request_features_html(reqobj):
 
@@ -371,7 +373,7 @@ def request_features_html(reqobj):
     return jsonify({'features': features})
 
 
-@corpus_app.route('/<objectid:corpusid>/force-directed-graph/')
+@container_app.route('/<objectid:corpusid>/force-directed-graph/')
 @check_availability
 def force_directed_graph(reqobj):
     """ Retrieving data (links and nodes) for a force-directed graph. This
@@ -386,7 +388,7 @@ def force_directed_graph(reqobj):
     links, nodes = [], []
 
     for f in features:
-        f['id'] = str(uuid.uuid4())
+        f['id'] = uuid.uuid4().hex
         f['group'] = f['id']
         f['type'] = 'feature'
         # cleanup the feat object
@@ -401,7 +403,7 @@ def force_directed_graph(reqobj):
     for d in docs:
         _f = get_feat(d['features'][0]['feature'])
         d['group'] = _f['id']
-        d['id'] = str(uuid.uuid4())
+        d['id'] = uuid.uuid4().hex
         d['type'] = 'document'
 
         nodes.append(d)
