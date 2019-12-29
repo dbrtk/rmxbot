@@ -44,7 +44,7 @@ class UpdateCorpus(graphene.Mutation):
     mutation {
       crawl(
         endpoint:"https://another-endpoint.com/",
-        containerid:"<CORPUS_ID>",
+        containerid:"<CONTAINER-ID>",
         crawl:true
       ) {
         success
@@ -74,7 +74,7 @@ class DeleteTexts(graphene.Mutation):
     ```
     mutation {
       deleteTexts(
-        containerid:"<CORPUS_ID>",
+        containerid:"<CONTAINER-ID>",
         dataids: [<DATA-ID>, <DATA-ID>, <DATA-ID>]
       ) {
         success
