@@ -17,7 +17,7 @@ class TxtDatum(graphene.ObjectType):
     title_id = graphene.String()
 
 
-class CorpusStructure(graphene.ObjectType):
+class ContainerStructure(graphene.ObjectType):
     """
     The basic structure for the corpus, that maps to the one of the
     model/document as it is saved in the database.
@@ -41,13 +41,13 @@ class CorpusStructure(graphene.ObjectType):
     data_from_the_web = graphene.Boolean()
 
 
-class CorpusDataView(graphene.ObjectType):
+class ContainerData(graphene.ObjectType):
     """
     Returns the corpus data view calling corpus.data.corpus_data.
     Querying the corpus data view:
     ```
     query {
-      corpusData(
+      containerData(
         containerid:"<CONTAINER-ID>"
       ) {
       availableFeats
@@ -70,13 +70,13 @@ class CorpusDataView(graphene.ObjectType):
     texts = graphene.List(TxtDatum, description="list holding text objects")
 
 
-class CorpusReady(graphene.ObjectType):
+class ContainerReady(graphene.ObjectType):
     """
     Checks if a corpus is available and ready to compute.
 
     The graphql query:
     ```
-    query{corpusReady(
+    query{containerReady(
       containerid:"5e00fe205dbae8b568d496b6",
       feats:10
     ) {
@@ -186,7 +186,7 @@ class FileText(graphene.ObjectType):
     Graphql query:
     ```
     query {
-      fileText(containerid:"<CORPUS-ID>", dataid:"<DATA-ID>"){
+      fileText(containerid:"<CONTAINER-ID>", dataid:"<DATA-ID>"){
         dataid
         containerid
         length
@@ -241,7 +241,7 @@ class Features(graphene.ObjectType):
     ```
     query {
       features(
-        containerid:"<CORPUS-ID>",
+        containerid:"<CONTAINER-ID>",
         features:25,
         docsperfeat:3,
         featsperdoc:3,
@@ -438,19 +438,19 @@ class GraphGenerate(graphene.ObjectType):
 class Query(graphene.AbstractType):
     """Query handler."""
 
-    corpus_data = graphene.Field(
-        CorpusDataView,
+    container_data = graphene.Field(
+        ContainerData,
         containerid=graphene.String(required=True)
     )
 
     paginate = graphene.List(
-        CorpusStructure,
+        ContainerStructure,
         start=graphene.Int(),
         limit=graphene.Int()
     )
 
-    corpus_ready = graphene.Field(
-        CorpusReady,
+    container_ready = graphene.Field(
+        ContainerReady,
         containerid=graphene.String(),
         feats=graphene.Int()
     )
@@ -492,7 +492,7 @@ class Query(graphene.AbstractType):
         featsperdoc=graphene.Int(default_value=3)
     )
 
-    def resolve_corpus_data(parent, info, containerid):
+    def resolve_container_data(parent, info, containerid):
         """
         Retrieve data that summarise a corpus/crawl
         :param info:
@@ -528,7 +528,7 @@ class Query(graphene.AbstractType):
         """
         return data.paginate(start=start, limit=limit)
 
-    def resolve_corpus_ready(parent, info, containerid, feats):
+    def resolve_container_ready(parent, info, containerid, feats):
 
         return data.container_is_ready(containerid=containerid, feats=feats)
 
