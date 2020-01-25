@@ -514,7 +514,7 @@ def container_status(containerid):
     })
 
 
-def request_availability(containerid, reqobj, container=None):
+def request_availability(containerid, reqobj: dict, container=None):
     """ Checks for the availability of a feature.
     The reqobj should look like this:
     {

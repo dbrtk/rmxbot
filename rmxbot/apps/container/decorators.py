@@ -54,8 +54,6 @@ def check_availability(func):
         out.update(availability)
         return jsonify(out)
 
-    # todo(): review
-    # return wraps(func, assigned=available_attrs(func))(wrapped_view)
     return wrapped_view
 
 
@@ -104,8 +102,6 @@ def neo_availability(func):
         out.update(availability)
         return out
 
-    # todo(): review
-    # return wraps(func, assigned=available_attrs(func))(wrapped_view)
     return wrapped_view
 
 
@@ -154,6 +150,4 @@ def graph_availability(func):
         out.update(availability)
         return jsonify(out)
 
-    # todo(): review
-    # return wraps(func, assigned=available_attrs(func))(wrapped_view)
     return wrapped_view
