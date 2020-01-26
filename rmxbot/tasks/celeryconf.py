@@ -39,8 +39,7 @@ NLP_TASKS = {
 
     'integrity_check': 'nlp.task.integrity_check',
 
-    # todo(): delete!
-    # 'available_features': 'nlp.task.available_features',
+    'available_features': 'nlp.task.available_features',
 
     'features_and_docs': 'nlp.task.get_features_and_docs',
 

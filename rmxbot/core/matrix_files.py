@@ -4,16 +4,15 @@ from ..app import celery
 from ..tasks.celeryconf import NLP_TASKS
 
 
-def get_available_features_deppr(containerid, folder_path):
+def get_available_features(containerid, folder_path):
     """Retrieves available features from nlp"""
-    # todo(): delete
     result = celery.send_task(
         NLP_TASKS['available_features'],
         kwargs={'corpusid': containerid, 'path': folder_path}).get()
     return result
 
 
-def get_available_features(containerid: str, folder_path: str):
+def get_available_features_local(containerid: str, folder_path: str):
     """
 
     :param containerid:
