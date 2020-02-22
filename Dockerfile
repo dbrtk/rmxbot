@@ -25,7 +25,7 @@ ENV MONGODB_LOCATION 'mongodb'
 ENV MONGODB_NAME 'rmx'
 
 # the redis host
-ENV REDIS_HOST_NAME 'redis'
+ENV BROKER_HOST_NAME 'rabbitmq'
 
 ENV TEMPLATES_FOLDER '/app/templates'
 

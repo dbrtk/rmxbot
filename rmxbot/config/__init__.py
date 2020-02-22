@@ -10,7 +10,7 @@ SCRIPTS = os.path.join(BASE_DIR, 'bin')
 
 TEMPLATES = os.environ['TEMPLATES_FOLDER']
 
-REDIS_HOST_NAME = os.environ.get('REDIS_HOST_NAME')
+BROKER_HOST_NAME = os.environ.get('BROKER_HOST_NAME')
 
 DEFAULT_CRAWL_DEPTH = 2
 
