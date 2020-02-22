@@ -192,11 +192,17 @@ def create_from_upload(name: str = None, file_objects: list = None):
 
 @celery.task
 def process_crawl_resp(resp, corpusid, iter: int = 0):
-
-    corpus_status = container_status(corpusid)
+    """
+    Processing the crawl response.
+    :param resp:
+    :param corpusid:
+    :param iter:
+    :return:
+    """
+    crawl_status = container_status(corpusid)
     if resp.get('ready'):
 
-        if not corpus_status['integrity_check_in_progress']:
+        if not crawl_status['integrity_check_in_progress']:
             integrity_check.delay(corpusid)
     else:
         if iter < CRAWL_MONITOR_MAX_ITER:
