@@ -247,7 +247,7 @@ def lemma_context(containerid, words: typing.List[str] = None):
         RMXGREP_TASK['search_text'],
         kwargs={
             'words': matchwords,
-            'corpus_path': container.texts_path()
+            'container_path': container.texts_path()
         }).get()
     return {
         'success': True,

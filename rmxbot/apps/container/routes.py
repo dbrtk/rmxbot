@@ -336,7 +336,7 @@ def lemma_context(corpusid):
         kwargs={
             'highlight': True,
             'words': matchwords,
-            'corpus_path': corpus.texts_path()
+            'container_path': corpus.texts_path()
         }).get()
     return jsonify({
         'success': True,
