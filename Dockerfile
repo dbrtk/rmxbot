@@ -11,9 +11,6 @@ RUN chmod +x /app/run.sh && chmod +x /app/celery.sh
 # the endpoint for extractxt
 ENV EXTRACTXT_ENDPOINT 'http://extractxt:8003'
 
-# the endpoint for rmxgrep
-ENV RMXGREP_ENDPOINT 'http://rmxgrep:8004'
-
 # the data root
 ENV DATA_ROOT '/data'
 # the tmp dir for rmxbot

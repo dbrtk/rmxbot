@@ -9,18 +9,17 @@ from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
 
+from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       RMXGREP_ENDPOINT, TEMPLATES)
+                       TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
-from ...core import http_request
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
-from . import data
 from .decorators import check_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
-
+from ...tasks.celeryconf import RMXGREP_TASK
 from ...tasks.container import (crawl_async, delete_data_from_corpus, test_task)
 
 ERR_MSGS = dict(
@@ -332,14 +331,13 @@ def lemma_context(corpusid):
         except StopIteration:
             matchwords.append(i)
 
-    resp = http_request.get(
-        RMXGREP_ENDPOINT,
-        params={
+    data = celery.send_task(
+        RMXGREP_TASK['search_text'],
+        kwargs={
             'highlight': True,
             'words': matchwords,
             'corpus_path': corpus.texts_path()
-        })
-    data = resp.json()
+        }).get()
     return jsonify({
         'success': True,
         'data': data.get('data')

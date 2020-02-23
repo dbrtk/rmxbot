@@ -10,16 +10,15 @@ import uuid
 from flask import abort, request
 import pymongo
 
-from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       RMXGREP_ENDPOINT)
+from ...app import celery
+from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL)
 from ...contrib.rmxjson import RmxEncoder
-from ...core import http_request
 from ..data.models import DataModel, LISTURLS_PROJECT
 from .decorators import neo_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
-
+from ...tasks.celeryconf import RMXGREP_TASK
 from ...tasks.container import crawl_async, delete_data_from_corpus
 
 ERR_MSGS = dict(container_does_not_exist='A container with id: "{}" does not exist.')
@@ -244,17 +243,17 @@ def lemma_context(containerid, words: typing.List[str] = None):
         except StopIteration:
             matchwords.append(i)
 
-    resp = http_request.get(
-        RMXGREP_ENDPOINT,
-        params={
+    data = celery.send_task(
+        RMXGREP_TASK['search_text'],
+        kwargs={
             'words': matchwords,
             'corpus_path': container.texts_path()
-        })
+        }).get()
     return {
         'success': True,
         'containerid': container.get_id(),
         'data': [{'fileid': k, 'sentences': v} for k, v in
-                 resp.json().get('data').items()]
+                 data.get('data').items()]
     }
 
 

@@ -24,6 +24,8 @@ CELERY_ROUTES = {
 
     'nlp.*': {'queue': 'nlp'},
 
+    'rmxgrep.*': {'queue': 'rmxgrep'},
+
 }
 
 SCRASYNC_TASKS = {
@@ -46,4 +48,9 @@ NLP_TASKS = {
 
     'features_and_docs': 'nlp.task.get_features_and_docs',
 
+}
+
+RMXGREP_TASK = {
+
+    'search_text': 'rmxgrep.task.search_text'
 }
