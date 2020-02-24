@@ -23,6 +23,8 @@ CELERY_ROUTES = {
 
     'rmxgrep.*': {'queue': 'rmxgrep'},
 
+    'rmxcluster.*': {'queue': 'rmxcluster'},
+
 }
 
 SCRASYNC_TASKS = {
@@ -54,4 +56,9 @@ NLP_TASKS = {
 RMXGREP_TASK = {
 
     'search_text': 'rmxgrep.task.search_text'
+}
+
+RMXCLUSTER_TASKS = {
+
+    'kmeans_groups': 'rmxcluster.task.kmeans_groups'
 }

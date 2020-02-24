@@ -19,7 +19,7 @@ from .decorators import check_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
-from ...tasks.celeryconf import NLP_TASKS, RMXGREP_TASK
+from ...tasks.celeryconf import NLP_TASKS, RMXCLUSTER_TASKS, RMXGREP_TASK
 from ...tasks.container import (crawl_async, delete_data_from_corpus, test_task)
 
 ERR_MSGS = dict(
@@ -429,29 +429,26 @@ def force_directed_graph(reqobj):
 
 
 @container_app.route('/<objectid:containerid>/kmeans/<int:feats>')
-def kmeans_cluster(containerid: str, feats: int):
+def kmeans_groups(containerid: str, feats: int):
 
     container = ContainerModel.inst_by_id(containerid)
 
-    files = celery.send_task(
+    params = celery.send_task(
         NLP_TASKS['kmeans_files'],
         kwargs={
             'path': container.get_folder_path(),
             'containerid': str(containerid)
         }).get()
-
-    data = celery.send_task(
-        NLP_TASKS['kmeans_cluster'],
-        kwargs={
-            'path': container.get_folder_path(),
-            'containerid': str(containerid),
-            'k': feats
-        }).get()
+    params['k'] = feats
+    groups = celery.send_task(
+        RMXCLUSTER_TASKS['kmeans_groups'],
+        kwargs=params
+    ).get()
 
     return jsonify({
         'k': feats,
         'containerid': containerid,
-        'groups': data,
-        'files': files,
-        'success': True
+        'groups': groups,
+        'success': True,
+        'msg': 'Endpoint used for testing and development.'
     })
