@@ -48,6 +48,10 @@ NLP_TASKS = {
 
     'features_and_docs': 'nlp.task.get_features_and_docs',
 
+    'kmeans_cluster': 'nlp.task.kmeans_cluster',
+
+    'kmeans_files': 'nlp.task.kmeans_files',
+
 }
 
 RMXGREP_TASK = {

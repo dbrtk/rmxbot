@@ -23,11 +23,11 @@ def check_availability(func):
         _featsperdoc = int(reqobj.get('featsperdoc', 3))
         _html = reqobj.get('html', False)
 
-        corpus = ContainerModel.inst_by_id(corpusid)
+        container = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': _features,
-        }, container=corpus)
+        }, container=container)
 
         if availability.get('busy'):
             return jsonify(dict(busy=True, success=False))
@@ -40,12 +40,12 @@ def check_availability(func):
                 docs_per_feat=_docsperfeat,
                 feats_per_doc=_featsperdoc,
                 html=_html,
-                corpus=corpus
+                corpus=container
             ))
         generate_matrices_remote.delay(
-            corpusid=str(corpus.get_id()),
+            corpusid=str(container.get_id()),
             feats=_features,
-            vectors_path=corpus.get_vectors_path(),
+            vectors_path=container.get_vectors_path(),
             words=_words,
             docs_per_feat=_docsperfeat,
             feats_per_doc=_featsperdoc
