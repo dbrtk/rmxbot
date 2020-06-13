@@ -16,12 +16,6 @@ ENV DATA_ROOT '/data'
 # the tmp dir for rmxbot
 ENV TMP_DATA_DIR '/tmp'
 
-# the location of mongodb
-ENV MONGODB_LOCATION 'mongodb'
-
-# the redis host
-ENV BROKER_HOST_NAME 'message_broker'
-
 ENV TEMPLATES_FOLDER '/app/templates'
 
 ENV STATIC_FOLDER '/var/www/rmx'
