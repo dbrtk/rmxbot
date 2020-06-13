@@ -1,15 +1,15 @@
 """ The module getting the database connection, the database and the collection.
 """
-
 from pymongo import MongoClient
 
-from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PORT)
-# from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
-#                        MONGODB_PORT, MONGODB_USER)
+from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
+                       MONGODB_PORT, MONGODB_USER)
 
-# connection for the mongodb user
-CLIENT = MongoClient(MONGODB_LOCATION, MONGODB_PORT)
-# CLIENT.rmx.authenticate(MONGODB_USER, MONGODB_PASS, mechanism='SCRAM-SHA-1')
+CLIENT = MongoClient(MONGODB_LOCATION,
+                     port=MONGODB_PORT,
+                     username=MONGODB_USER,
+                     password=MONGODB_PASS,
+                     authSource=MONGODB_NAME)
 
 
 def get_connection(db=MONGODB_NAME, collection=None):

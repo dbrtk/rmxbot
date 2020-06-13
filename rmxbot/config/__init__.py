@@ -36,13 +36,13 @@ MATRIX_FOLDER = 'matrix'
 CORPUS_MAX_SIZE = 400
 
 # DATABASE configuration - MONGODB
-MONGODB_NAME = os.environ.get('MONGODB_NAME')
+MONGODB_NAME = os.environ.get('DATABASE_NAME')
 # MONGODB_LOCATION = '127.0.0.1'
 
 MONGODB_LOCATION = os.environ.get('MONGODB_LOCATION')
 MONGODB_PORT = 27017
-# MONGODB_USER = os.environ.get('MONGODB_USER')
-# MONGODB_PASS = os.environ.get('MONGODB_PASS')
+MONGODB_USER = os.environ.get('DATABASE_USERNAME')
+MONGODB_PASS = os.environ.get('DATABASE_PASSWORD')
 
 # names given to the mongodb collections
 DATA_COLL = 'data'

@@ -18,8 +18,6 @@ ENV TMP_DATA_DIR '/tmp'
 
 # the location of mongodb
 ENV MONGODB_LOCATION 'mongodb'
-# the name of the database
-ENV MONGODB_NAME 'rmx'
 
 # the redis host
 ENV BROKER_HOST_NAME 'message_broker'
