@@ -6,7 +6,6 @@ from ...config import (MONGODB_LOCATION, MONGODB_NAME, MONGODB_PASS,
                        MONGODB_PORT, MONGODB_USER)
 
 CLIENT = MongoClient(MONGODB_LOCATION,
-                     port=MONGODB_PORT,
                      username=MONGODB_USER,
                      password=MONGODB_PASS,
                      authSource=MONGODB_NAME)
