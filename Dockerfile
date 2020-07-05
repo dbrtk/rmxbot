@@ -1,12 +1,41 @@
-FROM python:3.8
+FROM ubuntu:19.10
 
-# Set the working directory to /app
-WORKDIR /app
+COPY rmxbot /opt/program/rmxbot
+COPY conf/nginx/nginx.conf /opt/program
+COPY serve /opt/program
+COPY requirements.txt /opt/program
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+COPY templates /opt/program/templates
 
-RUN chmod +x /app/run.sh && chmod +x /app/celery.sh
+COPY celery.sh /opt/program
+COPY celery_worker.py /opt/program
+
+
+WORKDIR /opt/program
+
+RUN apt-get -y update && apt-get install -y --no-install-recommends \
+	build-essential \
+	python3-dev \
+	python3-venv \
+	python3-setuptools \
+	python3-pip \
+	nginx \
+	ca-certificates \
+    && apt-get -y autoremove && apt-get autoclean \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 --version
+
+RUN python3 -m pip install -U pip && \
+	python3 -m pip install -r /opt/program/requirements.txt
+
+
+# chmod perms on executables
+RUN chmod +x /opt/program/serve
+RUN ln -s /opt/program/serve /usr/local/bin/serve
+
+
+# environment variables
 
 # the endpoint for extractxt
 ENV EXTRACTXT_ENDPOINT 'http://extractxt:8003'
@@ -16,12 +45,17 @@ ENV DATA_ROOT '/data'
 # the tmp dir for rmxbot
 ENV TMP_DATA_DIR '/tmp'
 
-ENV TEMPLATES_FOLDER '/app/templates'
+ENV TEMPLATES_FOLDER '/opt/program/templates'
 
 ENV STATIC_FOLDER '/var/www/rmx'
 
-# Install any needed packages specified in requirements.txt
-RUN pip install -U pip && pip install .
+# ENV PYTHONUNBUFFERED=TRUE
+# ENV PYTHONDONTWRITEBYTECODE=TRUE
+# ENV PATH='/opt/program:${PATH}'
+
 
 # Make port 8000 available to the world outside this container
-EXPOSE 8000
+# EXPOSE 8000
+
+# ENTRYPOINT ["serve"]
+

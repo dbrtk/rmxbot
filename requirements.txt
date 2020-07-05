@@ -7,7 +7,9 @@ requests
 pymongo
 
 Flask
+gevent
+gunicorn
 
 graphene
-
 Flask-GraphQL
+
