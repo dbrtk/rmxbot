@@ -19,7 +19,8 @@ from .decorators import check_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
-from ...tasks.celeryconf import NLP_TASKS, RMXCLUSTER_TASKS, RMXGREP_TASK
+from ...tasks.celeryconf import (NLP_TASKS, RMXCLUSTER_TASKS, RMXBOT_TASKS,
+                                 RMXGREP_TASK)
 from ...tasks.container import (crawl_async, delete_data_from_container, test_task)
 
 ERR_MSGS = dict(
@@ -89,7 +90,11 @@ def create_from_crawl():
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
     # todo(): pass the corpus file path to the crawler.
-    crawl_async.delay(url_list, corpus_id=docid, depth=depth)
+    celery.send_task(RMXBOT_TASKS['crawl_async'],
+                     args=[url_list],
+                     kwargs={'corpus_id': docid, 'depth': depth})
+
+    # crawl_async.delay(url_list, corpus_id=docid, depth=depth)
 
     return redirect(
         '/container/{}/?{}'.format(

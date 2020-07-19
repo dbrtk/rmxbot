@@ -18,7 +18,7 @@ from .decorators import neo_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
-from ...tasks.celeryconf import RMXGREP_TASK
+from ...tasks.celeryconf import RMXBOT_TASKS, RMXGREP_TASK
 from ...tasks.container import crawl_async, delete_data_from_container
 
 ERR_MSGS = dict(container_does_not_exist='A container with id: "{}" does not exist.')
@@ -60,8 +60,12 @@ def create_from_crawl(name: str = None, endpoint: str = None,
 
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
-    # todo(): pass the corpus file path to the crawler.
-    crawl_async.delay(url_list, corpus_id=docid, depth=depth)
+    # todo(): pass the container file path to the crawler.
+    # crawl_async.delay(url_list, corpus_id=docid, depth=depth)
+
+    celery.send_task(RMXBOT_TASKS['crawl_async'],
+                     kwargs={'corpus_id': docid, 'depth': depth})
+
     return {'success': True, 'containerid': corpus.get_id()}
 
 
@@ -71,8 +75,18 @@ def crawl(containerid: str = None, endpoint: str = None, crawl: bool = True):
     if not corpus:
         abort(404)
     set_crawl_ready(containerid, False)
-    crawl_async.delay([endpoint], corpus_id=containerid,
-                      depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
+
+    celery.send_task(
+        RMXBOT_TASKS['crawl_async'],
+        args=[[endpoint]],
+        kwargs={
+            'corpus_id': containerid,
+            'depth': DEFAULT_CRAWL_DEPTH if crawl else 0
+        })
+
+    # crawl_async.delay([endpoint], corpus_id=containerid,
+    #                   depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
+
     return {'success': True, 'containerid': corpus.get_id()}
 
 

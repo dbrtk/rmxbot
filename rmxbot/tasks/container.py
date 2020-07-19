@@ -9,7 +9,7 @@ from ..apps.container.models import (
     set_crawl_ready)
 from ..config import CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER
 from .data import delete_data
-from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS
+from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS, RMXBOT_TASKS
 
 from ..app import celery
 
@@ -61,7 +61,11 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
         'corpusid': corpus_id,
         'depth': depth
     })
-    monitor_crawl.apply_async((corpus_id,), countdown=CRAWL_MONITOR_COUNTDOWN)
+    celery.send_task(RMXBOT_TASKS['monitor_crawl'],
+                     args=[corpus_id],
+                     countdown=CRAWL_MONITOR_COUNTDOWN)
+
+    # monitor_crawl.apply_async((corpus_id,), countdown=CRAWL_MONITOR_COUNTDOWN)
 
 
 @celery.task
@@ -153,6 +157,8 @@ def delete_data_from_container(
     if corpus.matrix_exists:
         params['link'] = integrity_check.s()
 
+    # celery.send_task(RMXBOT_TASKS['delete_data'], kwargs=params)
+
     delete_data.apply_async(**params)
 
 
@@ -203,13 +209,25 @@ def process_crawl_resp(resp, corpusid, iter: int = 0):
     if resp.get('ready'):
 
         if not crawl_status['integrity_check_in_progress']:
-            integrity_check.delay(corpusid)
+
+            celery.send_task(
+                RMXBOT_TASKS['integrity_check'],
+                kwargs={'corpusid': corpusid}
+            )
+
+            # integrity_check.delay(corpusid)
     else:
         if iter < CRAWL_MONITOR_MAX_ITER:
-            monitor_crawl.apply_async(
-                (corpusid, ),
-                {'iter': iter},
-                countdown=CRAWL_MONITOR_COUNTDOWN)
+            celery.send_task(
+                RMXBOT_TASKS['monitor_crawl'],
+                args=[corpusid],
+                kwargs={'iter': iter},
+                countdown=CRAWL_MONITOR_COUNTDOWN
+            )
+            # monitor_crawl.apply_async(
+            #     (corpusid, ),
+            #     {'iter': iter},
+            #     countdown=CRAWL_MONITOR_COUNTDOWN)
 
 
 @celery.task

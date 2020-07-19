@@ -3,7 +3,9 @@ from functools import wraps
 
 from flask import jsonify, request
 
+from ...app import celery
 from .models import ContainerModel, request_availability
+from ...tasks.celeryconf import RMXBOT_TASKS
 from ...tasks.container import generate_matrices_remote
 
 
@@ -42,14 +44,23 @@ def check_availability(func):
                 html=_html,
                 corpus=container
             ))
-        generate_matrices_remote.delay(
-            corpusid=str(container.get_id()),
-            feats=_features,
-            vectors_path=container.get_vectors_path(),
-            words=_words,
-            docs_per_feat=_docsperfeat,
-            feats_per_doc=_featsperdoc
-        )
+        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
+            'corpusid': str(container.get_id()),
+            'feats': _features,
+            'vectors_path': container.get_vectors_path(),
+            'words': _words,
+            'docs_per_feat': _docsperfeat,
+            'feats_per_doc': _featsperdoc
+        })
+
+        # generate_matrices_remote.delay(
+        #     corpusid=str(container.get_id()),
+        #     feats=_features,
+        #     vectors_path=container.get_vectors_path(),
+        #     words=_words,
+        #     docs_per_feat=_docsperfeat,
+        #     feats_per_doc=_featsperdoc
+        # )
         out = dict(success=False, retry=True, watch=True)
         out.update(availability)
         return jsonify(out)
@@ -91,14 +102,23 @@ def neo_availability(func):
                 'feats_per_doc': featsperdoc,
                 'corpus': container
             })
-        generate_matrices_remote.delay(
-            corpusid=str(container.get_id()),
-            feats=features,
-            vectors_path=container.get_vectors_path(),
-            words=words,
-            docs_per_feat=docsperfeat,
-            feats_per_doc=featsperdoc
-        )
+
+        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
+            'corpusid': str(container.get_id()),
+            'feats': features,
+            'vectors_path': container.get_vectors_path(),
+            'words': words,
+            'docs_per_feat': docsperfeat,
+            'feats_per_doc': featsperdoc
+        })
+        # generate_matrices_remote.delay(
+        #     corpusid=str(container.get_id()),
+        #     feats=features,
+        #     vectors_path=container.get_vectors_path(),
+        #     words=words,
+        #     docs_per_feat=docsperfeat,
+        #     feats_per_doc=featsperdoc
+        # )
         out.update(availability)
         return out
 
@@ -120,11 +140,11 @@ def graph_availability(func):
         docs_per_feat = reqobj.get('docs_per_feat')
         feats_per_doc = reqobj.get('feats_per_doc')
 
-        corpus = ContainerModel.inst_by_id(corpusid)
+        container = ContainerModel.inst_by_id(corpusid)
 
         availability = request_availability(corpusid, {
             'features': features,
-        }, container=corpus)
+        }, container=container)
 
         if availability.get('busy'):
             return jsonify(dict(busy=True, success=False))
@@ -136,16 +156,25 @@ def graph_availability(func):
                 feats=features,
                 docs_per_feat=docs_per_feat,
                 feats_per_doc=feats_per_doc,
-                corpus=corpus
+                corpus=container
             ))
-        generate_matrices_remote.delay(
-            corpusid=str(corpus.get_id()),
-            feats=features,
-            vectors_path=corpus.get_vectors_path(),
-            words=words,
-            docs_per_feat=docs_per_feat,
-            feats_per_doc=feats_per_doc
-        )
+        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
+            'corpusid': str(container.get_id()),
+            'feats': features,
+            'vectors_path': container.get_vectors_path(),
+            'words': words,
+            'docs_per_feat': docs_per_feat,
+            'feats_per_doc': feats_per_doc
+        })
+
+        # generate_matrices_remote.delay(
+        #     corpusid=str(container.get_id()),
+        #     feats=features,
+        #     vectors_path=container.get_vectors_path(),
+        #     words=words,
+        #     docs_per_feat=docs_per_feat,
+        #     feats_per_doc=feats_per_doc
+        # )
         out = dict(success=False, retry=True, watch=True)
         out.update(availability)
         return jsonify(out)
