@@ -27,6 +27,15 @@ CELERY_ROUTES = {
 
 }
 
+RMXBOT_TASKS = {
+
+    'delete_data': 'rmxbot.tasks.data.delete_data',
+
+    'delete_data_from_container': 'rmxbot.tasks.container.delete_data_from_container',
+
+    'monitor_crawl': 'rmxbot.tasks.container.monitor_crawl'
+}
+
 SCRASYNC_TASKS = {
 
     'create':  'scrasync.scraper.start_crawl',

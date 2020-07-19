@@ -20,7 +20,7 @@ from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
 from ...tasks.celeryconf import NLP_TASKS, RMXCLUSTER_TASKS, RMXGREP_TASK
-from ...tasks.container import (crawl_async, delete_data_from_corpus, test_task)
+from ...tasks.container import (crawl_async, delete_data_from_container, test_task)
 
 ERR_MSGS = dict(
     container_does_not_exist='A container with id: "{}" does not exist.')
@@ -276,7 +276,7 @@ def delete_texts(corpusid):
 
     elif request.method == 'POST':
         set_crawl_ready(corpusid, False)
-        delete_data_from_corpus.delay(
+        delete_data_from_container.delay(
             corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
         return redirect(
             '/container/{}/?status=remove-files'.format(str(corpusid)))

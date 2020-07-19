@@ -131,7 +131,7 @@ def integrity_check_callback(corpusid: str = None):
 
 
 @celery.task(bind=True)
-def delete_data_from_corpus(
+def delete_data_from_container(
         self, corpusid: str = None, data_ids: List[str] = None):
 
     corpus = ContainerModel.inst_by_id(corpusid)

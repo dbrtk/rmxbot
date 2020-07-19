@@ -19,7 +19,7 @@ from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
 from ...tasks.celeryconf import RMXGREP_TASK
-from ...tasks.container import crawl_async, delete_data_from_corpus
+from ...tasks.container import crawl_async, delete_data_from_container
 
 ERR_MSGS = dict(container_does_not_exist='A container with id: "{}" does not exist.')
 
@@ -186,7 +186,7 @@ def delete_texts(containerid: str = None, dataids: typing.List[str] = None):
     if not all(isinstance(str, _) for _ in dataids):
         raise ValueError(dataids)
     set_crawl_ready(containerid, False)
-    delete_data_from_corpus.delay(corpusid=containerid, data_ids=dataids)
+    delete_data_from_container.delay(corpusid=containerid, data_ids=dataids)
     return {'success': True, 'containerid': containerid}
 
 

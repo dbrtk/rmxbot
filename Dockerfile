@@ -1,18 +1,5 @@
 FROM ubuntu:19.10
 
-COPY rmxbot /opt/program/rmxbot
-COPY conf/nginx/nginx.conf /opt/program
-COPY serve /opt/program
-COPY requirements.txt /opt/program
-
-COPY templates /opt/program/templates
-
-COPY celery.sh /opt/program
-COPY celery_worker.py /opt/program
-
-
-WORKDIR /opt/program
-
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
 	build-essential \
 	python3-dev \
@@ -24,15 +11,45 @@ RUN apt-get -y update && apt-get install -y --no-install-recommends \
     && apt-get -y autoremove && apt-get autoclean \
     && rm -rf /var/lib/apt/lists/*
 
+# name the portage image
+# FROM gentoo/portage:latest as portage
+#
+# # image is based on stage3-amd64
+# FROM gentoo/stage3-amd64:latest
+#
+# # copy the entire portage volume in
+# COPY --from=portage /var/db/repos/gentoo /var/db/repos/gentoo
+#
+# # RUN emerge --update --newuse --deep @world
+#
+# RUN emerge -qv www-servers/nginx dev-python/pip dev-python/virtualenv
+
+# RUN useradd -ms /bin/bash rmx
+# USER rmx
+
+
+COPY rmxbot /opt/program/rmxbot
+COPY conf/nginx/nginx.conf /opt/program
+COPY serve /opt/program
+COPY requirements.txt /opt/program
+
+COPY templates /opt/program/templates
+
+COPY celery.sh /opt/program
+COPY celery_worker.py /opt/program
+
 RUN python3 --version
 
-RUN python3 -m pip install -U pip && \
-	python3 -m pip install -r /opt/program/requirements.txt
-
+RUN python3 -m pip install --upgrade pip && \
+	python3 -m pip install -r /opt/program/requirements.txt && \
+	python3 -m pip list
 
 # chmod perms on executables
 RUN chmod +x /opt/program/serve
 RUN ln -s /opt/program/serve /usr/local/bin/serve
+
+
+WORKDIR /opt/program
 
 
 # environment variables
