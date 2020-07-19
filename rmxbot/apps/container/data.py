@@ -63,8 +63,14 @@ def create_from_crawl(name: str = None, endpoint: str = None,
     # todo(): pass the container file path to the crawler.
     # crawl_async.delay(url_list, corpus_id=docid, depth=depth)
 
-    celery.send_task(RMXBOT_TASKS['crawl_async'],
-                     kwargs={'corpus_id': docid, 'depth': depth})
+    celery.send_task(
+        RMXBOT_TASKS['crawl_async'],
+        kwargs={
+            'url_list': url_list,
+            'corpus_id': docid,
+            'depth': depth
+        }
+    )
 
     return {'success': True, 'containerid': corpus.get_id()}
 
@@ -78,8 +84,8 @@ def crawl(containerid: str = None, endpoint: str = None, crawl: bool = True):
 
     celery.send_task(
         RMXBOT_TASKS['crawl_async'],
-        args=[[endpoint]],
         kwargs={
+            'url_list': [endpoint],
             'corpus_id': containerid,
             'depth': DEFAULT_CRAWL_DEPTH if crawl else 0
         })
@@ -200,7 +206,17 @@ def delete_texts(containerid: str = None, dataids: typing.List[str] = None):
     if not all(isinstance(str, _) for _ in dataids):
         raise ValueError(dataids)
     set_crawl_ready(containerid, False)
-    delete_data_from_container.delay(corpusid=containerid, data_ids=dataids)
+
+    celery.send_task(
+        RMXBOT_TASKS['delete_data_from_container'],
+        kwargs={
+            'corpusid': containerid,
+            'data_ids': dataids
+        }
+    )
+
+    # delete_data_from_container.delay(corpusid=containerid, data_ids=dataids)
+
     return {'success': True, 'containerid': containerid}
 
 

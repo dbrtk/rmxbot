@@ -36,6 +36,8 @@ RMXBOT_TASKS = {
     'create': 'rmxbot.tasks.data.create',
 
 
+    'test_task': 'rmxbot.tasks.container.test_task',
+
     'generate_matrices_remote':
         'rmxbot.tasks.container.generate_matrices_remote',
 

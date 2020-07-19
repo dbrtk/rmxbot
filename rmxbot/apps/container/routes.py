@@ -90,9 +90,14 @@ def create_from_crawl():
     depth = DEFAULT_CRAWL_DEPTH if crawl else 0
 
     # todo(): pass the corpus file path to the crawler.
-    celery.send_task(RMXBOT_TASKS['crawl_async'],
-                     args=[url_list],
-                     kwargs={'corpus_id': docid, 'depth': depth})
+    celery.send_task(
+        RMXBOT_TASKS['crawl_async'],
+        kwargs={
+            'url_list': url_list,
+            'corpus_id': docid,
+            'depth': depth
+        }
+    )
 
     # crawl_async.delay(url_list, corpus_id=docid, depth=depth)
 
@@ -113,8 +118,18 @@ def crawl():
         abort(404)
 
     set_crawl_ready(corpusid, False)
-    crawl_async.delay([endpoint], corpus_id=corpusid,
-                      depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
+
+    celery.send_task(
+        RMXBOT_TASKS['crawl_async'],
+        kwargs={
+            'url_list': [endpoint],
+            'corpus_id': corpusid,
+            'depth': DEFAULT_CRAWL_DEPTH if crawl else 0
+        }
+    )
+
+    # crawl_async.delay([endpoint], corpus_id=corpusid,
+    #                   depth=DEFAULT_CRAWL_DEPTH if crawl else 0)
     return redirect(
         '/container/{}/?{}'.format(
             str(corpusid), urlencode(dict(status='crawling'))))
@@ -123,7 +138,14 @@ def crawl():
 @container_app.route('/test-task/<a>/<b>/')
 def view_test_task(a, b):
 
-    res = test_task.delay(int(a), int(b))
+    # res = test_task.delay(int(a), int(b))
+    res = celery.send_task(
+        RMXBOT_TASKS['test_task'],
+        kwargs={
+            'a': int(a),
+            'b': int(b)
+        }
+    ).get()
     return jsonify({'success': True, 'result': res.get()})
 
 
@@ -281,8 +303,18 @@ def delete_texts(corpusid):
 
     elif request.method == 'POST':
         set_crawl_ready(corpusid, False)
-        delete_data_from_container.delay(
-            corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
+
+        celery.send_task(
+            RMXBOT_TASKS['delete_data_from_container'],
+            kwargs={
+                'corpusid': str(corpusid),
+                'data_ids': request.form.getlist('docid')
+            }
+        )
+
+        # delete_data_from_container.delay(
+        #     corpusid=str(corpusid), data_ids=request.form.getlist('docid'))
+
         return redirect(
             '/container/{}/?status=remove-files'.format(str(corpusid)))
     else:

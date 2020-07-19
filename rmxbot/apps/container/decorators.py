@@ -44,14 +44,17 @@ def check_availability(func):
                 html=_html,
                 corpus=container
             ))
-        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
-            'corpusid': str(container.get_id()),
-            'feats': _features,
-            'vectors_path': container.get_vectors_path(),
-            'words': _words,
-            'docs_per_feat': _docsperfeat,
-            'feats_per_doc': _featsperdoc
-        })
+        celery.send_task(
+            RMXBOT_TASKS['generate_matrices_remote'],
+            kwargs={
+                'corpusid': str(container.get_id()),
+                'feats': _features,
+                'vectors_path': container.get_vectors_path(),
+                'words': _words,
+                'docs_per_feat': _docsperfeat,
+                'feats_per_doc': _featsperdoc
+            }
+        )
 
         # generate_matrices_remote.delay(
         #     corpusid=str(container.get_id()),
@@ -103,14 +106,17 @@ def neo_availability(func):
                 'corpus': container
             })
 
-        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
-            'corpusid': str(container.get_id()),
-            'feats': features,
-            'vectors_path': container.get_vectors_path(),
-            'words': words,
-            'docs_per_feat': docsperfeat,
-            'feats_per_doc': featsperdoc
-        })
+        celery.send_task(
+            RMXBOT_TASKS['generate_matrices_remote'],
+            kwargs={
+                'corpusid': str(container.get_id()),
+                'feats': features,
+                'vectors_path': container.get_vectors_path(),
+                'words': words,
+                'docs_per_feat': docsperfeat,
+                'feats_per_doc': featsperdoc
+            }
+        )
         # generate_matrices_remote.delay(
         #     corpusid=str(container.get_id()),
         #     feats=features,
@@ -158,14 +164,17 @@ def graph_availability(func):
                 feats_per_doc=feats_per_doc,
                 corpus=container
             ))
-        celery.send_task(RMXBOT_TASKS['generate_matrices_remote'], kwargs={
-            'corpusid': str(container.get_id()),
-            'feats': features,
-            'vectors_path': container.get_vectors_path(),
-            'words': words,
-            'docs_per_feat': docs_per_feat,
-            'feats_per_doc': feats_per_doc
-        })
+        celery.send_task(
+            RMXBOT_TASKS['generate_matrices_remote'],
+            kwargs={
+                'corpusid': str(container.get_id()),
+                'feats': features,
+                'vectors_path': container.get_vectors_path(),
+                'words': words,
+                'docs_per_feat': docs_per_feat,
+                'feats_per_doc': feats_per_doc
+            }
+        )
 
         # generate_matrices_remote.delay(
         #     corpusid=str(container.get_id()),

@@ -61,9 +61,13 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
         'corpusid': corpus_id,
         'depth': depth
     })
-    celery.send_task(RMXBOT_TASKS['monitor_crawl'],
-                     args=[corpus_id],
-                     countdown=CRAWL_MONITOR_COUNTDOWN)
+    celery.send_task(
+        RMXBOT_TASKS['monitor_crawl'],
+        kwargs={
+            'corpusid': corpus_id
+        },
+        countdown=CRAWL_MONITOR_COUNTDOWN
+    )
 
     # monitor_crawl.apply_async((corpus_id,), countdown=CRAWL_MONITOR_COUNTDOWN)
 
@@ -112,7 +116,15 @@ def file_extract_callback(kwds: dict = None):
 
     if not doc['expected_files']:
         if doc.matrix_exists:
-            integrity_check.delay(corpusid=corpusid)
+
+            celery.send_task(
+                RMXBOT_TASKS['integrity_check'],
+                kwargs={
+                    'corpusid': corpusid
+                }
+            )
+
+            # integrity_check.delay(corpusid=corpusid)
         else:
             set_crawl_ready(corpusid, True)
 
@@ -157,9 +169,12 @@ def delete_data_from_container(
     if corpus.matrix_exists:
         params['link'] = integrity_check.s()
 
-    # celery.send_task(RMXBOT_TASKS['delete_data'], kwargs=params)
+    celery.send_task(
+        RMXBOT_TASKS['delete_data'],
+        **params
+    )
 
-    delete_data.apply_async(**params)
+    # delete_data.apply_async(**params)
 
 
 @celery.task
