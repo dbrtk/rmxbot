@@ -31,7 +31,33 @@ RMXBOT_TASKS = {
 
     'delete_data': 'rmxbot.tasks.data.delete_data',
 
-    'delete_data_from_container': 'rmxbot.tasks.container.delete_data_from_container',
+    'create_from_webpage': 'rmxbot.tasks.data.create_from_webpage',
+
+    'create': 'rmxbot.tasks.data.create',
+
+
+    'generate_matrices_remote':
+        'rmxbot.tasks.container.generate_matrices_remote',
+
+    'crawl_async': 'rmxbot.tasks.container.crawl_async',
+
+    'nlp_callback_success': 'rmxbot.tasks.container.nlp_callback_success',
+
+    'file_extract_callback': 'rmxbot.tasks.container.file_extract_callback',
+
+    'integrity_check': 'rmxbot.tasks.container.integrity_check',
+
+    'integrity_check_callback':
+        'rmxbot.tasks.container.integrity_check_callback',
+
+    'delete_data_from_container':
+        'rmxbot.tasks.container.delete_data_from_container',
+
+    'expected_files': 'rmxbot.tasks.container.expected_files',
+
+    'create_from_upload': 'rmxbot.tasks.container.create_from_upload',
+
+    'process_crawl_resp': 'rmxbot.tasks.container.process_crawl_resp',
 
     'monitor_crawl': 'rmxbot.tasks.container.monitor_crawl'
 }
