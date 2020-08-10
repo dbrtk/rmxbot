@@ -1,8 +1,11 @@
 
-from ..config import BROKER_HOST_NAME
+from ..config import BROKER_HOST_NAME, REDIS_PASS
 
-BROKER_URL = 'redis://{}:6379/0'.format(BROKER_HOST_NAME)
-CELERY_RESULT_BACKEND = 'redis://{}:6379/0'.format(BROKER_HOST_NAME)
+
+_url = f'redis://:{REDIS_PASS}@{BROKER_HOST_NAME}:6379/0'
+
+BROKER_URL = _url
+CELERY_RESULT_BACKEND = _url
 
 CELERY_IMPORTS = ('rmxbot.tasks.container', 'rmxbot.tasks.data')
 

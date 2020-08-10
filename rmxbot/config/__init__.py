@@ -56,3 +56,7 @@ CRAWL_MONITOR_COUNTDOWN = 3
 CRAWL_MONITOR_MAX_ITER = 150
 
 REQUEST_MAX_RETRIES = 5
+
+
+# celery, redis (auth access) configuration
+REDIS_PASS = os.environ.get('REDIS_PASS')
