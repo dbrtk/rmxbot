@@ -1,4 +1,6 @@
-FROM ubuntu:19.10
+FROM ubuntu:latest
+
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
 	build-essential \
@@ -45,14 +47,4 @@ ENV TMP_DATA_DIR '/tmp'
 ENV TEMPLATES_FOLDER '/opt/program/templates'
 
 ENV STATIC_FOLDER '/var/www/rmx'
-
-# ENV PYTHONUNBUFFERED=TRUE
-# ENV PYTHONDONTWRITEBYTECODE=TRUE
-# ENV PATH='/opt/program:${PATH}'
-
-
-# Make port 8000 available to the world outside this container
-# EXPOSE 8000
-
-# ENTRYPOINT ["serve"]
 

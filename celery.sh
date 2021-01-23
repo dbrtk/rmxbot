@@ -1,5 +1,4 @@
 #!/bin/sh
 
-celery worker -A celery_worker --loglevel=info -Q rmxbot
+celery -A celery_worker worker --loglevel=INFO -Q rmxbot
 
-# /opt/program/env/bin/celery worker -A celery_worker --loglevel=info -Q rmxbot

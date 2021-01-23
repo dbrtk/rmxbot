@@ -1,5 +1,3 @@
-bson
-
 celery
 redis
 
