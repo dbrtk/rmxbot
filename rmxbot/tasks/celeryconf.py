@@ -1,11 +1,27 @@
 
-from ..config import BROKER_HOST_NAME, REDIS_PASS
+# from ..config import BROKER_HOST_NAME, REDIS_PASS
 
+from ..config import RPC_HOST, RPC_PASS, RPC_PORT, RPC_USER, RPC_VHOST
+# imports related to the omngodb rpc backend
+from ..config import (MONGODB_LOCATION, MONGODB_USER, MONGODB_PASS, 
+                      RPC_DATABASE)
 
-_url = f'redis://:{REDIS_PASS}@{BROKER_HOST_NAME}:6379/0'
+# broker_url = 'amqp://myuser:mypassword@localhost:5672/myvhost'
+_url = f'amqp://{RPC_USER}:{RPC_PASS}@{RPC_HOST}:{RPC_PORT}/{RPC_VHOST}'
+
+#_url = f'redis://:{REDIS_PASS}@{BROKER_HOST_NAME}:6379/0'
 
 BROKER_URL = _url
-CELERY_RESULT_BACKEND = _url
+# CELERY_RESULT_BACKEND = _url
+CELERY_RESULT_BACKEND = 'mongodb://'
+CELERY_MONGODB_BACKEND_SETTINGS = {
+    'host': MONGODB_LOCATION,
+    'user': MONGODB_USER,
+    'password': MONGODB_PASS,
+    'database_name': RPC_DATABASE
+}
+
+CELERY_RESULT_PERSISTENT = True
 
 CELERY_IMPORTS = ('rmxbot.tasks.container', 'rmxbot.tasks.data')
 

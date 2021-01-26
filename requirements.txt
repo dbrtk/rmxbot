@@ -1,8 +1,7 @@
 celery
-redis
+pymongo
 
 requests
-pymongo
 
 Flask
 gevent
@@ -11,3 +10,4 @@ gunicorn
 graphene
 Flask-GraphQL
 
+pika
