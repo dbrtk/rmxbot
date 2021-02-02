@@ -9,5 +9,3 @@ gunicorn
 
 graphene
 Flask-GraphQL
-
-pika

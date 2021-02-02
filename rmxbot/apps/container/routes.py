@@ -18,7 +18,6 @@ from ..data.models import (
 from .decorators import check_availability
 from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
-from ...rabbitpc.client import CallRmxgrep
 from .status import status_text
 from ...tasks.celeryconf import (NLP_TASKS, RMXCLUSTER_TASKS, RMXBOT_TASKS,
                                  RMXGREP_TASK)
@@ -147,7 +146,7 @@ def view_test_task(a, b):
             'b': int(b)
         }
     ).get()
-    return jsonify({'success': True, 'result': res.get()})
+    return jsonify({'success': True, 'result': res})
 
 
 @container_app.route('/<objectid:corpusid>/', methods=['GET'])
@@ -368,23 +367,17 @@ def lemma_context(corpusid):
             matchwords.extend(mapping.get('words'))
         except StopIteration:
             matchwords.append(i)
-            
-    data = CallRmxgrep()(obj={
+
+    data = celery.send_task(
+        RMXGREP_TASK['search_text'],
+        kwargs={
             'highlight': True,
             'words': matchwords,
             'container_path': corpus.texts_path()
-        })
-
-    #data = celery.send_task(
-        #RMXGREP_TASK['search_text'],
-        #kwargs={
-            #'highlight': True,
-            #'words': matchwords,
-            #'container_path': corpus.texts_path()
-        #}).get()
+        }).get()
     return jsonify({
         'success': True,
-        'data': json.loads(data)  # .get('data')
+        'data': data.get('data')
     })
 
 

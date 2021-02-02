@@ -36,11 +36,10 @@ MATRIX_FOLDER = 'matrix'
 CORPUS_MAX_SIZE = 400
 
 # DATABASE configuration - MONGODB
-MONGODB_NAME = os.environ.get('DATABASE_NAME')
-# MONGODB_LOCATION = '127.0.0.1'
 
 MONGODB_LOCATION = os.environ.get('MONGODB_LOCATION')
-MONGODB_PORT = 27017
+MONGODB_NAME = os.environ.get('DATABASE_NAME')
+MONGO_PORT = os.environ.get('MONGO_PORT')
 MONGODB_USER = os.environ.get('DATABASE_USERNAME')
 MONGODB_PASS = os.environ.get('DATABASE_PASSWORD')
 
@@ -79,6 +78,3 @@ RPC_VHOST = os.environ.get('RABBITMQ_DEFAULT_VHOST')
 RPC_HOST = os.environ.get('RABBITMQ_HOST')
 RPC_PORT = os.environ.get('RABBITMQ_PORT', 5672)
 
-# mongodb celery backend
-RPC_DATABASE = os.environ.get('RPC_DATABASE')
-RPC_COLLECTION = os.environ.get('RPC_COLLECTION')
