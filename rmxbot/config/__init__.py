@@ -10,8 +10,6 @@ SCRIPTS = os.path.join(BASE_DIR, 'bin')
 
 TEMPLATES = os.environ['TEMPLATES_FOLDER']
 
-BROKER_HOST_NAME = os.environ.get('BROKER_HOST_NAME')
-
 DEFAULT_CRAWL_DEPTH = 2
 
 
@@ -56,9 +54,12 @@ CRAWL_MONITOR_MAX_ITER = 150
 
 REQUEST_MAX_RETRIES = 5
 
+# REDIS CONFIG
 # celery, redis (auth access) configuration
+BROKER_HOST_NAME = os.environ.get('BROKER_HOST_NAME')
 REDIS_PASS = os.environ.get('REDIS_PASS')
-
+REDIS_DB_NUMBER = os.environ.get('REDIS_DB_NUMBER')
+REDIS_PORT = os.environ.get('REDIS_PORT')
 
 # RabbitMQ configuration
 # rabbitmq rpc queue name
