@@ -20,7 +20,7 @@ from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
 from ...tasks.celeryconf import (NLP_TASKS, RMXCLUSTER_TASKS, RMXBOT_TASKS,
-                                 RMXGREP_TASK)
+                                 RMXGREP_TASK, SCRASYNC_TASKS)
 from ...tasks.container import (crawl_async, delete_data_from_container, test_task)
 
 ERR_MSGS = dict(
@@ -488,4 +488,20 @@ def kmeans_groups(containerid: str, feats: int):
         'groups': groups,
         'success': True,
         'msg': 'Endpoint used for testing and development.'
+    })
+
+
+@container_app.route('/<objectid:containerid>/test-monitor')
+def test_monitor(containerid: str):
+
+    out = celery.send_task(
+        SCRASYNC_TASKS['test_monitor'],
+        kwargs={'containerid': str(containerid)}
+    ).get()
+
+    return jsonify({
+        'containerid': str(containerid),
+        'success': True,
+        'msg': 'testing the crawl metrics',
+        'out': out
     })

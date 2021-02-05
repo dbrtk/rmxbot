@@ -69,8 +69,6 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
         countdown=CRAWL_MONITOR_COUNTDOWN
     )
 
-    # monitor_crawl.apply_async((corpus_id,), countdown=CRAWL_MONITOR_COUNTDOWN)
-
 
 @celery.task
 def nlp_callback_success(**kwds):
@@ -253,9 +251,10 @@ def monitor_crawl(corpusid, iter: int = 0):
        receiving a list of endpoints from the scrapper.
     """
     iter += 1
-    print(f'inside monitor crawl: {corpusid}; {type(corpusid)}', flush=True)
     celery.send_task(
         SCRASYNC_TASKS['crawl_ready'],
         kwargs={'containerid': corpusid},
         link=process_crawl_resp.s(corpusid, iter)
     )
+
+
