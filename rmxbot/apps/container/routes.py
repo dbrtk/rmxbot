@@ -491,7 +491,7 @@ def kmeans_groups(containerid: str, feats: int):
     })
 
 
-@container_app.route('/<objectid:containerid>/test-monitor')
+@container_app.route('/<objectid:containerid>/monitor')
 def test_monitor(containerid: str):
 
     out = celery.send_task(
