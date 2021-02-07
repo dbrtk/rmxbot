@@ -253,7 +253,6 @@ def monitor_crawl(corpusid, iter: int = 0):
        receiving a list of endpoints from the scrapper.
     """
     iter += 1
-    print(f'inside monitor crawl: {corpusid}; {type(corpusid)}', flush=True)
     celery.send_task(
         SCRASYNC_TASKS['crawl_ready'],
         kwargs={'containerid': corpusid},
