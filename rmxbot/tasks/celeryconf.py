@@ -75,14 +75,15 @@ RMXBOT_TASKS = {
 
     'process_crawl_resp': 'rmxbot.tasks.container.process_crawl_resp',
 
-    'monitor_crawl': 'rmxbot.tasks.container.monitor_crawl'
+    'monitor_crawl': 'rmxbot.tasks.container.monitor_crawl',
+
+    'crawl_metrics': 'rmxbot.tasks.container.crawl_metrics',
+
 }
 
 SCRASYNC_TASKS = {
 
     'create':  'scrasync.scraper.start_crawl',
-
-    'crawl_ready': 'scrasync.tasks.crawl_ready',
 
 }
 

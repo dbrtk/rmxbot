@@ -31,7 +31,7 @@ CORPUS_ROOT = os.path.join(DATA_ROOT, 'container')
 TEXT_FOLDER = 'text'
 MATRIX_FOLDER = 'matrix'
 
-CORPUS_MAX_SIZE = 400
+CORPUS_MAX_SIZE = 500
 
 # DATABASE configuration - MONGODB
 
@@ -48,11 +48,17 @@ CORPUS_COLL = 'corpus'
 CLUSTER_COLL = 'cluster'
 
 
-CRAWL_MONITOR_COUNTDOWN = 3
+# monitor the crawl every 5 seconds
+CRAWL_MONITOR_COUNTDOWN = 5
+# wait 10 s before starting to monitor
+CRAWL_START_MONITOR_COUNTDOWN = 10
 
 CRAWL_MONITOR_MAX_ITER = 150
 
 REQUEST_MAX_RETRIES = 5
+# time to wait in seconds after the last call made inside the crawler.
+# after that the container is set as ready
+SECONDS_AFTER_LAST_CALL = 30
 
 # REDIS CONFIG
 # celery, redis (auth access) configuration
@@ -79,3 +85,8 @@ RPC_VHOST = os.environ.get('RABBITMQ_DEFAULT_VHOST')
 RPC_HOST = os.environ.get('RABBITMQ_HOST')
 RPC_PORT = os.environ.get('RABBITMQ_PORT', 5672)
 
+
+# configurations for prometheus
+PROMETHEUS_HOST = os.environ.get('PROMETHEUS_HOST')
+PROMETHEUS_PORT = os.environ.get('PROMETHEUS_PORT')
+PROMETHEUS_URL = f'{PROMETHEUS_HOST}:{PROMETHEUS_PORT}/api/v1'

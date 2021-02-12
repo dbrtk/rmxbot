@@ -1,6 +1,7 @@
 """ Routes for the corpus module. """
 import json
 import os
+import time
 import uuid
 from urllib.parse import urlencode
 
@@ -8,6 +9,7 @@ import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
+import requests
 
 from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
@@ -20,7 +22,7 @@ from .models import (ContainerModel, container_status, request_availability,
                      set_crawl_ready)
 from .status import status_text
 from ...tasks.celeryconf import (NLP_TASKS, RMXCLUSTER_TASKS, RMXBOT_TASKS,
-                                 RMXGREP_TASK)
+                                 RMXGREP_TASK, SCRASYNC_TASKS)
 from ...tasks.container import (crawl_async, delete_data_from_container, test_task)
 
 ERR_MSGS = dict(
@@ -198,15 +200,6 @@ def corpus_crawl_ready(corpusid):
             'ready': True,
             'corpusid': corpusid
         })
-    # todo(): delete.
-    # if corpus['data_from_the_web'] and \
-    #         not corpus.get('integrity_check_in_progress'):
-    #     _corpusid = str(corpusid)
-    #     celery.send_task(
-    #         SCRASYNC_TASKS['crawl_ready'],
-    #         kwargs={'corpusid': _corpusid},
-    #         link=on_crawl_ready.s(_corpusid)
-    #     )
     return jsonify({
         'ready': False,
         'corpusid': corpusid
@@ -489,3 +482,34 @@ def kmeans_groups(containerid: str, feats: int):
         'success': True,
         'msg': 'Endpoint used for testing and development.'
     })
+
+
+@container_app.route('/<objectid:containerid>/crawl-metrics')
+def crawl_metrics(containerid: str):
+    """
+    Querying all metrics for scrasync. It is using hte task registered with
+    RMXBOT_TASKS.
+
+    the response = {
+        'status': 'success',
+        'data': {
+            'resultType': 'vector',
+            'result': [{
+                'metric': {
+                    '__name__': 'parse_and_save__lastcall_<containerid>',
+                    'job': 'scrasync'
+                },
+                'value': [1613125321.823, '1613125299.354587']
+            }, {
+                'metric': {
+                    '__name__': 'parse_and_save__succes_<containerid>',
+                    'job': 'scrasync'
+                }, 'value': [1613125321.823, '1613125299.3545368']
+            }]
+        }
+    }
+    """
+    return celery.send_task(
+        RMXBOT_TASKS['crawl_metrics'],
+        kwargs={ 'containerid': str(containerid) }
+    ).get()
