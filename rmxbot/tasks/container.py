@@ -11,8 +11,8 @@ from ..apps.container.models import (
     set_integrity_check_in_progress,
     set_crawl_ready)
 from ..config import (
-    CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER, PROMETHEUS_URL,
-    SECONDS_AFTER_LAST_CALL
+    CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER,
+    CRAWL_START_MONITOR_COUNTDOWN, PROMETHEUS_URL, SECONDS_AFTER_LAST_CALL
 )
 from .data import delete_data
 from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS, RMXBOT_TASKS
@@ -72,7 +72,7 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
         kwargs={
             'corpusid': corpus_id
         },
-        countdown=CRAWL_MONITOR_COUNTDOWN
+        countdown=CRAWL_START_MONITOR_COUNTDOWN
     )
 
 
@@ -243,10 +243,6 @@ def process_crawl_resp(resp, corpusid, iter: int = 0):
                 kwargs={'iter': iter},
                 countdown=CRAWL_MONITOR_COUNTDOWN
             )
-            # monitor_crawl.apply_async(
-            #     (corpusid, ),
-            #     {'iter': iter},
-            #     countdown=CRAWL_MONITOR_COUNTDOWN)
 
 
 @celery.task
@@ -292,7 +288,6 @@ def crawl_metrics(containerid: str = None):
     exception = f'parse_and_save__exception_{containerid}'
     success = f'parse_and_save__succes_{containerid}'
     lastcall = f'parse_and_save__lastcall_{containerid}'
-    # lastcallq = f'{lastcall}'
     query = '{{__name__=~"{success}|{lastcall}|{exception}",job="scrasync"}}'\
         .format(
             success=success,
@@ -321,10 +316,10 @@ def crawl_metrics(containerid: str = None):
     if time.time() - SECONDS_AFTER_LAST_CALL > lastcall_val:
         ready = True
         # resp = requests.post(del_endpoint)
-
+        # print(f'resp: {resp.text}', flush=True)
     return {
         'containerid': str(containerid),
         'ready': ready,
-        'msg': 'testing the crawl metrics',
+        'msg': 'crawl ready',
         'result': result
     }

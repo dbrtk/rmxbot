@@ -48,7 +48,10 @@ CORPUS_COLL = 'corpus'
 CLUSTER_COLL = 'cluster'
 
 
-CRAWL_MONITOR_COUNTDOWN = 3
+# monitor the crawl every 5 seconds
+CRAWL_MONITOR_COUNTDOWN = 5
+# wait 10 s before starting to monitor
+CRAWL_START_MONITOR_COUNTDOWN = 10
 
 CRAWL_MONITOR_MAX_ITER = 150
 
