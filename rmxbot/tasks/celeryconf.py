@@ -85,11 +85,6 @@ SCRASYNC_TASKS = {
 
     'create':  'scrasync.scraper.start_crawl',
 
-    'crawl_ready': 'scrasync.tasks.crawl_ready',
-    
-    # todo(): delete after devel
-    'test_monitor': 'scrasync.tasks.test_monitor',
-
 }
 
 NLP_TASKS = {
