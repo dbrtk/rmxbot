@@ -200,15 +200,6 @@ def corpus_crawl_ready(corpusid):
             'ready': True,
             'corpusid': corpusid
         })
-    # todo(): delete.
-    # if corpus['data_from_the_web'] and \
-    #         not corpus.get('integrity_check_in_progress'):
-    #     _corpusid = str(corpusid)
-    #     celery.send_task(
-    #         SCRASYNC_TASKS['crawl_ready'],
-    #         kwargs={'corpusid': _corpusid},
-    #         link=on_crawl_ready.s(_corpusid)
-    #     )
     return jsonify({
         'ready': False,
         'corpusid': corpusid
