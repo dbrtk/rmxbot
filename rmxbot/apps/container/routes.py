@@ -1,6 +1,7 @@
 """ Routes for the corpus module. """
 import json
 import os
+import time
 import uuid
 from urllib.parse import urlencode
 
@@ -8,10 +9,11 @@ import bson
 from flask import (abort, Blueprint, jsonify, redirect, render_template,
                    request)
 import pymongo
+import requests
 
 from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       TEMPLATES)
+                       TEMPLATES, PROMETHEUS_URL, SECONDS_AFTER_LAST_CALL)
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
@@ -491,17 +493,69 @@ def kmeans_groups(containerid: str, feats: int):
     })
 
 
-@container_app.route('/<objectid:containerid>/monitor')
-def test_monitor(containerid: str):
+@container_app.route('/<objectid:containerid>/crawl-monitor')
+def crawl_monitor(containerid: str):
+    """
+    Querying all metrics for scrasync
+    the response = {
+        'status': 'success',
+        'data': {
+            'resultType': 'vector',
+            'result': [{
+                'metric': {
+                    '__name__': 'parse_and_save__lastcall_<containerid>',
+                    'job': 'scrasync'
+                },
+                'value': [1613125321.823, '1613125299.354587']
+            }, {
+                'metric': {
+                    '__name__': 'parse_and_save__succes_<containerid>',
+                    'job': 'scrasync'
+                }, 'value': [1613125321.823, '1613125299.3545368']
+            }]
+        }
+    }
+    """
+    ready = False
 
-    out = celery.send_task(
-        SCRASYNC_TASKS['test_monitor'],
-        kwargs={'containerid': str(containerid)}
-    ).get()
+    exception = f'parse_and_save__exception_{containerid}'
+    success = f'parse_and_save__succes_{containerid}'
+    lastcall = f'parse_and_save__lastcall_{containerid}'
+    # lastcallq = f'{lastcall}'
+    query = '{{__name__=~"{success}|{lastcall}|{exception}",job="scrasync"}}'\
+        .format(
+            success=success,
+            exception=exception,
+            lastcall=lastcall
+        )
+    endpoint = f'http://{PROMETHEUS_URL}/query?query={query}'
+    del_endpoint = 'http://{}/admin/tsdb/delete_series?match={}'.format(
+        PROMETHEUS_URL, query
+    )
+    resp = requests.get(endpoint)
+    resp = resp.json()
+    result = resp.get('data', {}).get('result', [])
+    if not result:
+        return {
+            'crawl_ready': True,
+            'result': result,
+            'msg': 'no records in prometheus',
+            'containerid': str(containerid)
+        }
+    lastcall_obj = next(
+        _ for _ in result
+        if _.get('metric').get('__name__') == lastcall
+    )
+    lastcall_val = float(lastcall_obj['value'][1])
+    if time.time() - SECONDS_AFTER_LAST_CALL > lastcall_val:
+        ready = True
+        #print(f'del_endpoint: {del_endpoint}', flush=True)
+        #resp = requests.post(del_endpoint)
+        #print(resp.text, flush=True)
 
     return jsonify({
         'containerid': str(containerid),
-        'success': True,
+        'crawl_ready': ready,
         'msg': 'testing the crawl metrics',
-        'out': out
+        'result': result
     })
