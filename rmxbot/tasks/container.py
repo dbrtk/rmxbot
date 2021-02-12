@@ -316,7 +316,6 @@ def crawl_metrics(containerid: str = None):
     if time.time() - SECONDS_AFTER_LAST_CALL > lastcall_val:
         ready = True
         # resp = requests.post(del_endpoint)
-        # print(f'resp: {resp.text}', flush=True)
     return {
         'containerid': str(containerid),
         'ready': ready,
