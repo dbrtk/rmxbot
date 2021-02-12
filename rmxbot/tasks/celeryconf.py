@@ -77,6 +77,8 @@ RMXBOT_TASKS = {
 
     'monitor_crawl': 'rmxbot.tasks.container.monitor_crawl',
 
+    'crawl_metrics': 'rmxbot.tasks.container.crawl_metrics',
+
 }
 
 SCRASYNC_TASKS = {

@@ -1,13 +1,19 @@
 
 import os
+import time
 from typing import List
+
+import requests
 
 from ..apps.container.models import (
     ContainerModel, container_status, insert_urlobj,
     integrity_check_ready,
     set_integrity_check_in_progress,
     set_crawl_ready)
-from ..config import CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER
+from ..config import (
+    CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER, PROMETHEUS_URL,
+    SECONDS_AFTER_LAST_CALL
+)
 from .data import delete_data
 from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS, RMXBOT_TASKS
 
@@ -252,9 +258,73 @@ def monitor_crawl(corpusid, iter: int = 0):
     """
     iter += 1
     celery.send_task(
-        SCRASYNC_TASKS['crawl_ready'],
-        kwargs={'containerid': corpusid},
+        RMXBOT_TASKS['crawl_metrics'],
+        kwargs={ 'containerid': corpusid },
         link=process_crawl_resp.s(corpusid, iter)
     )
 
 
+@celery.task
+def crawl_metrics(containerid: str = None):
+    """
+    Querying all metrics for scrasync
+    the response = {
+        'status': 'success',
+        'data': {
+            'resultType': 'vector',
+            'result': [{
+                'metric': {
+                    '__name__': 'parse_and_save__lastcall_<containerid>',
+                    'job': 'scrasync'
+                },
+                'value': [1613125321.823, '1613125299.354587']
+            }, {
+                'metric': {
+                    '__name__': 'parse_and_save__succes_<containerid>',
+                    'job': 'scrasync'
+                }, 'value': [1613125321.823, '1613125299.3545368']
+            }]
+        }
+    }
+    """
+    ready = False
+
+    exception = f'parse_and_save__exception_{containerid}'
+    success = f'parse_and_save__succes_{containerid}'
+    lastcall = f'parse_and_save__lastcall_{containerid}'
+    # lastcallq = f'{lastcall}'
+    query = '{{__name__=~"{success}|{lastcall}|{exception}",job="scrasync"}}'\
+        .format(
+            success=success,
+            exception=exception,
+            lastcall=lastcall
+        )
+    endpoint = f'http://{PROMETHEUS_URL}/query?query={query}'
+    del_endpoint = 'http://{}/admin/tsdb/delete_series?match={}'.format(
+        PROMETHEUS_URL, query
+    )
+    resp = requests.get(endpoint)
+    resp = resp.json()
+    result = resp.get('data', {}).get('result', [])
+    if not result:
+        return {
+            'ready': True,
+            'result': result,
+            'msg': 'no records in prometheus',
+            'containerid': str(containerid)
+        }
+    lastcall_obj = next(
+        _ for _ in result
+        if _.get('metric').get('__name__') == lastcall
+    )
+    lastcall_val = float(lastcall_obj['value'][1])
+    if time.time() - SECONDS_AFTER_LAST_CALL > lastcall_val:
+        ready = True
+        # resp = requests.post(del_endpoint)
+
+    return {
+        'containerid': str(containerid),
+        'ready': ready,
+        'msg': 'testing the crawl metrics',
+        'result': result
+    }

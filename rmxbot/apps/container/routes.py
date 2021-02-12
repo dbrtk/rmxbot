@@ -13,7 +13,7 @@ import requests
 
 from ...app import celery
 from ...config import (DEFAULT_CRAWL_DEPTH, EXTRACTXT_FILES_UPLOAD_URL,
-                       TEMPLATES, PROMETHEUS_URL, SECONDS_AFTER_LAST_CALL)
+                       TEMPLATES)
 from ...contrib.rmxjson import RmxEncoder
 from ..data.models import (
     DataModel, LIST_SCREENPLAYS_PROJECT, LISTURLS_PROJECT)
@@ -493,10 +493,12 @@ def kmeans_groups(containerid: str, feats: int):
     })
 
 
-@container_app.route('/<objectid:containerid>/crawl-monitor')
-def crawl_monitor(containerid: str):
+@container_app.route('/<objectid:containerid>/crawl-metrics')
+def crawl_metrics(containerid: str):
     """
-    Querying all metrics for scrasync
+    Querying all metrics for scrasync. It is using hte task registered with
+    RMXBOT_TASKS.
+
     the response = {
         'status': 'success',
         'data': {
@@ -516,46 +518,7 @@ def crawl_monitor(containerid: str):
         }
     }
     """
-    ready = False
-
-    exception = f'parse_and_save__exception_{containerid}'
-    success = f'parse_and_save__succes_{containerid}'
-    lastcall = f'parse_and_save__lastcall_{containerid}'
-    # lastcallq = f'{lastcall}'
-    query = '{{__name__=~"{success}|{lastcall}|{exception}",job="scrasync"}}'\
-        .format(
-            success=success,
-            exception=exception,
-            lastcall=lastcall
-        )
-    endpoint = f'http://{PROMETHEUS_URL}/query?query={query}'
-    del_endpoint = 'http://{}/admin/tsdb/delete_series?match={}'.format(
-        PROMETHEUS_URL, query
-    )
-    resp = requests.get(endpoint)
-    resp = resp.json()
-    result = resp.get('data', {}).get('result', [])
-    if not result:
-        return {
-            'crawl_ready': True,
-            'result': result,
-            'msg': 'no records in prometheus',
-            'containerid': str(containerid)
-        }
-    lastcall_obj = next(
-        _ for _ in result
-        if _.get('metric').get('__name__') == lastcall
-    )
-    lastcall_val = float(lastcall_obj['value'][1])
-    if time.time() - SECONDS_AFTER_LAST_CALL > lastcall_val:
-        ready = True
-        #print(f'del_endpoint: {del_endpoint}', flush=True)
-        #resp = requests.post(del_endpoint)
-        #print(resp.text, flush=True)
-
-    return jsonify({
-        'containerid': str(containerid),
-        'crawl_ready': ready,
-        'msg': 'testing the crawl metrics',
-        'result': result
-    })
+    return celery.send_task(
+        RMXBOT_TASKS['crawl_metrics'],
+        kwargs={ 'containerid': str(containerid) }
+    ).get()
