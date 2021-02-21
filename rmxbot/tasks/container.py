@@ -11,8 +11,7 @@ from ..apps.container.models import (
     set_integrity_check_in_progress,
     set_crawl_ready)
 from ..config import (
-    CRAWL_MONITOR_COUNTDOWN, CRAWL_MONITOR_MAX_ITER,
-    CRAWL_START_MONITOR_COUNTDOWN, PROMETHEUS_URL, SECONDS_AFTER_LAST_CALL
+    CRAWL_MONITOR_COUNTDOWN, CRAWL_START_MONITOR_COUNTDOWN, PROMETHEUS_URL, SECONDS_AFTER_LAST_CALL
 )
 from .data import delete_data
 from ..tasks.celeryconf import NLP_TASKS, SCRASYNC_TASKS, RMXBOT_TASKS
@@ -67,11 +66,11 @@ def crawl_async(url_list: list = None, corpus_id=None, depth=1):
         'corpusid': corpus_id,
         'depth': depth
     })
+    # the countdown argument is here to make sure that this task does not
+    # start immediately as prometheus may be empty.
     celery.send_task(
         RMXBOT_TASKS['monitor_crawl'],
-        kwargs={
-            'corpusid': corpus_id
-        },
+        args=[corpus_id],
         countdown=CRAWL_START_MONITOR_COUNTDOWN
     )
 
@@ -127,8 +126,6 @@ def file_extract_callback(kwds: dict = None):
                     'corpusid': corpusid
                 }
             )
-
-            # integrity_check.delay(corpusid=corpusid)
         else:
             set_crawl_ready(corpusid, True)
 
@@ -168,7 +165,7 @@ def delete_data_from_container(
         os.remove(_path)
 
     params = {
-        'kwargs': {'corpusid': corpusid, 'dataids': data_ids}
+        'kwargs': { 'corpusid': corpusid, 'dataids': data_ids }
     }
     if corpus.matrix_exists:
         params['link'] = integrity_check.s()
@@ -216,47 +213,41 @@ def create_from_upload(name: str = None, file_objects: list = None):
 
 
 @celery.task
-def process_crawl_resp(resp, corpusid, iter: int = 0):
+def process_crawl_resp(resp, containerid):
     """
     Processing the crawl response.
     :param resp:
-    :param corpusid:
-    :param iter:
+    :param containerid:
     :return:
     """
-    crawl_status = container_status(corpusid)
+    crawl_status = container_status(containerid)
     if resp.get('ready'):
 
         if not crawl_status['integrity_check_in_progress']:
 
             celery.send_task(
                 RMXBOT_TASKS['integrity_check'],
-                kwargs={'corpusid': corpusid}
+                kwargs={'corpusid': containerid}
             )
-
-            # integrity_check.delay(corpusid)
     else:
-        if iter < CRAWL_MONITOR_MAX_ITER:
-            celery.send_task(
-                RMXBOT_TASKS['monitor_crawl'],
-                args=[corpusid],
-                kwargs={'iter': iter},
-                countdown=CRAWL_MONITOR_COUNTDOWN
-            )
+        celery.send_task(
+            RMXBOT_TASKS['monitor_crawl'],
+            args=[containerid],
+            countdown=CRAWL_MONITOR_COUNTDOWN
+        )
 
 
 @celery.task
-def monitor_crawl(corpusid, iter: int = 0):
+def monitor_crawl(containerid):
     """This task takes care of the crawl callback.
 
        The first parameter is empty becasue it is called as a linked task
        receiving a list of endpoints from the scrapper.
     """
-    iter += 1
     celery.send_task(
         RMXBOT_TASKS['crawl_metrics'],
-        kwargs={ 'containerid': corpusid },
-        link=process_crawl_resp.s(corpusid, iter)
+        kwargs={ 'containerid': containerid },
+        link=process_crawl_resp.s(containerid)
     )
 
 
