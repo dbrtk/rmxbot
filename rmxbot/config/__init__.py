@@ -53,8 +53,6 @@ CRAWL_MONITOR_COUNTDOWN = 5
 # wait 10 s before starting to monitor
 CRAWL_START_MONITOR_COUNTDOWN = 10
 
-CRAWL_MONITOR_MAX_ITER = 150
-
 REQUEST_MAX_RETRIES = 5
 # time to wait in seconds after the last call made inside the crawler.
 # after that the container is set as ready
